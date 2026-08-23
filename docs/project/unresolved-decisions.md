@@ -241,17 +241,17 @@
 
 **状態:** 一部決定済み
 
-**決定済みの内容:** compileとrunのtimeoutを分け、stdout/stderrに上限を設け、timeout時は各`HostPlatform`がprocess treeを終了する。MVPの`test`はcompile時間とsampleごとのlocal run時間を可能な限りmonotonic clockで計測して表示するが、全local test eventは保存しない。AtCoderが返すjudge execution time / memoryはnullableなremote観測として保存し、local値と同一条件のbenchmarkにしない。local peak memoryはOSごとの意味と取得範囲を検証してからMVP後に段階導入する。DB lockは有限時間とし、外部通信ではconnection・request・polling全体の上限を分ける。foregroundとbackgroundはasync APIの採否ではなく利用者の主目的と制御返却点で分け、中断して破棄できない処理は必要な状態を先に耐久保存する。初期段階ではbackground化のための常駐daemonを導入しない。初期性能目標として`log` p95 100ms、`show` p95 150ms、`diff` p95 250ms等の計測仮説が定義されている。
+**決定済みの内容:** compileとrunのtimeoutを分け、stdout/stderrに上限を設け、timeout時は各`HostPlatform`がprocess treeを終了する。MVPの`test`はcompile時間とsampleごとのlocal run時間を可能な限りmonotonic clockで計測して表示するが、全local test eventは保存しない。AtCoderが返すjudge execution time / memoryはnullableなremote観測として保存し、local値と同一条件のbenchmarkにしない。local peak memoryはOSごとの意味と取得範囲を検証してからMVP後に段階導入する。DB lockは有限時間とし、外部通信ではconnection・request・polling全体の上限を分ける。AtCoder側との互換性確認は、提出操作にともなう確認、明示的な診断または許可された低頻度の保守確認に限定し、無期限の常駐監視を行わない。foregroundとbackgroundはasync APIの採否ではなく利用者の主目的と制御返却点で分け、中断して破棄できない処理は必要な状態を先に耐久保存する。初期段階ではbackground化のための常駐daemonを導入しない。初期性能目標として`log` p95 100ms、`show` p95 150ms、`diff` p95 250ms等の計測仮説が定義されている。
 
-**残る未決:** 実測後に固定するtimeout・出力量・保持期間・resource上限・SLO、local durationの表示精度と丸め、対応OSごとのpeak memory取得方法・子process範囲・強制memory/process制限、compiler/runtime version matrix。
+**残る未決:** 実測後に固定するtimeout・出力量・保持期間・resource上限・SLO、互換性の利用時の再確認間隔と保守確認の頻度、local durationの表示精度と丸め、対応OSごとのpeak memory取得方法・子process範囲・強制memory/process制限、compiler/runtime version matrix。
 
-**決めること:** timeout、出力量、保持期間、compile/runのresource上限、local計測の表示精度、OS別peak memoryの対応可否、性能SLOを固定する値と計測対象環境。
+**決めること:** timeout、出力量、保持期間、compile/runのresource上限、互換性の再確認間隔と保守確認の頻度、local計測の表示精度、OS別peak memoryの対応可否、性能SLOを固定する値と計測対象環境。
 
 **原文:** 「timeout、出力量、保持期間等の具体値」「compilerとruntimeの細かなversion matrix」
 
 **原文:** 「数値は対応OS、DB規模、sample数、Providerにより変わるため、次は実装開始時の仮説である。固定の約束にする前に、代表的な端末と履歴件数でp50/p95を計測する。」
 
-出典: [MVPスコープ §1.2](../product/mvp.md#12-本書で決めないこと)、[パフォーマンスと待機体験の設計 §1.3](../quality/performance-and-waiting-design.md#13-非同期化と制御返却点)、[同 §5](../quality/performance-and-waiting-design.md#5-性能待機の初期契約)
+出典: [MVPスコープ §1.2](../product/mvp.md#12-本書で決めないこと)、[パフォーマンスと待機体験の設計 §1.3](../quality/performance-and-waiting-design.md#13-非同期化と制御返却点)、[同 §5](../quality/performance-and-waiting-design.md#5-性能待機の初期契約)、[MVP機能設計 §8.5](../../spec/features.md#85-atcoder側の変更検知と互換性確認f-submit-05)
 
 ### 2.4 DB保守の実行規約
 
