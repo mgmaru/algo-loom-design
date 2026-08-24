@@ -95,6 +95,7 @@ AI review、Cloud同期、問題推薦・TUI、公開用solution bundle、Repair
 | [配布方針ガイド](docs/operations/algoloom-distribution.md) | AtCoderコンテンツ、規約、ライセンス、PyPI公開 | 配布上の判断材料 |
 | [契約の考え方](docs/project/contract-concepts.md) | 製品契約、Core契約、保存契約、境界の契約、契約テストの平易な説明 | 用語・概念ガイド |
 | [製品契約と実装判断の境界](docs/project/product-contract-and-implementation-boundary.md) | 「製品の意味」が変わる判断と、実装ADRへ委ねる判断の区別 | 設計・実装判断のガイド |
+| [ライブラリ選定記録](docs/project/library-selection.md) | MVP実装で使うライブラリと外部ツールの採否、根拠、再評価条件 | 工程4の選定判断。`online-judge-tools`は決定済み、その他は進行中 |
 | [未決事項一覧](docs/project/unresolved-decisions.md) | 未決、条件付き決定、外部確認待ちの集約 | 判断状況の一覧。各設計の正本は置き換えない |
 | [JudgeAdapter技術検証の実施手順](docs/verification/judge-adapter/README.md) | 実行前確認、停止条件、成果物と一時データの分離 | 技術検証の運用手順。合格条件の正本は検証計画 |
 

@@ -6,7 +6,7 @@
 >
 > 決定日: 2026年7月18日
 >
-> 更新日: 2026年8月11日
+> 更新日: 2026年8月24日
 >
 > 関連文書:
 > - [プロダクトビジョン](vision.md)
@@ -19,6 +19,7 @@
 > - [言語・実行環境の可搬性設計](../architecture/language-and-platform-portability.md)
 > - [外部学習資料参照設計](../features/external-learning-resources.md)
 > - [解き直しworkflow設計](../features/revisit-workflow.md)
+> - [ライブラリ選定記録](../project/library-selection.md)
 
 ---
 
@@ -253,7 +254,8 @@ MVPは次を必須条件とする。
 
 - AtCoderとの連携を交換可能な`JudgeAdapter`境界の後ろへ置く。
 - AtCoderセッションの確立と保管を、問題取得・提出・判定確認から分離した認証セッション境界へ置く。Coreと履歴DBはCookieを受け取らない。
-- `online-judge-tools`は候補実装であり、AlgoLoomのDomainや保存Schemaの契約にしない。
+- `online-judge-tools`は初期の`JudgeAdapter`実装には採用しない。AtCoderとの通信は、対象、回数、間隔、上限、再試行、保存項目を明示できる薄い自作HTTPアダプタとして実装する。
+- この実装選択をAlgoLoomのドメインや保存スキーマの契約にせず、`JudgeAdapter`の交換可能性を維持する。将来の候補は、製品契約を弱めず共通の選定基準と契約テストを満たす場合だけ再評価する。
 - `online-judge-tools`のパスワード入力型ログインをMVPの認証経路にしない。
 - 外部toolのstdout、stderr、例外文、HTML構造をそのままCoreの状態として保存しない。
 
