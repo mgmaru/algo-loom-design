@@ -187,7 +187,7 @@ aloom submit main.cpp
 | **redo** | [問題ID]<br>--lang [言語]<br>--from [snapshot] | 同じ問題の新しいSolveAttemptを開始する。既定は新しいsibling checkoutとfresh templateで、過去sourceを上書き・自動copyしない。command名とoptionは暫定案とする。 |
 | **test** | [ファイル名] | 組み込みlanguage profileに基づきbuild（C++等）を行い、test/内の公開sampleとの一致をlocalで確認する。AtCoderでのACを保証する判定とは表現しない。 |
 | **checkpoint** | [ファイル名] | 提出前のsource snapshotを、利用者の明示操作によってローカル履歴へ保存する。外部通信は行わない。 |
-| **submit** | [ファイル名]<br>--review（MVP後） | ①問題contextとAtCoder accountを確認<br>②送信する正確なsource snapshotと提出操作をローカルSQLiteへ耐久保存<br>③Judge Adapter経由でAtCoderへ提出<br>④submission IDを保存し、判定をpolling<br>⑤中断時は状態を保持し、同じ提出の判定だけを再確認<br>⑥将来の同期とAI reviewは、Coreの提出Serviceへ組み込まず、成功状態を変更しない独立したCapabilityとして追加 |
+| **submit** | [ファイル名]<br>--review（MVP後） | ①問題contextとAtCoder accountを確認<br>②送信する正確なsource snapshotと提出操作をローカルSQLiteへ耐久保存<br>③Judge Adapterが可視browserの提出formを準備し、Turnstileと最後の提出操作を利用者へ委ねる<br>④submission IDを保存し、判定をpolling<br>⑤中断時は状態を保持し、同じ提出の判定だけを再確認<br>⑥将来の同期とAI reviewは、Coreの提出Serviceへ組み込まず、成功状態を変更しない独立したCapabilityとして追加 |
 | **log** | なし | ローカルSQLiteからSolveAttempt、active duration、milestone、checkpoint、提出操作、判定を取得し、通信を待たずにterminalへ一覧表示する。時間を利用者間rankまたは単一skill scoreとして表示しない。 |
 | **show** | [問題IDまたは履歴ID] | ローカルDBから選択したsource snapshotを取得する。MVPはterminal上のplain textで表示し、外部Editor / Viewer連携はMVP後とする。 |
 | **diff** | [問題IDまたは履歴ID] | ローカルDBから利用者が振り返る2つのsource snapshotを取得し、MVPはunified diffで表示する。初回提出と最新AC等を既定候補にしても、比較対象を確認・指定できるようにする。 |

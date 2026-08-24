@@ -14,6 +14,7 @@
 > - [解き直しworkflow設計](revisit-workflow.md)
 > - [ストレスフリーUX設計](../quality/stress-free-ux-design.md)
 > - [配布方針ガイド](../operations/algoloom-distribution.md)
+> - [AtCoder公開情報に基づく配布判断記録](../project/atcoder-public-policy-review.md)
 >
 > 重要: 本書は法的助言ではない。規約、個別contest rule、ページ構造は変更され得るため、実装時と公開前に公式資料を再確認する。
 
@@ -268,10 +269,11 @@ MVPでは外部資料を開いたevent自体を学習履歴へ自動保存しな
 
 ### Phase 2: 他ユーザーの提出一覧
 
-- AtCoderへ具体的なURL生成・browser委譲設計を説明し、公開前確認へ含める。
+- [公開情報に基づく配布判断](../project/atcoder-public-policy-review.md)に従い、browser-only、本文非取得、crawlなしを維持する。
 - current problem、AC、current languageのfilter mappingを検証する。
 - 未AC時のspoiler確認とnon-interactive契約を検証する。
 - loginをbrowserへ完全に委譲し、CookieをAlgoLoomが読まないことを確認する。
+- AtCoderの`robots.txt`でcrawler accessが制限されたsubmission領域をHTTP Adapterで取得・巡回しない。
 - URL変更時のfallbackを、contest提出一覧または公式問題ページへの遷移として設計する。
 
 ### Phase 3以降: 任意の学習文脈
@@ -290,6 +292,7 @@ MVPでは外部資料を開いたevent自体を学習履歴へ自動保存しな
 - [ ] DB、cache、temp、log、telemetry、export、Cloud同期へ外部本文を保存していない。
 - [ ] 他ユーザーのcodeをclipboardへ自動転送していない。
 - [ ] AC提出を模範解答または最良実装と表示していない。
+- [ ] submission領域をAlgoLoomのHTTP Adapterでcrawlしていない。
 
 ### Browserと認証
 
@@ -320,7 +323,9 @@ MVPでは外部資料を開いたevent自体を学習履歴へ自動保存しな
 - [AtCoderのコンテスト中のルール](https://info.atcoder.jp/overview/contest/rules)
 - [AtCoder Daily Training](https://atcoder.jp/contests/adt_top?lang=ja)
 - [AtCoder公式入門資料](https://img.atcoder.jp/file/introduction_atcoder.pdf)
+- [APG4b: 他の人の提出を見る](https://atcoder.jp/contests/apg4b/tasks/APG4b_al?lang=ja)
 - [AtCoder問題別解説ページの例](https://atcoder.jp/contests/abc416/tasks/abc416_a/editorial)
+- [AtCoder `robots.txt`](https://atcoder.jp/robots.txt)
 
 ---
 

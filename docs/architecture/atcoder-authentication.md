@@ -11,6 +11,7 @@
 > - [Core契約](core-contracts.md)
 > - [セキュリティ設計ガイド](../quality/security-design.md)
 > - [配布方針ガイド](../operations/algoloom-distribution.md)
+> - [AtCoder公開情報に基づく配布判断記録](../project/atcoder-public-policy-review.md)
 > - [`JudgeAdapter`技術検証計画](../project/judge-adapter-verification.md)
 > - [技術検証の実施手順](../verification/judge-adapter/README.md)
 
@@ -41,7 +42,7 @@ MVPは次の二段階で認証方式を確定します。
 | セッションの取り込み | 方式Cでは利用者、方式Aでは認証ヘルパー | `https://atcoder.jp`の`REVEL_SESSION`だけを許可する |
 | セッションの保管 | 認証セッション保管境界 | 履歴DB、作業領域、設定ファイルから分離する |
 | アカウント確認 | `JudgeAdapter` | 提出せず、同じセッションから識別情報を取得する |
-| 提出・判定確認 | `JudgeAdapter` | アカウント確認後だけ実行する |
+| 提出・判定確認 | 可視専用browser・利用者・`JudgeAdapter` | アカウント確認後に提出を準備し、Turnstileと最後の提出操作は利用者がbrowserで行う。受理済み提出の判定はAdapterが確認する |
 
 認証セッションの取得と、外部学習資料を既定のブラウザで開く`BrowserLauncher`は別の責任です。`BrowserLauncher`は引き続きCookie、プロファイル、ログイン状態を読みません。方式Aの認証ヘルパーだけが、利用者の明示した認証操作中に専用プロファイルの許可されたCookieへアクセスできます。
 
@@ -145,7 +146,7 @@ AtCoderが`Set-Cookie`を返した場合は、HTTPクライアントのCookie ja
 | アカウント不一致 | 取得値と確認済み期待値の不一致 | セッションを確定せず提出を停止する |
 | AtCoder・Cloudflare側の拒否 | 403、challenge等の許可リスト化した分類 | 自動再試行せず、時間を置くか公式情報を確認する |
 | ページ構造の変更 | 200応答だが識別情報を一意に解釈できない | 未認証とみなさず、Adapterの互換性エラーとして停止する |
-| 通信障害 | 接続、TLS、名前解決、タイムアウト | 外部作用前かを示し、安全な場合だけ有限回再試行する |
+| 通信障害 | 接続、TLS、名前解決、タイムアウト | 外部作用前かを示して停止し、利用者が確認した後の新しい明示操作としてだけ再開する |
 | 秘密情報保管庫の障害 | 読み書き、ロック、アクセス拒否 | 提出だけを停止し、ローカル機能は継続する |
 
 認証確認は初回提出前と各提出直前に行います。Cookieの存在、HTTP 200、外部ツールの「ログイン済み」という真偽値だけで、意図したアカウントと断定しません。
@@ -175,14 +176,16 @@ AtCoderが`Set-Cookie`を返した場合は、HTTPクライアントのCookie ja
 - ログ、エラー、DB、エクスポート、配布物への秘密情報非混入
 - アカウント変更、期限切れ、ページ構造変更の送信前停止
 
-## 7. 公開と外部確認
+## 7. 公開と公式情報の再確認
 
 個人の技術検証と、第三者へ配布する製品の判断を分けます。
 
 - 個人の技術検証は、終了済み過去問1件、本人のアカウント、1件以下の提出、有限のアクセス、Bot対策を回避しない既存条件で実施します。
 - 他の周辺ツールが存在することや、利用規約に自動化の名指しがないことを、AlgoLoomの方式への許諾とみなしません。
-- 限定公開ベータの開始前に、ブラウザで本人が確立したセッションを同一端末のローカルCLIへ渡し、明示操作で一件提出して本人の判定を確認する方式を、リクエスト数、間隔、保存先、非送信情報とともにAtCoderへ説明して確認します。
-- AtCoderの回答によって方式Aを変更または停止する必要がある場合は、認証だけでなくMVPスコープと配布方針を更新します。
+- AtCoderは非公式toolをサポートせず問い合わせにも回答しないと公式告知しています。したがって通常の問い合わせ回答を公開gateにせず、[公開情報に基づく配布判断](../project/atcoder-public-policy-review.md)の条件を方式Aへ適用します。この判断は許諾ではありません。
+- 限定公開Betaの開始前と各release前に、公式告知、利用規約、Turnstile、対応browser、account照合、提出form、提出ID、判定状態の互換性を再確認します。
+- 可視専用browserで利用者がlogin、Turnstile、最後の提出buttonを操作できない場合、sessionを用いた直接HTTP POST、headless化、stealth、指紋偽装へfallbackせず、提出だけを停止します。
+- 公式情報または互換性の変更によって方式Aを変更・停止する必要がある場合は、認証だけでなくMVP scope、配布方針、開発用仕様を同じ変更で更新します。
 
 ## 8. 採用しない前提と方式
 
@@ -196,11 +199,13 @@ AtCoderが`Set-Cookie`を返した場合は、HTTPクライアントのCookie ja
 - `argv`、環境変数、設定ファイル、履歴DBへのCookie保存
 - Cookieの有効期限、更新頻度、セッション延長期間の推測
 - 送信結果が不明な場合の認証再試行を理由とした自動再提出
+- 可視browser経路が成立しない場合の、sessionを用いた直接HTTP提出へのfallback
 - 方式CをCIや非対話実行で使うこと
 
 ## 9. 参考資料
 
 - [AtCoder利用規約](https://atcoder.jp/tos?lang=ja)
+- [非公式ツールとCAPTCHAに関する告知](https://atcoder.jp/posts/1456?lang=ja)
 - [`online-judge-tools` Cloudflare関連Issue](https://github.com/online-judge-tools/oj/issues/934)
 - [Chrome DevTools Protocol: Storage.getCookies](https://chromedevtools.github.io/devtools-protocol/tot/Storage/#method-getCookies)
 - [Chromeのリモートデバッグに関する変更](https://developer.chrome.com/blog/remote-debugging-port)

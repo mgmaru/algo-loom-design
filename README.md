@@ -42,7 +42,8 @@ AI review、Cloud同期、問題推薦・TUI、公開用solution bundle、Repair
 5. [言語・実行環境の可搬性設計](docs/architecture/language-and-platform-portability.md) — 言語・OS・開発環境差異、依存方向、workspace UX、可搬性
 6. [ストレスフリーUX設計](docs/quality/stress-free-ux-design.md) — 利用者体験として守る原則
 7. [セキュリティ設計ガイド](docs/quality/security-design.md) — 信頼境界と実装上の安全要件
-8. [未決事項一覧](docs/project/unresolved-decisions.md) — 設計・実装前に判断が必要な事項
+8. [AtCoder公開情報に基づく配布判断記録](docs/project/atcoder-public-policy-review.md) — 12項目の公式根拠、制約、再確認gate
+9. [未決事項一覧](docs/project/unresolved-decisions.md) — 設計・実装前に判断が必要な事項
 
 ## ドキュメント目次
 
@@ -93,10 +94,11 @@ AI review、Cloud同期、問題推薦・TUI、公開用solution bundle、Repair
 | 文書 | 主な内容 | 状態・位置付け |
 |---|---|---|
 | [配布方針ガイド](docs/operations/algoloom-distribution.md) | AtCoderコンテンツ、規約、ライセンス、PyPI公開 | 配布上の判断材料 |
+| [AtCoder公開情報に基づく配布判断記録](docs/project/atcoder-public-policy-review.md) | `TD-06`〜`TD-08`の12項目、公式根拠、製品制約、再確認gate | **AtCoderに関する条件付き配布判断の正本** |
 | [契約の考え方](docs/project/contract-concepts.md) | 製品契約、Core契約、保存契約、境界の契約、契約テストの平易な説明 | 用語・概念ガイド |
 | [製品契約と実装判断の境界](docs/project/product-contract-and-implementation-boundary.md) | 「製品の意味」が変わる判断と、実装ADRへ委ねる判断の区別 | 設計・実装判断のガイド |
 | [ライブラリ選定記録](docs/project/library-selection.md) | MVP実装で使うライブラリと外部ツールの採否、根拠、再評価条件 | 工程4の選定判断。`online-judge-tools`は決定済み、その他は進行中 |
-| [未決事項一覧](docs/project/unresolved-decisions.md) | 未決、条件付き決定、外部確認待ちの集約 | 判断状況の一覧。各設計の正本は置き換えない |
+| [未決事項一覧](docs/project/unresolved-decisions.md) | 未決、一部決定済み、条件付き決定の集約 | 判断状況の一覧。各設計の正本は置き換えない |
 | [JudgeAdapter技術検証の実施手順](docs/verification/judge-adapter/README.md) | 実行前確認、停止条件、成果物と一時データの分離 | 技術検証の運用手順。合格条件の正本は検証計画 |
 
 ## 正本の扱い
@@ -104,6 +106,7 @@ AI review、Cloud同期、問題推薦・TUI、公開用solution bundle、Repair
 - MVPへ含める能力、対象利用者、初期対応環境、実装開始・完了条件は、[MVPスコープ](docs/product/mvp.md)を優先します。
 - 問題取得、local test、履歴、提出、保存のCore契約は、[Core契約](docs/architecture/core-contracts.md)を優先します。
 - AtCoder sessionの取得、保管、account確認、失効と、方式C・方式Aの採用境界は、[AtCoder認証設計](docs/architecture/atcoder-authentication.md)を優先します。
+- AtCoderへの問い合わせを予定していた12項目の公式根拠、条件付き配布判断、再確認gateは、[AtCoder公開情報に基づく配布判断記録](docs/project/atcoder-public-policy-review.md)を優先します。
 - 言語・OS差異の境界、Editor / IDEに依存しないCore互換性、実行配置、複数言語workspace UX、異種OS間の可搬性は、[言語・実行環境の可搬性設計](docs/architecture/language-and-platform-portability.md)を参照します。
 - 同期機能の製品・UX上の位置付けは、[ローカル利用とCloud同期の段階的設計](docs/features/local-and-cloud-sync-design.md)を参照します。
 - 現在のTurso採用方針とデータの権威は、[Turso設計ガイド](docs/integrations/turso-design-guide.md)を参照します。

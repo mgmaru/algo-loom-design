@@ -170,7 +170,7 @@ AlgoLoomの最大のUX目標は、機能を増やすことではなく、利用�
 
 - [AtCoder認証設計](../architecture/atcoder-authentication.md)
 - [配布方針ガイド「認証とCloudflare等のBot対策」](../operations/algoloom-distribution.md#8-認証とcloudflare等のbot対策)
-- [配布方針ガイド「自動提出」](../operations/algoloom-distribution.md#6-自動提出)
+- [配布方針ガイド「提出補助」](../operations/algoloom-distribution.md#6-提出補助)
 - [アーキテクチャ概要「CLIコマンド構成」](../architecture/overview.md#5-cliコマンド構成)
 
 #### 現在のストレス
@@ -272,7 +272,7 @@ AlgoLoomの最大のUX目標は、機能を増やすことではなく、利用�
 #### 該当箇所
 
 - [アーキテクチャ概要「CLIコマンド構成」](../architecture/overview.md#5-cliコマンド構成)
-- [配布方針ガイド「自動提出」](../operations/algoloom-distribution.md#6-自動提出)
+- [配布方針ガイド「提出補助」](../operations/algoloom-distribution.md#6-提出補助)
 - [ローカル利用とCloud同期「submitの表示例」](../features/local-and-cloud-sync-design.md#53-submitの表示例)
 - [AIレビュー安全設計「submit --reviewで拒否された場合」](../features/ai-review-safety-design.md#63-submit---reviewで拒否された場合)
 - [Review Backend設計「レビュー実行フロー」](../features/llm-provider-design.md#7-レビュー実行フロー)
@@ -414,7 +414,7 @@ command数の少なさ自体はUX指標にしない。一般操作の単なる�
 
 #### 該当箇所
 
-- [配布方針ガイド「自動提出」](../operations/algoloom-distribution.md#6-自動提出)
+- [配布方針ガイド「提出補助」](../operations/algoloom-distribution.md#6-提出補助)
 - [Review Backend設計「セットアップUX」](../features/llm-provider-design.md#6-セットアップux)
 - [ローカル利用とCloud同期「同期を有効化する」](../features/local-and-cloud-sync-design.md#72-既存端末で同期を有効化する)
 - [ローカル利用とCloud同期「同期を無効化する」](../features/local-and-cloud-sync-design.md#76-同期を無効化する)

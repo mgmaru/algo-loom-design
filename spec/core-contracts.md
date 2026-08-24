@@ -105,6 +105,8 @@ AtCoderへの送信とローカルDBのコミットは原子的にできない�
 
 外部送信前に、一意な操作ID、問題、ジャッジ、アカウント識別情報、言語とジャッジ固有の言語、正確なソーススナップショットとハッシュ、作成時刻、操作の状態を耐久保存します。
 
+提出は空の可視専用browserへ準備し、利用者がsourceを目視してTurnstileと最後の提出操作を行います。AlgoLoomは最後の操作を自動化せず、このbrowser経路が成立しない場合にsessionを使った直接HTTP POSTへfallbackしません。
+
 少なくとも次の状態を意味として区別します。実際の識別子名は実装設計で変更できます。
 
 ```text
@@ -128,7 +130,7 @@ AtCoder sessionは次の契約で確立します。
 - 可視の専用browserを明示操作で起動し、username、password、Turnstileを利用者がbrowser上で操作します。
 - 利用者の既存browser profileを参照せず、`https://atcoder.jp`の`REVEL_SESSION`だけを取得します。
 - 同じsessionで期待するaccount identityを確認した後だけ、OSの秘密情報保管庫へ保存します。
-- CoreとCLIへ生のCookie値を返さず、AtCoder Adapterへ不透明なsession参照または認証済みHTTP clientを必要な通信中だけ貸し出します。
+- CoreとCLIへ生のCookie値を返さず、AtCoder Adapterへ不透明なsession参照または認証済みHTTP clientをaccount確認等の必要な通信中だけ貸し出します。人による最後の提出操作を直接HTTP POSTで置き換えません。
 - 秘密情報保管庫が利用できない場合は平文設定fileへ自動fallbackせず、提出だけを停止します。
 - 手動Cookie importは技術検証だけに限定し、MVP製品、CI、共有環境または非対話実行へ提供しません。
 - `Set-Cookie`が返った場合だけ更新し、serverが返さない有効期限を生成しません。
@@ -152,7 +154,7 @@ AtCoder sessionは次の契約で確立します。
 | 境界 | 責任 |
 |---|---|
 | CLI / Application | 入出力と業務の状態遷移を分離する |
-| `JudgeAdapter` | AtCoder固有の取得、認証、提出、判定確認を閉じ込める |
+| `JudgeAdapter` | AtCoder固有の取得、認証、可視browserへの提出準備、提出ID・判定確認を閉じ込める。最後の提出操作は利用者へ委ねる |
 | `AtCoderSessionProvider` | 可視専用browserによる認証、必要sessionだけの取得、秘密情報保管庫への保存を閉じ込める |
 | `ReferenceLinkProvider` | 外部本文を取得せず、公式URLを構成する |
 | `BrowserLauncher` | OSへのURL起動要求とページ表示結果を分ける |

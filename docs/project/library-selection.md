@@ -37,7 +37,7 @@
 - AtCoderへのアクセスまたは配布が許可される範囲
 - 未完了の対象について、比較前に候補や採否を固定すること
 
-AtCoderへのアクセスと配布の可否は、[未決事項8.1](unresolved-decisions.md#81-公開ベータ前にatcoderへ確認する事項)に対する外部確認後に反映します。本書の技術的な採否を、AtCoderから許可を得た事実とは扱いません。
+AtCoderへのアクセスと配布の条件は、[公開情報に基づく配布判断](atcoder-public-policy-review.md)と[未決事項8.1](unresolved-decisions.md#81-公開情報に基づく配布判断と再確認gate)に従います。本書の技術的な採否や実サービスでの成立を、AtCoderから許可を得た事実とは扱いません。
 
 ## 2. 用語
 
@@ -45,7 +45,7 @@ AtCoderへのアクセスと配布の可否は、[未決事項8.1](unresolved-de
 |---|---|---|
 | `online-judge-tools` | online-judge-tools | `oj`コマンドを提供する選定候補。別配布物の`online-judge-api-client`と区別する |
 | `online-judge-api-client` | online-judge-api-client | `onlinejudge`モジュールと`oj-api`コマンドを提供し、`online-judge-tools`の下位で利用される別配布物 |
-| `JudgeAdapter` | JudgeAdapter | AtCoder固有の問題取得、アカウント確認、提出、判定確認、ジャッジ言語解決を閉じ込める交換可能な境界 |
+| `JudgeAdapter` | JudgeAdapter | AtCoder固有の問題取得、account確認、可視browserへの提出準備、提出ID・判定確認、judge言語解決を閉じ込める交換可能な境界。最後の提出操作は利用者へ委ねる |
 | 薄い自作HTTPアダプタ | thin HTTP adapter | 必要なAtCoderの入口だけを扱い、通信上限と許可リストへの射影をAlgoLoom側で明示する初期実装 |
 | 許可リストへの射影 | allowlist projection | 生の応答を保存せず、契約で許可した項目、型、単位、状態だけへ変換すること |
 
@@ -55,7 +55,7 @@ AtCoderへのアクセスと配布の可否は、[未決事項8.1](unresolved-de
 |---|---|---|---|
 | `online-judge-tools` | `JudgeAdapter`の主要導線、安全な認証、通信制御、配布版の実行環境 | `TD-05` | 完了 |
 | HTTPクライアント | 接続、リクエスト、ポーリング全体の上限分離と、待機指示の尊重 | `TD-26` | 未着手 |
-| 外部通信の共通設定 | 利用者エージェント、外部確認前の安全な暫定動作 | `TD-26` | 未着手 |
+| 外部通信の共通設定 | 直接HTTPの最小User-Agent、可視browser非変更、有限通信と停止条件 | `TD-26` | 未着手 |
 | HTML解析 | 必要項目だけへの射影と、生のHTMLを保存しない境界 | `TD-26` | 未着手 |
 | 秘密情報保管庫 | 世代付きの原子的な置換、平文への切替禁止、3つのOS | `TD-26` | 未着手 |
 | CLI基盤 | 終了コード、対話確認、非対話実行の制御 | `TD-26` | 未着手 |

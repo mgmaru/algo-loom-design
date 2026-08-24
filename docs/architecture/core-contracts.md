@@ -410,6 +410,8 @@ AtCoderへの送信とローカルDBのcommitは、一つの原子的transaction
 - 作成時刻
 - 現在のoperation state
 
+提出は空の可視専用browserへ準備し、利用者がsourceを目視してTurnstileと最後の提出操作を行う。AlgoLoomは最後の操作を自動化せず、このbrowser経路が成立しない場合にsessionを使った直接HTTP POSTへfallbackしない。
+
 ### 6.2. 状態遷移
 
 状態名は実装設計で変更できるが、意味として次を区別する。
@@ -458,9 +460,9 @@ PREPARED
 - MVPは一つのAtCoderアカウントを使用する。
 - 初回または失効時は`AtCoderSessionProvider`が可視の専用browserを明示操作で起動し、利用者がusername、password、Turnstileを手動で操作する。
 - `AtCoderSessionProvider`は利用者の既存browser profileを参照せず、`https://atcoder.jp`の`REVEL_SESSION`だけをOSのsecret storeへ保存する。
-- CoreとCLIへ生のCookie値を返さず、AtCoder Adapterには不透明なsession参照または認証済みHTTP clientを必要な通信中だけ貸し出す。
+- CoreとCLIへ生のCookie値を返さず、AtCoder Adapterには不透明なsession参照または認証済みHTTP clientをaccount確認等の必要な通信中だけ貸し出す。可視browserで利用者が行う最後の提出操作を、sessionを使った直接HTTP POSTへ置き換えない。
 - 手動Cookie importは技術検証の方式Cだけに限定し、MVPの通常導線、CI、共有環境または非対話実行へ提供しない。
-- 自動提出前に、現在のsessionがどのアカウントか確認できなければならない。
+- 提出準備前と最後の提出操作前に、現在のsessionがどのアカウントか確認できなければならない。
 - 初回提出時にaccount identityをローカルへ関連付ける。
 - 以前と異なるアカウントを検出した場合は、送信前に停止して説明する。
 - Cookie、password、session tokenを履歴DB、export、logへ保存しない。
@@ -473,7 +475,7 @@ session取得、保管、更新、失効とbrowserの安全条件は[AtCoder認�
 
 AtCoderは2026年8月以降、拒否設定が反映されていない提出sourceをAI学習用データの販売対象とする方針を公開している。
 
-- AlgoLoomで初めて自動提出する前に、一度だけ簡潔な非blocking案内を表示する。
+- AlgoLoomで初めて提出補助を使う前に、一度だけ簡潔な非blocking案内を表示する。
 - [AtCoder公式の説明](https://info.atcoder.jp/overview/about/ai-training-opt-out)と設定先へ案内する。
 - AlgoLoomは拒否設定を代行、推測、保証しない。
 - 案内を読まないことを理由に、通常の提出を恒常的に妨げない。
@@ -524,7 +526,7 @@ MVPでは、将来の全機能を先回りした抽象化を作らない。一�
 | 境界 | 責任 |
 |---|---|
 | CLI / Application | 入力と表示を、業務状態遷移から分ける |
-| `JudgeAdapter` | 問題取得、認証確認、提出、判定確認をAtCoder固有処理へ閉じ込める |
+| `JudgeAdapter` | 問題取得、認証確認、可視browserへの提出準備、提出ID・判定確認をAtCoder固有処理へ閉じ込める。人による最後の提出操作は代行しない |
 | `AtCoderSessionProvider` | 可視専用browserによる認証、必要なsessionだけの取得、secret storeへの保存を、Coreと`JudgeAdapter`から分ける |
 | `ReferenceLinkProvider` | judge固有の問題、解説、提出一覧URLの構成をCore commandから分け、外部本文を取得しない |
 | `BrowserLauncher` | OSへのURL起動要求をページ取得・login・表示完了から分ける |

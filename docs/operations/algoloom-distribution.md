@@ -8,6 +8,7 @@
 > - [MVPスコープ](../product/mvp.md)
 > - [Core契約](../architecture/core-contracts.md)
 > - [AtCoder認証設計](../architecture/atcoder-authentication.md)
+> - [AtCoder公開情報に基づく配布判断記録](../project/atcoder-public-policy-review.md)
 > - [言語・実行環境の可搬性設計](../architecture/language-and-platform-portability.md)
 > - [AlgoLoom LLM Provider選択・実行基盤設計](../features/llm-provider-design.md)
 > - [外部学習資料参照設計](../features/external-learning-resources.md)
@@ -17,7 +18,7 @@
 >
 > 更新日: 2026年8月24日
 >
-> 重要: 本文書は法的助言ではなく、公開情報に基づく設計・配布上の判断材料である。規約やコンテストルールは変更されるため、公開前に最新版を確認し、必要に応じてAtCoderまたは法律の専門家へ相談すること。
+> 重要: 本文書は法的助言ではなく、公開情報に基づく設計・配布上の判断材料である。規約やコンテストルールは変更されるため、実装開始、限定公開Beta、各releaseの前に最新版を確認し、商用・法人用途等では必要に応じて法律の専門家へ相談すること。
 
 ---
 
@@ -39,6 +40,7 @@ AlgoLoomは、次の条件を守ることで、**AtCoderの非公式な補助CLI
 ### 提出
 
 - 提出にはユーザー自身のAtCoderアカウントとセッションを使う。
+- 空の可視専用browserで、利用者がlogin、Turnstile、最後の提出操作を行う。成立しない場合に直接HTTP POSTへfallbackしない。
 
 ### AIレビュー
 
@@ -54,7 +56,7 @@ AlgoLoomは、次の条件を守ることで、**AtCoderの非公式な補助CLI
 - AtCoder公式またはAtCoder公認のツールだと誤解されない表示にする。
 - 公開版ではTurso同期を任意機能とし、各ユーザーが自分のDBと認証情報を用意する。
 
-ただし、これはAtCoderからAlgoLoomへ個別の許諾が与えられたことを意味しない。安全性を高めるため、公開ベータ前にAtCoderへ設計内容を説明し、書面で確認することを推奨する。
+ただし、これはAtCoderからAlgoLoomへ個別の許諾が与えられたことを意味しない。AtCoderは非公式toolをサポートせず問い合わせにも回答しないと公式告知しているため、通常のtool support問い合わせを公開gateにしない。[12項目の判断記録](../project/atcoder-public-policy-review.md)に従い、公式sourceと互換性を継続確認し、確認不能時は該当する外部機能だけを停止する。
 
 ```mermaid
 flowchart TD
@@ -62,7 +64,7 @@ flowchart TD
     B --> C{AtCoderコンテンツを<br/>同梱する?}
     C -->|Yes| X[配布しない<br/>許諾を別途確認]
     C -->|No| D[ユーザーの明示操作で<br/>公開サンプルのみ取得]
-    D --> E[ユーザー自身の<br/>セッションで提出]
+    D --> E[可視browserで人が<br/>最後の提出操作]
     E --> F{AIレビュー要求?}
     F -->|No| I[非公式ツールとして配布]
     F -->|Yes| G[開催状況・種別・<br/>正規問題IDを照合]
@@ -101,7 +103,7 @@ flowchart TD
 | 公開サンプル入出力 | 問題ページ上で例として公開されている入力と期待出力 |
 | 隠しシステムテスト | ジャッジに使われる非公開のテストデータ。公開サンプルとは異なる |
 | スクレイピング | Webページをプログラムで取得し、必要な情報を抽出すること |
-| 自動提出 | CLI等がユーザーのコードをAtCoderへ送信すること |
+| 提出補助 | CLIが提出対象を準備・確認し、可視browser上の最後の提出操作を利用者へ委ねること |
 | セッション | ログイン済み状態を識別するための情報。Cookieやトークン等を含み、パスワードと同様に慎重な管理が必要 |
 | レート制限 | 短時間に大量のアクセスを送らないよう、リクエスト頻度を制限する仕組み |
 | バックオフ | エラー発生時、待ち時間を徐々に長くしながら再試行する仕組み |
@@ -148,18 +150,21 @@ ABC・ARC・AGC・AHC・ADT・AWCの正式名称、難度、Rated範囲、ルー
 | 他ユーザーの提出コード | 作成ユーザーに所有権・著作権が帰属する。AtCoder公式資料ではcontest終了後の復習として閲覧が案内されている | AtCoder提出一覧をbrowserで開く導線だけをMVP後に検討し、code本文を取得・保存・再表示しない |
 | AtCoderの解説 | サービスを構成する文章・画像等の権利はAtCoderまたは権利者に帰属し、公式解説とユーザー解説が併記される場合がある | 問題別解説ページをbrowserで開き、本文、画像、PDF、動画、sample codeを取得・保存しない |
 | スクレイピング | 一般利用規約には名指しの禁止を確認できない | 明示許諾とは考えず、1問単位・低頻度・ユーザー操作限定にする |
-| 自動提出 | 一般利用規約には名指しの禁止を確認できない | 確認付き、連続提出防止、自動ループなしで提供する |
+| 提出補助 | submit等へCAPTCHAが導入され、非公式toolはサポート対象外と告知されている | 可視browserで人が最後の提出操作を行い、連続提出防止、自動loopなし、直接HTTP POST fallbackなしで提供する |
 | アカウント共有 | 利用規約で禁止 | 各ユーザーが自分のセッションだけを使う |
 | サービスへの損害 | 損害を与える、またはその恐れのある行為を禁止 | 大量取得、過度なポーリング、Bot対策回避を実装しない |
-| AI利用 | ABC・ARC・AGC開催中は原則禁止だが、過去問練習は対象外。AHC等は別ルール | 開催状況・種別・正規問題IDを実行時に照合し、禁止対象または判定不能ならfail closedで停止する |
+| AI利用 | ABC・ARC・AGC開催中は原則禁止だが、過去問練習は対象外。2026年8月29日以降の短期AHCには生成AIを原則禁止する専用ruleが適用される | 開催状況・種別・正規問題ID・rule versionを実行時に照合し、禁止対象または判定不能ならfail closedで停止する |
 | 企業・団体での利用 | 採用試験・査定等への過去問利用に制限がある | AlgoLoomを採用試験・査定用途に使用しない旨を明記する |
 
 参照:
 
 - [AtCoder利用規約](https://atcoder.jp/tos?lang=ja)
+- [非公式ツールとCAPTCHAに関する告知](https://atcoder.jp/posts/1456?lang=ja)
+- [非公式ツールとCAPTCHAに関する告知](https://atcoder.jp/posts/1456?lang=ja)
 - [コンテスト中のルール](https://info.atcoder.jp/overview/contest/rules)
 - [AtCoder生成AI対策ルール](https://info.atcoder.jp/entry/llm-rules-ja)
 - [AHC生成AI利用ルール](https://info.atcoder.jp/entry/ahc-llm-rules-ja)
+- [短期AHCにおける生成AI利用ルール](https://info.atcoder.jp/entry/short-ahc-llm-rules-ja)
 - [AtCoder Daily Training](https://atcoder.jp/contests/adt_top?lang=ja)
 - [企業・団体におけるAtCoderの利用](https://info.atcoder.jp/utilize/school/riyou)
 
@@ -292,7 +297,7 @@ flowchart LR
 
 ### 5.1. 現在確認できること
 
-2026年7月20日時点のAtCoder一般利用規約には、「スクレイピング」や「自動提出」を名指しした禁止条項は確認できない。一方で、次の包括的な禁止事項がある。
+2026年8月24日時点のAtCoder一般利用規約には、「スクレイピング」や「自動提出」を名指しした禁止条項は確認できない。一方で、次の包括的な禁止事項がある。また、2025年4月17日の公式告知は、非公式toolをサポートせず問い合わせにも回答しないこと、submit等へのCAPTCHA導入により非公式toolからの提出が難しくなることを明記している。
 
 - AtCoderまたは第三者へ著しい不利益をもたらす行為
 - AtCoderまたはサービスへ損害を与える、またはその恐れのある行為
@@ -315,16 +320,18 @@ AtCoder自身もAtCoder Problemsを非公式サービス・非公式APIと説明
 | 問題取得 | ユーザーが指定した1問だけ |
 | 一括取得 | 実装しない |
 | キャッシュ | ローカルキャッシュを優先し、同じページを繰り返し取得しない |
-| リクエスト間隔 | 既定で間隔を設け、無効化オプションを提供しない |
-| 429応答 | 指示された待機時間を尊重し、即時再試行しない |
-| 5xx・通信失敗 | 上限付きの指数バックオフを使う |
+| リクエスト間隔 | 同一originへの開始間隔は2秒を初期下限とし、無効化optionを提供しない。2秒はAtCoderの公式推奨値ではない |
+| server指示 | `Retry-After`等が初期下限より長ければserver指示を優先する |
+| 429・403・challenge | 同じ操作内で自動再試行せず停止する |
+| 5xx・通信失敗 | 同じ操作内で自動再試行せず、利用者が状態を確認した後の新しい明示操作としてのみ再開する |
 | 判定ポーリング | 間隔と最大待機時間を設定する |
-| User-Agent | ツール名、バージョン、連絡先の記載可否をAtCoderへ確認する |
+| User-Agent | 直接HTTPは`AlgoLoom/<version> (+https://github.com/mgmaru/algo-loom-design)`を初期値とし、account・端末・OS等を含めない。可視browserは変更しない |
+| background通信 | 起動時通信、常時監視、session維持、一括crawlを行わない |
 | Bot対策 | 回避や迂回を実装しない |
 
 ---
 
-## 6. 自動提出
+## 6. 提出補助
 
 ### 6.1. 基本方針
 
@@ -334,6 +341,7 @@ AtCoder自身もAtCoder Problemsを非公式サービス・非公式APIと説明
 - 自動再提出ループを実装しない。
 - テスト成功を理由に無条件で自動提出しない。
 - AtCoderの応答が不明な場合、同じコードを即座に再送しない。
+- 可視専用browserで利用者がTurnstileと最後の提出buttonを操作する。これを無人のHTTP POSTへ置き換えない。
 
 online-judge-toolsにも提出待機や確認を外す機能は存在するが、プロジェクト自身が安全装置を外すことを推奨していない。AlgoLoomは安全側の既定値を維持する。
 
@@ -372,11 +380,11 @@ flowchart TD
     style J fill:#dfd,stroke:#0a0
 ```
 
-2026年7月20日時点では、開催中のABC・ARC・AGCにおいて、生成AIの使用は限定された翻訳用途等を除いて原則禁止されている。Unrated参加者にも適用され、コード補完、バグ診断、コード変換も禁止例に含まれる。過去問練習にはこのルールは適用されない。
+2026年8月24日時点では、開催中のABC・ARC・AGCにおいて、生成AIの使用は限定された翻訳用途等を除いて原則禁止されている。Unrated参加者にも適用され、コード補完、バグ診断、コード変換も禁止例に含まれる。過去問練習にはこのルールは適用されない。
 
 したがって、ABC等が開催されているという理由だけで、無関係な終了済み過去問まで一律にレビュー拒否しない。レビュー対象が開催中問題と同じかを正規問題IDで照合する。
 
-AHCには別の生成AIルールがある。ADTは過去のABC問題を再利用する練習用バーチャルコンテストである。AWC Betaは対象回のページでAI利用を明示的に許可しているが、Beta終了時のルール変更が予告されている。コンテスト種別と対象回のルールを特定してから適用方針を決める。
+AHCには別の生成AIルールがある。2026年8月18日に公開され、2026年8月29日から適用される短期AHC ruleは、開催中の生成AIを原則禁止し、対話的なreview・debug・testも禁止対象とする。ADTは過去のABC問題を再利用する練習用virtual contestである。AWC Betaは対象回のpageでAI利用を明示的に許可しているが、Beta終了時のrule変更が予告されている。contest種別、rule version、適用期間を特定してから適用方針を決める。
 
 ### 7.2. AlgoLoomの実装方針
 
@@ -387,7 +395,7 @@ AHCには別の生成AIルールがある。ADTは過去のABC問題を再利用
 - ABC・ARC・AGCの開催中問題と一致したら`--review`を拒否する。
 - 開催中問題とは異なる終了済み過去問はレビュー可能とする。
 - ABC・ARC・AGCではRated / Unratedを区別しない。
-- 初期版では、開催中AHCの同一問題は保守的に拒否する。
+- 初期版では開催中AHCの同一問題を拒否する。特に2026年8月29日以降の短期AHCは現行の禁止ruleに従い、単発review等の製品側制限だけで解禁しない。
 - ADTは専用ルールで判定し、AIなしの練習には`contest_mode`を推奨する。
 - AWC Betaは、対象回の個別ページでAI利用の明示許可を確認できた場合だけ注意表示付きで許可する。
 - コンテスト種別、問題ID、開催状態、適用ルールを確認できない場合は拒否する。
@@ -404,6 +412,7 @@ AHCには別の生成AIルールがある。ADTは過去のABC問題を再利用
 
 - [AtCoder生成AI対策ルール](https://info.atcoder.jp/entry/llm-rules-ja)
 - [AHC生成AI利用ルール](https://info.atcoder.jp/entry/ahc-llm-rules-ja)
+- [短期AHCにおける生成AI利用ルール](https://info.atcoder.jp/entry/short-ahc-llm-rules-ja)
 - [コンテスト中のルール](https://info.atcoder.jp/overview/contest/rules)
 - [AtCoder Daily Training](https://atcoder.jp/contests/adt_top?lang=ja)
 - [AtCoder Weekday Contest 0109 Beta](https://atcoder.jp/contests/awc0109)
@@ -439,9 +448,9 @@ AtCoderの認証方式、browserまたはBot対策の変更により、方式A�
 - ブロック回避のためのプロキシ切り替え
 - AtCoderが意図したアクセス制限の迂回
 
-認証できない場合は提出だけを停止し、local testと履歴を継続できるようにする。方式Aのbrowserが拒否された場合はheadless化、stealth設定または指紋偽装を追加せず、公式情報、AtCoderの回答または互換性修正を待つ。
+認証できない場合は提出だけを停止し、local testと履歴を継続できるようにする。方式Aのbrowserが拒否された場合はheadless化、stealth設定、指紋偽装または直接HTTP POST fallbackを追加せず、公式情報を再確認して互換性修正が可能か判断する。
 
-方式Aは`V-10`に合格するまでMVP実装済みと扱わない。限定公開Beta前に、browserで本人が確立したsessionを同一端末のlocal CLIへ渡して提出補助へ使う方式について、リクエスト数、保存先、非送信情報とともにAtCoderへ確認する。
+方式Aは`V-10`に合格した技術原理だけでMVP製品形態が成立したとは扱わない。限定公開Beta前に、対象OS・browserでsession取得・保存・更新・削除、人による最終提出操作、通信上限、非送信情報を検証し、[公開情報の再確認gate](../project/atcoder-public-policy-review.md#5-再確認gate)に合格させる。
 
 - [online-judge-tools Cloudflare関連Issue](https://github.com/online-judge-tools/oj/issues/934)
 
@@ -449,8 +458,8 @@ AtCoderの認証方式、browserまたはBot対策の変更により、方式A�
 
 AtCoder側の仕様はAlgoLoomが管理できないため、[機能設計の`F-SUBMIT-05`](../../spec/features.md#85-atcoder側の変更検知と互換性確認f-submit-05)と[技術検証計画の継続的な互換性確認](../project/judge-adapter-verification.md#9-実装後の継続的な互換性確認)を配布・保守手順に含める。
 
-- リリースするAlgoLoomの版ごとに、対応する`contest.js`の取得先、内容ハッシュ、確認時刻、`JudgeAdapter`の必須条件の確認結果を記録する。
-- 利用時の提出前確認と、AtCoderに許可された低頻度の保守確認で、現在の内容ハッシュを確認済みの値と比較する。常駐プロセスによる無期限の監視は行わない。
+- releaseするAlgoLoomの版ごとに、maintainerが対応する`contest.js`の取得先、内容hash、確認時刻、`JudgeAdapter`の必須条件の確認結果を記録する。
+- 実行時は提出に必要なpage・formで必須条件を確認する。hash確認だけを目的とする追加GETを利用者の各提出に課さず、常駐processによる無期限監視も行わない。
 - 変更を検出したら保守者へ通知し、新しい値を自動で確認済みとしない。差分を調べ、アカウント識別、問題とジャッジ言語の一意な解決、ソースコードの同期、提出IDの識別、判定状態の解釈を個別に確認する。
 - ハッシュが同じでも、ページ構造、サーバー応答、認証方式またはBot対策の変更は起こり得る。そのため、ハッシュの一致だけで提出可能と判定しない。
 - 変更検出、非互換または確認不能の場合は、提出だけを安全側で停止する。Bot対策の迂回や、旧形式を推測する無条件の代替経路は追加しない。
@@ -568,10 +577,11 @@ PyPI版の動作とライセンス監査が安定した後に追加する。
 
 有料配布、法人研修、採用関連機能を提供する場合は、無料OSS版と同じ判断で進めない。
 
-- AtCoderへ事前に利用形態を説明して確認する。
-- AtCoder過去問を採用試験、査定、採用活動に利用させない。
+- 現在のMVPと初期公開は無料OSSに限定する。
+- AtCoder過去問を採用試験、coding試験、査定、採用活動に利用させない。
+- 事業形態を具体化し、その時点で公式の事業窓口・partner制度があれば利用する。非公式toolの通常support問い合わせに置き換えない。
 - 必要に応じて法律の専門家へ相談する。
-- AtCoderから書面で確認を得るまでは、採用・査定用途をサポート対象外にする。
+- 採用・査定用途は将来もsupport対象外とする。
 
 ---
 
@@ -730,9 +740,11 @@ algoloom_workspace/
 
 - [ ] レート制限を既定で有効にしている。
 - [ ] レート制限を簡単に無効化できない。
-- [ ] 429と5xxへ適切にバックオフする。
+- [ ] serverの待機指示を尊重し、429、403、challenge、5xx、通信不明で同じ操作内の自動再試行をしない。
+- [ ] 起動時通信、一括crawl、常時監視、session維持通信を行わない。
 - [ ] 提出前確認がある。
 - [ ] 自動再提出ループがない。
+- [ ] 利用者が可視browserでTurnstileと最後の提出操作を行い、直接HTTP POSTへfallbackしない。
 - [ ] 判定ポーリングに間隔と上限がある。
 - [ ] `contest.js`の内容ハッシュ変更と、ハッシュが同じ場合の必須条件不成立をどちらも検出できる。
 - [ ] 未確認の内容ハッシュを自動で受け入れず、互換性を確認できない場合は提出だけを停止する。
@@ -747,6 +759,7 @@ algoloom_workspace/
 - [ ] コンテスト種別・問題ID・開催状態・適用ルールを確認できない場合は拒否する。
 - [ ] ABC・ARC・AGCではRated / Unratedにかかわらず同じAI制限を適用する。
 - [ ] AHC、ADT、AWC、その他のコンテストをABC系と同一ルールで処理しない。
+- [ ] 2026年8月29日以降の開催中短期AHCでAI reviewを拒否する。
 - [ ] AIレビューOFFでは開催確認とLLM Provider呼び出しを行わない。
 - [ ] `contest_mode` ONではすべてのAIレビューを拒否する。
 - [ ] 現行のABC・ARC・AGC・AHCルールへのリンクがある。
@@ -787,28 +800,30 @@ algoloom_workspace/
 - [ ] native macOS、native Linux、native Windowsで基本package、entry point、4言語の代表的な`get → test` smoke testを確認した。
 - [ ] WSL、project build、未検証toolchainを対応済みと表示していない。
 - [ ] 現在の`contest.js`の内容ハッシュと`JudgeAdapter`の必須条件を再確認し、AlgoLoomの版と確認日を記録した。
-- [ ] AtCoderの最新規約とコンテストルールを再確認した。
+- [ ] AtCoderの最新規約、非公式tool告知、AI rule、ADT、logo guide、`robots.txt`を再確認した。
 
 ---
 
-## 15. AtCoderへ確認したい事項
+## 15. 公開情報から整理した12項目
 
-公開ベータ前に、次の設計を簡潔に説明して問い合わせる。
+AtCoderは非公式toolをサポートせず問い合わせにも回答しないと公式告知しているため、次の項目を通常問い合わせの質問表ではなく、AlgoLoomの条件付き配布判断として扱う。公式根拠、詳細な制約、再確認条件は[AtCoder公開情報に基づく配布判断記録](../project/atcoder-public-policy-review.md)を正とする。
 
-1. ユーザー操作により、公開サンプル入出力を1問ずつローカル保存するCLIの配布可否
-2. ユーザー自身がbrowserでloginしたsessionを、同一端末のlocal CLIがOSのsecret storeへ保存し、明示操作による提出補助へ使う方式の可否
-3. 推奨されるアクセス間隔と再試行方法
-4. User-Agentへ記載すべき情報
-5. 公開サンプルのローカルキャッシュ可否
-6. AIレビュー要求時に開催状況・種別・正規問題IDを照合し、ABC・ARC・AGCの開催中問題だけを拒否する設計で問題ないか
-7. ADTで再利用中の過去問をAIレビュー対象とする解釈で問題ないか
-8. READMEやPyPIで「AtCoder対応」と文章表記する場合の注意点
-9. 無料OSS版と有料版で確認事項が異なるか
-10. 正規問題IDからAtCoderの問題別解説ページを構成し、本文を取得せずdefault browserで開く機能の可否
-11. MVP後に、問題・AC・言語filter付きのAtCoder提出一覧を、code本文・Cookieを取得せずdefault browserで開く機能の可否
-12. 可視の専用browserで利用者がTurnstileを手動操作し、CLIが`REVEL_SESSION`だけを取り込む方式で遵守すべき追加条件の有無
+| # | 項目 | 現在の判断 |
+|---:|---|---|
+| 1 | 公開sampleを1問ずつlocal保存 | 終了済み過去問1件、利用者の明示操作、配布・一括取得なしで進める |
+| 2 | browser sessionを提出補助へ利用 | 非サポート経路として、人によるlogin・Turnstile・最終提出、`REVEL_SESSION`限定、direct POST fallbackなしで進める |
+| 3 | access間隔・再試行 | 公式値ではない2秒の初期下限、server指示優先、自動再試行なし、有限pollingとする |
+| 4 | User-Agent | 直接HTTPだけ`AlgoLoom/<version> (+公開support URL)`、可視browserは変更しない |
+| 5 | 公開sample cache | 問題単位の作業用local cacheに限定し、共有・Cloud同期・公開exportをしない |
+| 6 | AI reviewの開催中判定 | contest種別・正規問題ID・rule versionを照合し、禁止対象・不明をfail closed。AI reviewはMVP外 |
+| 7 | ADTで再利用中の過去問 | `ALLOW_WITH_NOTICE`をプロジェクト判断とし、`contest_mode`を案内する |
+| 8 | 「AtCoder対応」の表記 | 「AtCoderの終了済み過去問に対応する非公式CLI」と非公式表示を併記し、logoを使わない |
+| 9 | 無料OSS版と有料版 | MVPは無料OSS。有料・法人は別判断、採用・査定用途はsupportしない |
+| 10 | 問題別解説page | 本文を取得せず公式URLをdefault browserで開く方式でMVPへ含める |
+| 11 | filter付き提出一覧 | MVP後のbrowser-only候補。code・HTML・Cookieを取得せず、crawlしない |
+| 12 | 可視専用browserのsession取込 | 人による操作、本人照合、secret store、既存profile非参照、Bot対策回避なしを必須とする |
 
-問い合わせ時は、「スクレイピングしてよいか」という抽象的な質問ではなく、1操作あたりのリクエスト数、保存内容、認証方式、AI制限を具体的に示す。
+12項目はAtCoderから許諾を得た一覧ではない。規則・互換性を確認できない項目は該当機能だけを停止し、実装開始、限定公開Beta、各releaseのgateで公式情報を再確認する。
 
 ---
 
@@ -820,13 +835,13 @@ flowchart LR
     P2 --> P3[Phase 3<br/>GitHub + PyPI公開]
     P3 --> P4{商用・法人向け?}
     P4 -->|No| O[OSS版を継続]
-    P4 -->|Yes| C[AtCoderへの確認<br/>専門家への相談]
+    P4 -->|Yes| C[別途事業判断<br/>専門家への相談]
 ```
 
 ### Phase 1: 個人利用
 
 - ローカルDBを既定にする。
-- [MVPスコープ](../product/mvp.md)と[Core契約](../architecture/core-contracts.md)に従い、終了済み過去問の公開sample取得、local test、自動提出、履歴、exportを検証する。
+- [MVPスコープ](../product/mvp.md)と[Core契約](../architecture/core-contracts.md)に従い、終了済み過去問の公開sample取得、local test、人による最終操作を伴う提出補助、履歴、exportを検証する。
 - C++、Python、Go、Rustをnative macOS、native Linux、native Windowsで検証し、言語とOSの差異が他profile・他OSへ波及しないことを契約テストで確認する。
 - AI review、`contest_mode`、Cloud同期をMVPへ含めない。
 - 実データがリポジトリへ混入しないことを確認する。
@@ -834,7 +849,7 @@ flowchart LR
 
 ### Phase 2: 限定公開ベータ
 
-- AtCoderへ設計内容を問い合わせる。
+- [配布判断記録のgate](../project/atcoder-public-policy-review.md#5-再確認gate)に従い、公式情報と認証・提出互換性を再確認する。
 - 少人数で認証、取得、提出、規約表示を検証する。
 - 方式Aのsession取得、保存、更新、削除を対象OSの実機で検証する。
 - アクセス数とエラーを、秘密情報を含めずに確認する。
@@ -851,7 +866,7 @@ flowchart LR
 
 - OSS公開とは別の判断を行う。
 - 採用試験・査定用途を禁止する。
-- AtCoderから必要な確認を得る。
+- 事業形態に対応する公式窓口・partner制度があれば確認し、通常の非公式tool support問い合わせとは分ける。
 - 利用規約、プライバシーポリシー、サポート範囲を整備する。
 
 ---
@@ -868,11 +883,13 @@ flowchart LR
 - [コンテスト中のルール](https://info.atcoder.jp/overview/contest/rules)
 - [AtCoder生成AI対策ルール](https://info.atcoder.jp/entry/llm-rules-ja)
 - [AHC生成AI利用ルール](https://info.atcoder.jp/entry/ahc-llm-rules-ja)
+- [短期AHCにおける生成AI利用ルール](https://info.atcoder.jp/entry/short-ahc-llm-rules-ja)
 - [企業・団体におけるAtCoderの利用](https://info.atcoder.jp/utilize/school/riyou)
 - [AtCoderロゴ利用ガイドライン](https://info.atcoder.jp/logoguide)
 - [AtCoder Problemsの説明](https://info.atcoder.jp/more/contents/problems)
 - [AtCoder公式入門資料](https://img.atcoder.jp/file/introduction_atcoder.pdf)
 - [AtCoder Daily Training](https://atcoder.jp/contests/adt_top?lang=ja)
+- [AtCoder `robots.txt`](https://atcoder.jp/robots.txt)
 - [AtCoder Weekday Contest 0109 Beta](https://atcoder.jp/contests/awc0109)
 - [業務直結型コンテスト標準著作権等取扱規約](https://atcoder.jp/posts/384?lang=ja)
 
@@ -916,7 +933,7 @@ AlgoLoomは、AtCoderの問題を配布するアプリではなく、**ユーザ
 - 非公式・非公認であることを明記する。
 - 第三者ライセンスを守る。
 - 規約変更へ継続的に追従する。
-- 商用・法人用途はAtCoderへの確認なしに拡大しない。
+- 商用・法人用途は無料OSSと分けて事業・法務判断を行い、採用・査定用途をsupportしない。
 - 日常操作の正式commandを`aloom`とし、`algoloom`は互換command、`al`はユーザー任意のshell aliasとして扱う。
 
-この方針はリスクを大きく下げるが、法的な保証やAtCoderからの許諾そのものではない。公開前の問い合わせと、公開後の継続的な規約確認を配布プロセスの一部として扱う。
+この方針はリスクを大きく下げるが、法的な保証やAtCoderからの許諾そのものではない。実装開始、限定公開Beta、各releaseでの公式情報・互換性確認を配布processの一部として扱う。

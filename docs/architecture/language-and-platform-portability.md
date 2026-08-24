@@ -60,7 +60,7 @@ flowchart LR
 
 - `LanguageProfile`は、言語固有のtemplate、toolchain診断、build/run計画を担う。
 - `HostPlatform`は、OS固有のprocess起動・終了、path、terminal、原子的file操作を担う。
-- `JudgeAdapter`は、sample取得、提出、判定、judge上の提出言語への対応付けを担う。
+- `JudgeAdapter`は、sample取得、可視browserへの提出準備、提出ID・判定確認、judge上の提出言語への対応付けを担う。最後の提出操作は利用者が行う。
 - Editor / IDEは新たなCoreの実装軸にせず、通常のworkspace fileをAlgoLoomと共有する外部所有環境として扱う。外部toolをAlgoLoomから起動する場合だけ、任意のEditor / Viewer Adapterへ閉じ込める。
 - Coreの各commandへ言語名やOS名の条件分岐を散在させない。
 - 対応言語、OS、利用するEditor / IDEを変更しても、既存command、履歴、snapshot、提出の意味を変更しない。
@@ -201,7 +201,7 @@ sequenceDiagram
 |---|---|---|
 | `LanguageProfile` | 拡張子、template、toolchain要件、build/run計画、生成物種別 | process tree終了、AtCoder通信、DB保存、任意shell実行 |
 | `HostPlatform` | process起動・取消・終了、path、temp、terminal capability、原子的file操作 | 言語template、judge提出言語、sample比較 |
-| `JudgeAdapter` | 問題取得、認証、提出、判定、canonical language IDからjudge言語への解決 | local compilerの探索、OS process制御、履歴Schema |
+| `JudgeAdapter` | 問題取得、認証、可視browserへの提出準備、提出ID・判定、canonical language IDからjudge言語への解決 | 人による最後の提出操作、local compilerの探索、OS process制御、履歴Schema |
 | `HistoryStore` | SolveAttempt、milestone、snapshot、言語ID、toolchain観測、提出と判定の永続化 | sourceのbuild/run、host pathを恒久IDにすること |
 | workspace context | 問題metadata探索、source候補解決、曖昧性の検出 | compiler実行、暗黙のsource選択、別directoryの自動merge |
 | workspace filesystem境界 | 保存済みsourceの読み取り、宣言済みfileの安全な作成、command開始時のcontext再検証 | 未保存buffer、Editor project設定、plugin API、file watcherによるEditor操作の追跡 |
