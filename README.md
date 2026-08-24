@@ -96,6 +96,7 @@ AI review、Cloud同期、問題推薦・TUI、公開用solution bundle、Repair
 | [配布方針ガイド](docs/operations/algoloom-distribution.md) | AtCoderコンテンツ、規約、ライセンス、PyPI公開 | 配布上の判断材料 |
 | [AtCoder公開情報に基づく配布判断記録](docs/project/atcoder-public-policy-review.md) | `TD-06`〜`TD-08`の12項目、公式根拠、製品制約、再確認gate | **AtCoderに関する条件付き配布判断の正本** |
 | [AtCoder認証・認可の境界整理](docs/project/atcoder-authentication-authorization-boundary.md) | ブラウザー認証、セッション受け渡し、CLI側の本人確認、操作ごとの認可、利用者の手動操作 | 設計検討資料。方針未決 |
+| [AtCoder認証の手動操作削減案](docs/project/atcoder-authentication-manual-operation-automation.md) | 認証自動化前後のシーケンス、CLI・ブラウザ上の手動操作、フォーカス移動、テンプレート複製案 | 設計検討資料。方式未採用 |
 | [契約の考え方](docs/project/contract-concepts.md) | 製品契約、Core契約、保存契約、境界の契約、契約テストの平易な説明 | 用語・概念ガイド |
 | [製品契約と実装判断の境界](docs/project/product-contract-and-implementation-boundary.md) | 「製品の意味」が変わる判断と、実装ADRへ委ねる判断の区別 | 設計・実装判断のガイド |
 | [ライブラリ選定記録](docs/project/library-selection.md) | MVP実装で使うライブラリと外部ツールの採否、根拠、再評価条件 | 工程4の選定判断。`online-judge-tools`は決定済み、その他は進行中 |

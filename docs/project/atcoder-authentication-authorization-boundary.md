@@ -8,6 +8,7 @@
 >
 > 関連文書:
 > - [AtCoder認証設計](../architecture/atcoder-authentication.md)
+> - [AtCoder認証の手動操作削減案](atcoder-authentication-manual-operation-automation.md)
 > - [Core契約](../architecture/core-contracts.md#6-提出契約)
 > - [ストレスフリーUX設計](../quality/stress-free-ux-design.md#32-atcoder認証の開始期限切れ障害)
 > - [MVPスコープ](../product/mvp.md)
