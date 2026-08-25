@@ -14,6 +14,7 @@
 | `consent-v1.0.ja.md` | 初回画面と対応付ける同意文面の正本 |
 | `fixtures/` | 秘密値を含まないmanifest例。実campaignへ流用しない |
 | `prepare.mjs` | リポジトリ外へ拡張ZIPと実行時compile不要のhelperを排他的に生成する |
+| `prepare-store-assets.mjs` | clean buildに対応する実同意UIのscreenshot、small promo、iconをリポジトリ外へ生成する |
 
 拡張機能の版は、対象版兼更新元`0.1.0`と更新先`0.1.1`です。helper版は`0.1.0`、protocol版は`1`、template schema版と同意版は`1.0`です。Chrome Web Storeが割り当てる固定IDは、最初の外部操作が承認され、実際のitemを作るまでsourceへ仮置きしません。
 
@@ -49,6 +50,17 @@ node scripts/verification/atcoder_v12/prepare.mjs \
 拡張ZIPとindexは`0600`、実行ファイルは`0700`です。GoとSwiftはこの準備時にだけcompileし、`V-12B`〜`V-12E`の実行時にはcompileしません。作業treeがdirtyならindexの`campaign_ready`は`false`になり、そのbuildをCWS uploadまたはcampaign manifestへ使いません。
 
 `build-index.json`の`signed_extension_artifacts`は意図的に空です。CWSの署名済み配布物を、標準追加の前にローカルbuildで代用してはいけません。承認後にCWSから配信された対象版の正確なbytesを取得・hash照合できた場合だけ、campaign manifestの`signed_builds`を埋めます。取得できない場合は`V-12A`を不合格として停止し、インストール済みdirectoryを「署名済みbuild」と読み替えません。
+
+### Store listing asset
+
+cleanなsource revisionから隔離buildを作った後、そのbuild rootを指定してlisting assetを生成します。
+
+```console
+node scripts/verification/atcoder_v12/prepare-store-assets.mjs \
+  /absolute/owner-only/v12-preparation/build-01
+```
+
+`listing/`へ、ZIP内と同じ128×128 PNG icon、440×280 PNG small promo、1280×800 PNG screenshot、各hashとcapture条件を持つ`listing-index.json`を作ります。screenshotはhelperへ埋め込む実際の同意HTMLを、外部account・拡張機能実行・AtCoder接続なしの`file:`表示でcaptureしたものです。これはStore listing用assetであり、通常Chrome、標準追加、一往復UXまたは`V-12`の合格証拠にはしません。small promoはtextを含まないbrand図形で、実機能を追加示唆しません。
 
 ## helperの公開command
 

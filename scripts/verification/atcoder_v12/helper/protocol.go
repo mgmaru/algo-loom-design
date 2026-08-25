@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/subtle"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,6 +15,9 @@ import (
 	"strings"
 	"sync"
 )
+
+//go:embed consent.html
+var consentPageTemplate string
 
 const (
 	protocolVersion = 1
@@ -318,19 +322,18 @@ func (h *loopbackHandler) serveBootstrap(response http.ResponseWriter) {
 	}
 	h.bootstrapClaimed = true
 	response.Header().Set("Content-Type", "text/html; charset=utf-8")
+	response.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; frame-ancestors 'none'")
+	response.Header().Set("Referrer-Policy", "no-referrer")
+	response.Header().Set("X-Frame-Options", "DENY")
 	response.WriteHeader(http.StatusOK)
-	_, _ = io.WriteString(response, "<!doctype html><meta charset=utf-8>"+
-		"<meta name=algoloom-loopback-token content=\""+html.EscapeString(h.token)+"\">"+
-		"<meta name=algoloom-consent-version content=\""+html.EscapeString(h.consentVersion)+"\">"+
-		"<title>AlgoLoom authentication consent</title>"+
-		"<main style=\"font:16px/1.65 system-ui,sans-serif;max-width:760px;margin:40px auto;padding:24px\">"+
-		"<h1>AtCoder認証を開始します</h1>"+
-		"<p>同意版 "+html.EscapeString(h.consentVersion)+"。このページにパスワードやCookieを入力しないでください。</p>"+
-		"<ul><li>専用Chromeで利用者自身がAtCoderへログインします。</li>"+
-		"<li>拡張機能はAtCoderのREVEL_SESSIONを1件だけ端末内helperへ渡します。</li>"+
-		"<li>helperは本人確認のためGET /settingsだけを行い、確認後はmacOS Keychainへ一時保存します。</li>"+
-		"<li>提出、ログイン、Turnstileを自動操作しません。中止する場合は同意せずChromeを閉じます。</li></ul>"+
-		"<button id=algoloom-consent type=button style=\"font:inherit;padding:10px 16px\">同意してAtCoderへ進む</button></main>")
+	_, _ = io.WriteString(response, renderConsentPage(h.token, h.consentVersion))
+}
+
+func renderConsentPage(token, consentVersion string) string {
+	return strings.NewReplacer(
+		"{{TOKEN}}", html.EscapeString(token),
+		"{{CONSENT_VERSION}}", html.EscapeString(consentVersion),
+	).Replace(consentPageTemplate)
 }
 
 func (h *loopbackHandler) validTransport(request *http.Request) bool {

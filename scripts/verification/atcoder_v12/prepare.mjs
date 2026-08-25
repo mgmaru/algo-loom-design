@@ -110,9 +110,26 @@ function iconPNG() {
     const row = Buffer.alloc(1 + width * 4);
     for (let x = 0; x < width; x += 1) {
       const offset = 1 + x * 4;
-      const center = x >= 28 && x <= 99 && y >= 24 && y <= 103;
-      const thread = Math.abs(x - y) <= 5 || Math.abs((127 - x) - y) <= 5;
-      const color = center && thread ? [255, 255, 255] : center ? [37, 99, 235] : [15, 23, 42];
+      const left = 16;
+      const top = 16;
+      const right = 112;
+      const bottom = 112;
+      const radius = 24;
+      const centerX = Math.min(Math.max(x + 0.5, left + radius), right - radius);
+      const centerY = Math.min(Math.max(y + 0.5, top + radius), bottom - radius);
+      const insideTile = x + 0.5 >= left && x + 0.5 < right && y + 0.5 >= top && y + 0.5 < bottom &&
+        Math.hypot(x + 0.5 - centerX, y + 0.5 - centerY) <= radius;
+      if (!insideTile) {
+        row.set([0, 0, 0, 0], offset);
+        continue;
+      }
+      const shade = Math.round(235 - ((y - top) / (bottom - top)) * 38);
+      let color = [29, 78, shade];
+      const inThreadRange = x >= 35 && x <= 92 && y >= 35 && y <= 92;
+      const descending = inThreadRange && Math.abs(x - y) <= 6;
+      const ascending = inThreadRange && Math.abs((127 - x) - y) <= 6;
+      if (descending) color = [255, 255, 255];
+      if (ascending && !(x >= 58 && x <= 69)) color = [186, 230, 253];
       row.set([...color, 255], offset);
     }
     rows.push(row);

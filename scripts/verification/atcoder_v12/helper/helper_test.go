@@ -87,7 +87,10 @@ func TestLoopbackHandlerChecksTransportOriginBodyAndState(t *testing.T) {
 	bootstrap := request(t, http.MethodGet, "/bootstrap", "", "", "")
 	response := httptest.NewRecorder()
 	handler.ServeHTTP(response, bootstrap)
-	if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), testToken) {
+	if response.Code != http.StatusOK || !strings.Contains(response.Body.String(), testToken) ||
+		!strings.Contains(response.Body.String(), "TECHNICAL VERIFICATION BETA") ||
+		strings.Contains(response.Body.String(), "{{TOKEN}}") ||
+		response.Header().Get("X-Frame-Options") != "DENY" {
 		t.Fatalf("bootstrap failed: %d", response.Code)
 	}
 	replayed := httptest.NewRecorder()

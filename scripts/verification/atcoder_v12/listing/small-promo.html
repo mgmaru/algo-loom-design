@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=440, initial-scale=1">
+  <title>AlgoLoom V-12 small promotional image</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 440px; height: 280px; margin: 0; overflow: hidden; }
+    body { background: #07142e; }
+    svg { display: block; width: 440px; height: 280px; }
+  </style>
+</head>
+<body>
+  <svg viewBox="0 0 440 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AlgoLoom woven thread mark">
+    <defs>
+      <linearGradient id="background" x1="28" y1="18" x2="412" y2="268" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#07142e"/>
+        <stop offset="0.54" stop-color="#123b8d"/>
+        <stop offset="1" stop-color="#2563eb"/>
+      </linearGradient>
+      <linearGradient id="tile" x1="154" y1="78" x2="286" y2="210" gradientUnits="userSpaceOnUse">
+        <stop stop-color="#3b82f6"/>
+        <stop offset="1" stop-color="#1d4ed8"/>
+      </linearGradient>
+      <filter id="shadow" x="110" y="42" width="220" height="220" filterUnits="userSpaceOnUse">
+        <feDropShadow dx="0" dy="16" stdDeviation="16" flood-color="#020617" flood-opacity="0.32"/>
+      </filter>
+      <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse">
+        <path d="M28 0H0V28" fill="none" stroke="#93c5fd" stroke-opacity="0.09"/>
+      </pattern>
+    </defs>
+    <rect width="440" height="280" fill="url(#background)"/>
+    <rect width="440" height="280" fill="url(#grid)"/>
+    <circle cx="50" cy="54" r="98" fill="#38bdf8" fill-opacity="0.10"/>
+    <circle cx="397" cy="242" r="124" fill="#60a5fa" fill-opacity="0.12"/>
+    <g filter="url(#shadow)">
+      <rect x="148" y="68" width="144" height="144" rx="34" fill="url(#tile)" stroke="#bfdbfe" stroke-opacity="0.45" stroke-width="2"/>
+      <path d="M176 101L264 179" fill="none" stroke="#ffffff" stroke-width="13" stroke-linecap="round"/>
+      <path d="M264 101L176 179" fill="none" stroke="#dbeafe" stroke-width="13" stroke-linecap="round"/>
+      <path d="M176 101L264 179" fill="none" stroke="#7dd3fc" stroke-width="4" stroke-linecap="round" stroke-dasharray="12 12"/>
+      <path d="M264 101L176 179" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-dasharray="12 12" stroke-dashoffset="12"/>
+      <circle cx="176" cy="101" r="7" fill="#ffffff"/>
+      <circle cx="264" cy="101" r="7" fill="#dbeafe"/>
+      <circle cx="176" cy="179" r="7" fill="#dbeafe"/>
+      <circle cx="264" cy="179" r="7" fill="#ffffff"/>
+    </g>
+    <path d="M34 224C95 174 114 236 156 200" fill="none" stroke="#7dd3fc" stroke-opacity="0.42" stroke-width="3" stroke-linecap="round"/>
+    <path d="M284 80C330 40 359 110 411 61" fill="none" stroke="#bfdbfe" stroke-opacity="0.36" stroke-width="3" stroke-linecap="round"/>
+  </svg>
+</body>
+</html>

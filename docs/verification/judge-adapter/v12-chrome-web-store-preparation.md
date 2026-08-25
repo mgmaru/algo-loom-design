@@ -35,7 +35,8 @@
 | 単一目的・最小権限 | extensionは狭く理解可能な単一目的を持ち、必要最小限のpermissionだけを要求する。[Program Policies](https://developer.chrome.com/docs/webstore/program-policies/policies) | AtCoder sessionを端末内helperへ渡す目的だけに限定し、`cookies`、`storage`、AtCoder、loopbackだけを要求する |
 | privacy入力 | single purpose、各permissionの理由、remote code、data利用を申告し、必要なprivacy policyを示す。[Privacy欄](https://developer.chrome.com/docs/webstore/cws-dashboard-privacy) | §3の原稿を使う。認証情報とaccount識別情報の取扱いを過少申告しない |
 | data disclosure | 2026年のpolicy更新は、収集するuser dataの正確な開示を要求し、2026年8月1日から既存itemにも適用すると案内している。[2026年policy更新](https://developer.chrome.com/blog/cws-policy-updates-2026) | 「端末内だけだから申告不要」と推測しない。提出時のdashboard設問に合わせ、認証情報とwebsite contentを開示する |
-| listing画像 | 128×128 PNG icon、少なくとも1枚のscreenshot、440×280のsmall promo tile等の仕様がある。[画像仕様](https://developer.chrome.com/docs/webstore/images) | iconはbuild時生成済み。screenshotとtileは実UIを正確に表す最終assetを別途作り、placeholderで提出しない |
+| listing画像 | 128×128 PNG icon、少なくとも1枚のscreenshot、440×280のsmall promo tileが必須。screenshotは1280×800または640×400で実際の体験を示す。[画像仕様](https://developer.chrome.com/docs/webstore/images) | iconはbuild時生成する。`prepare-store-assets.mjs`で実同意UIの1280×800 screenshotとtextなしの440×280 promoをclean buildへ対応付け、placeholderまたは架空のAtCoder画面で提出しない |
+| test instructions | test手順は公開の必須条件ではないが、制限付きcredentialまたは有料accountが全機能に必要な場合、reviewerへcredentialと手順を伝えるために使える。[公式説明](https://developer.chrome.com/docs/webstore/cws-dashboard-test-instructions) | 本拡張はAtCoder認証を扱うため手順を記載する。共有AtCoder account、password、Cookieは作成・提供せず、事前build済みhelperと、reviewer自身が利用を許可されたaccountでの手動操作だけを案内する。これで審査不能ならcredentialを共有せずCWS supportへ確認する |
 | update | 新しいZIPはversionを増やしてuploadし、再reviewを受ける。CWSは配布packageへ署名する。[更新手順](https://developer.chrome.com/docs/webstore/update) | `0.1.0 → 0.1.1`だけを更新testの版組とし、CWS以外の署名・配布経路へ切り替えない |
 | 停止 | dashboardからunpublishでき、再公開には新しいversionとreviewが必要になる場合がある。[unpublishの説明](https://developer.chrome.com/docs/webstore/account-deletion/) | 新規標準追加を止める手段をunpublishに固定する。実行前承認の対象にし、ローカルsession削除と混同しない |
 
@@ -119,7 +120,7 @@ reviewer向けtest instructions案:
 5. Use a reviewer-owned AtCoder account, or use the supplied local protocol fixture if reviewer credentials must not be shared. The project does not provide an AtCoder password and does not automate Turnstile.
 6. On `/settings`, confirm that the extension reports account verification and transfers one `REVEL_SESSION` to the local helper. No submission is performed.
 
-実際にreviewerが再現できるhelper bundleの受渡手段、privacy policy URL、support URL、screenshot、promo tileが揃うまでは審査へ提出しません。AtCoder credentialを審査資料へ添付しません。local fixtureだけで審査可能かはdashboardのtest instruction欄と審査feedbackに従い、推測で「審査可能」と判定しません。
+実際にreviewerが再現できるhelper bundleの受渡手段、privacy policy URL、support URL、screenshot、promo tileが揃うまでは審査へ提出しません。Test instructionsは任意ですが、本拡張では認証付き機能を説明するため使用します。AtCoder credentialを審査資料へ添付せず、共有test accountも作りません。reviewerが利用を許可されたAtCoder accountを持たずfull flowを確認できない場合は、credential共有や回避経路を追加せずCWS supportへ確認します。local fixtureだけで審査可能かはdashboardの表示と審査feedbackに従い、推測で「審査可能」と判定しません。
 
 ## 5. 外部操作の承認記録
 

@@ -14,6 +14,8 @@ const HELPER_SOURCES = fs.readdirSync(path.join(ROOT, "helper"))
   .filter((name) => name.endsWith(".go"))
   .map((name) => fs.readFileSync(path.join(ROOT, "helper", name), "utf8"))
   .join("\n");
+const CONSENT_PAGE = fs.readFileSync(path.join(ROOT, "helper", "consent.html"), "utf8");
+const STORE_ASSET_PREPARATION = fs.readFileSync(path.join(ROOT, "prepare-store-assets.mjs"), "utf8");
 
 test("V-12 extension has one purpose and the exact minimal permission set", () => {
   assert.equal(MANIFEST.manifest_version, 3);
@@ -73,4 +75,22 @@ test("first-login keeps standard installation and authentication in one helper i
   assert.match(HELPER_SOURCES, /cloneTemplate\(\*templateRoot/);
   assert.match(HELPER_SOURCES, /serveArguments := \[\]string/);
   assert.doesNotMatch(HELPER_SOURCES, /--load-extension|remote-debugging|--headless/);
+});
+
+test("listing screenshot source is the embedded consent UI and contains no account data", () => {
+  assert.match(HELPER_SOURCES, /go:embed consent\.html/);
+  assert.match(CONSENT_PAGE, /algoloom-loopback-token/);
+  assert.match(CONSENT_PAGE, /algoloom-consent-version/);
+  assert.match(CONSENT_PAGE, /id="algoloom-consent"/);
+  assert.match(CONSENT_PAGE, /TECHNICAL VERIFICATION BETA/);
+  assert.doesNotMatch(CONSENT_PAGE, /fixture_account|REVEL_SESSION=/);
+});
+
+test("store asset preparation is local, fixed-size, and bound to a clean build", () => {
+  assert.match(STORE_ASSET_PREPARATION, /index\.campaign_ready/);
+  assert.match(STORE_ASSET_PREPARATION, /git", \["status", "--porcelain"\]/);
+  assert.match(STORE_ASSET_PREPARATION, /1280, 800/);
+  assert.match(STORE_ASSET_PREPARATION, /440, 280/);
+  assert.match(STORE_ASSET_PREPARATION, /file-only rendering; no extension execution and no external account/);
+  assert.doesNotMatch(STORE_ASSET_PREPARATION, /https:\/\/atcoder\.jp|chrome-extension:\/\//);
 });
