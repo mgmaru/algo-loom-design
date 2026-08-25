@@ -124,9 +124,10 @@ function main() {
     const promo = path.join(listingRoot, "small-promo-440x280.png");
     capture(PROMO_SOURCE, promo, 440, 280, path.join(stage, "chrome-promo"));
 
-    const upload = index.extension_upload_packages?.find((item) => item.version === "0.1.0");
+    const targetVersion = index.versions?.extension_target;
+    const upload = index.extension_upload_packages?.find((item) => item.alias === `extension-upload-${targetVersion}`);
     if (!upload || !HASH_PATTERN.test(upload.sha256)) fail("target_upload_missing");
-    const uploadPath = path.join(buildRoot, "artifacts", `algoloom-v12-extension-${upload.version}.zip`);
+    const uploadPath = path.join(buildRoot, "artifacts", `algoloom-v12-extension-${targetVersion}.zip`);
     const icon = execFileSync("unzip", ["-p", uploadPath, "icon128.png"], { env: {}, stdio: ["ignore", "pipe", "pipe"] });
     const iconPath = path.join(listingRoot, "icon128.png");
     fs.writeFileSync(iconPath, icon, { mode: 0o600, flag: "wx" });
@@ -141,7 +142,7 @@ function main() {
       schema_version: 1,
       preparation_scope: "V-12-cws-listing-assets",
       source_revision: revision,
-      extension_version: upload.version,
+      extension_version: targetVersion,
       extension_upload_sha256: upload.sha256,
       capture: {
         chrome_version: chromeVersion,

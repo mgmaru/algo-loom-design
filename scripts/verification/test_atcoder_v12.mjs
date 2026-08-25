@@ -91,6 +91,8 @@ test("store asset preparation is local, fixed-size, and bound to a clean build",
   assert.match(STORE_ASSET_PREPARATION, /git", \["status", "--porcelain"\]/);
   assert.match(STORE_ASSET_PREPARATION, /1280, 800/);
   assert.match(STORE_ASSET_PREPARATION, /440, 280/);
+  assert.match(STORE_ASSET_PREPARATION, /index\.versions\?\.extension_target/);
+  assert.match(STORE_ASSET_PREPARATION, /extension-upload-\$\{targetVersion\}/);
   assert.match(STORE_ASSET_PREPARATION, /file-only rendering; no extension execution and no external account/);
   assert.doesNotMatch(STORE_ASSET_PREPARATION, /https:\/\/atcoder\.jp|chrome-extension:\/\//);
 });
