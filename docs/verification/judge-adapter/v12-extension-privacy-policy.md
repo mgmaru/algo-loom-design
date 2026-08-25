@@ -15,7 +15,7 @@ The extension and helper do not automate an AtCoder password, Turnstile, sign-in
 The extension and its local helper process the following data:
 
 - **Authentication information:** one cookie named `REVEL_SESSION` for `https://atcoder.jp/`.
-- **Website content:** the AtCoder account identifier displayed on `https://atcoder.jp/settings`, used only to confirm that exactly one expected account is signed in.
+- **Personally identifiable information and website content:** the AtCoder username/account identifier displayed on `https://atcoder.jp/settings`, used only to confirm that exactly one expected account is signed in.
 - **Local protocol data:** a random loopback port, a one-time bearer token, the consent version, the extension version, and the browser tab identifier needed to complete the requested local transfer safely.
 
 The extension does not read the user's AtCoder password, Turnstile token, source code, submissions, browsing history, or other cookies. It does not collect analytics, advertising identifiers, payment information, or location information.
@@ -76,7 +76,7 @@ For privacy questions, use the verified publisher contact shown on the Chrome We
 拡張機能と端末内helperは、次のデータを処理します。
 
 - **認証情報:** `https://atcoder.jp/`の`REVEL_SESSION`という名前のCookie 1件
-- **ウェブサイトのコンテンツ:** `https://atcoder.jp/settings`に表示されたAtCoderアカウント識別子。期待するアカウントが1件だけログインしていることの確認に限って使用
+- **個人を特定できる情報とウェブサイトのコンテンツ:** `https://atcoder.jp/settings`に表示されたAtCoder username／アカウント識別子。期待するアカウントが1件だけログインしていることの確認に限って使用
 - **端末内プロトコル情報:** 安全な端末内転送に必要な、ランダムなloopback port、一回限りのBearer token、同意版、拡張機能版、browser tab識別子
 
 AtCoderのパスワード、Turnstile token、ソースコード、提出、閲覧履歴、他のCookieは読みません。analytics、広告識別子、支払情報、位置情報も収集しません。

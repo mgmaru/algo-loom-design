@@ -93,6 +93,7 @@ Remote codeは`No`です。extension package外のJavaScript、WebAssembly、`ev
 
 | data | 取扱い |
 |---|---|
+| Personally identifiable information | AtCoder `/settings`に表示されたusername／account識別子を、期待する本人との一致確認に使う。公開結果には値を残さない |
 | Authentication information | `REVEL_SESSION`をextension memoryから同じ端末のloopback helperへ一度だけ渡す。helperが本人確認後にcampaign専用macOS Keychainへ一時保存する |
 | Website content | AtCoder `/settings`に埋め込まれたaccount識別情報を一意性・期待値一致の確認に使う。公開結果には値を残さない |
 
