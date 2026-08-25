@@ -574,6 +574,15 @@ flowchart TD
 
 reviewer用macOS arm64 helper候補はad-hoc署名で、`codesign --verify --strict`には合格しましたが`spctl --assess --type execute`は拒否しました。このMacに有効なcode-signing identityはなく、ownerはApple Developer Programへ未加入です。2026年8月26日時点の[Apple公式案内](https://developer.apple.com/help/account/membership/program-enrollment)ではApple Developer Programは年額99 USD（地域により現地通貨・税）で、Apple Developer app経由の加入は解約まで自動更新です。新規契約・支払い、CWS supportへの問い合わせ送信、GitHub Release等へのhelper公開、test instructions保存、審査提出、公開はいずれも未承認です。この外部判断を急がないため`TD-39`を`保留`とします。
 
+**停止している問題:** 次の問題が連鎖しているため、test instructionsを確定できず、審査へ提出できません。
+
+1. 拡張機能のcore flowにはlocal helperが必要ですが、実際のCWS test instructions画面にはhelperの添付欄またはreviewer専用URL欄がなく、公式な受渡し方法が未確定です。
+2. 現在のhelperはad-hoc署名のためGatekeeperの通常評価で拒否されます。この状態で渡すとreviewerへGatekeeper回避を要求する可能性があり、安全な審査手順にできません。
+3. Developer ID署名とnotarizationを行えるidentityがなく、その取得候補であるApple Developer Programには新しい契約、年額費用、自動更新の判断が伴います。
+4. AtCoderの共有credentialは安全上提供しない方針のため、reviewer自身のaccountまたはlocal fixtureでどこまで審査できるか、CWSの公式確認が必要です。
+
+したがって、helperの公式な受渡し方法と認証機能の審査方法が判明し、安全な署名済みhelperを用意できるか別方式を選ぶまでは、test instructions保存、審査提出、公開へ進みません。
+
 **再開条件:** ownerが次のいずれか一つを、対象と外部影響を確認して明示承認した場合だけ再開します。
 
 1. CWS supportへ、companion helperの安全なreviewer受渡し方法、共有AtCoder credentialを提供しない審査方法、Developer ID署名・notarizationの要否を問い合わせる。

@@ -176,6 +176,19 @@ local CookieまたはKeychain項目の削除を、CWS配布停止やAtCoder側�
 
 作業はtest instructionsの入力前で停止しました。CWS itemはdraftで、「審査のため送信」は押しておらず、公開もしていません。
 
+### 8.1. 停止している問題
+
+次の問題が連鎖しているため、test instructionsを確定できず、審査へ提出できません。
+
+1. 拡張機能のcore flowにはlocal helperが必要ですが、実際のCWS test instructions画面にはhelperの添付欄またはreviewer専用URL欄がなく、公式な受渡し方法が分かりません。
+2. 現在のhelperはad-hoc署名で、`codesign --verify --strict`には合格する一方、Gatekeeperの通常評価である`spctl --assess --type execute`には拒否されます。この状態で配布するとreviewerへGatekeeper回避を要求する可能性があり、安全な審査手順にできません。
+3. このMacにはDeveloper ID署名とnotarizationを行えるidentityがありません。その取得候補であるApple Developer Programには、新しい契約、年額費用、自動更新の判断が伴います。
+4. AtCoderの共有credentialは安全上提供しない方針です。reviewer自身のaccountまたはlocal fixtureでどこまで認証機能を審査できるか、CWSの公式確認が必要です。
+
+このため、helperの公式な受渡し方法と認証機能の審査方法が判明し、安全な署名済みhelperを用意できるか別方式を選ぶまでは、test instructions保存、審査提出、公開へ進みません。
+
+### 8.2. 再開手順
+
 再開時の推奨する最初の操作は、CWS supportへ次の3点を問い合わせることです。ただし、問い合わせ送信自体が外部操作であるため、文面と送信先を提示して明示承認を得てから行います。
 
 1. dashboardに添付欄がない場合、companion helperをreviewerへ安全に渡す公式経路は何か。
