@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "AlgoLoom Authentication Verification BETA",
+  "version": "__VERSION__",
+  "description": "Transfers one AtCoder session to the local AlgoLoom verification helper after consent.",
+  "icons": {
+    "128": "icon128.png"
+  },
+  "permissions": [
+    "cookies",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://atcoder.jp/*",
+    "http://127.0.0.1/*"
+  ],
+  "background": {
+    "service_worker": "service_worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://127.0.0.1/*"
+      ],
+      "js": [
+        "bootstrap.js"
+      ],
+      "run_at": "document_end"
+    },
+    {
+      "matches": [
+        "https://atcoder.jp/settings*"
+      ],
+      "js": [
+        "atcoder.js"
+      ],
+      "run_at": "document_end"
+    }
+  ]
+}

@@ -169,7 +169,7 @@ flowchart TD
 | [`TD-08`](#td-08-公開前の公式情報互換性再確認gateを定義し設計へ反映する) | 文書整備 | 公開前の公式情報・互換性再確認gateを定義し、設計へ反映する | `TD-07` | 完了 |
 | [`TD-09`](#td-09-方式aの製品形態候補を机上比較する) | 設計判断 | 方式Aの製品形態候補を机上比較する | `TD-01`, `TD-08` | 完了 |
 | [`TD-10`](#td-10-方式a製品形態の検証項目を追加する) | 技術検証 | 方式A製品形態の検証項目を追加する | `TD-09` | 完了 |
-| [`TD-37`](#td-37-v-12検証用の製品相当配布物を準備する) | 技術検証 | `V-12`検証用の製品相当配布物を準備する | `TD-10` | 未着手 |
+| [`TD-37`](#td-37-v-12検証用の製品相当配布物を準備する) | 技術検証 | `V-12`検証用の製品相当配布物を準備する | `TD-10` | 進行中 |
 | [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-37` | 未着手 |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 |
 | [`TD-38`](#td-38-認証配布物とテンプレートのライフサイクル契約を確定する) | 機能設計 | 認証配布物とテンプレートのライフサイクル契約を確定する | `TD-11`, `TD-12` | 未着手 |
@@ -535,6 +535,8 @@ flowchart TD
 
 **目的:** `TD-11`は、署名済み拡張機能、実行時compileを必要としない認証helper、テンプレートprofileの確定・複製・破棄を実際に組み合わせないと実行できません。現在ある`V-10`の手動読込拡張と一時Swift helperは原理検証用であり、`V-12`の合格証拠にはできません。製品実装を先行させず、`V-12`だけに必要な製品相当の検証物を隔離して準備します。
 
+**2026年8月26日の進捗:** [`scripts/verification/atcoder_v12/`](scripts/verification/atcoder_v12/)へ最小権限の拡張source、事前buildするmacOS arm64 helper・Keychain adapter、認証付きloopback、profile操作、campaign manifest検査、固定入力test、同意版を追加しました。[CWS配布準備](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)へ最新公式要件、listing・privacy原稿、費用・公開を含む外部操作の承認gate、停止方法を記録しています。外部接続なしのtestと隔離buildは成功しました。publisher候補accountでは、owner本人の判断と操作で契約同意、一回限り5米ドルの支払い、developer登録、非取引業者の自己申告、Publisher nameの保存、contact emailの検証を完了しました。account名と実addressは記録していません。検証用privacy policyとsupport pageはlocal原稿まで作成済みです。公開URL、item作成、固定ID取得、upload、審査提出、限定公開は未実施です。したがって`TD-37`と`T-11`は完了にしません。
+
 **手順:**
 
 1. 公式拡張機能配布基盤の最新要件を確認し、検証用publisher、限定公開範囲、審査、説明、privacy開示、費用、公開後の停止方法を記録する。登録、支払い、審査提出、公開等の外部状態を変更する前に、人間の明示承認を得る。
@@ -549,11 +551,11 @@ flowchart TD
 
 - [ ] 通常Chromeの標準追加画面から、開発者向け設定なしで署名済み限定公開版を追加できる事前状態である。最終的な合格証拠は`TD-11`の`V-12B`で記録する
 - [ ] 拡張機能、helper、protocol、template schema、同意版の版とhashが匿名化可能なcampaign manifestで対応付いている
-- [ ] 実行時compile、利用者の既存profile、企業向けポリシー、外部拡張設定、OSレジストリへ依存していない
+- [x] 実行時compile、利用者の既存profile、企業向けポリシー、外部拡張設定、OSレジストリへ依存していない
 - [ ] `V-12A`の事前testが合格し、template不要の版・権限不一致と中断点で安全側に停止する
-- [ ] 準備確認で使ったprofileを`V-12B`の基準templateとして流用せず、基準templateを初回導線内で一度だけ作る手順になっている
-- [ ] publisher credential、署名用秘密値、Cookie、実account名がrepository、成果物、通常logへ含まれていない
-- [ ] `TD-11`のsub検証順、実行入力、外部通信上限、結果無効化規則、段階別の後始末対象が確定している
+- [x] 準備確認で使ったprofileを`V-12B`の基準templateとして流用せず、基準templateを初回導線内で一度だけ作る手順になっている
+- [x] publisher credential、署名用秘密値、Cookie、実account名がrepository、成果物、通常logへ含まれていない
+- [x] `TD-11`のsub検証順、実行入力、外部通信上限、結果無効化規則、段階別の後始末対象が確定している
 
 ---
 

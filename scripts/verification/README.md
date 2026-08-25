@@ -89,6 +89,7 @@ python3 scripts/verification/atcoder_v03_submit.py \
 | `atcoder_v03_browser_submit.mjs` | 通常の可視Chrome、人によるログイン・Turnstile・提出操作を使う1件提出と提出ID取得 | `--remote-debugging-pipe`を使わないV-03の再設計版。検証専用拡張を人が専用プロファイルへ読み込み、許可リスト化した結果だけをloopbackへ返す。製品へ組み込まない |
 | `atcoder_v10_session.mjs` | 方式Aの可視専用ブラウザ、Cookie限定取得、秘密情報保管、別プロセスでの本人再確認 | `REVEL_SESSION`だけを明示操作後に取得し、macOS Keychainへ一時保存するV-10検証専用経路。実行後にKeychain項目と専用プロファイルを削除する |
 | `atcoder_v11_cookie_lifecycle.mjs` | Cookie更新、明示期限、再起動、失効、更新競合、秘密情報保管庫障害 | V-10のCookie限定取得境界と世代付きKeychain更新を使うV-11検証専用経路。POSTと提出を行わない |
+| `atcoder_v12/` | 署名済み限定公開拡張機能、事前build helper、認証付きloopback、template profile、campaign manifestを組み合わせるV-12準備 | macOS arm64代表環境向けの製品相当検証物。ローカルtest・buildと外部CWS操作を分離し、製品コードやCI認証へ再利用しない |
 | `atcoder_v04_integrated.py` | V-04合格観測用のV-04準備→V-03→即時V-04統合実行 | 新規提出前に方式Cの本人照合を済ませ、V-03状態の作成直後から同じIDだけを有限ポーリングする。`p0-22`で実サービス検証済み。`p0-21`の提出許可は消費済み |
 | `atcoder_v04_verdict.py` | V-03の提出ID1件による判定待ち・最終判定の確認 | 方式Cで本人を再確認し、対象IDだけを有限ポーリングする。実IDと生応答を保存しない。製品へ組み込まない |
 | `atcoder_v03_turnstile_probe.mjs` | 可視の専用ブラウザにおけるTurnstile実行後状態の読み取り専用観測 | `p0-10`で`--remote-debugging-pipe`による自動化状態がCloudflareと非互換だと確認したため、AtCoderへ再接続しない。原因再現の参照コードとしてのみ保持する |
@@ -174,6 +175,21 @@ node --test scripts/verification/test_atcoder_v11_cookie_lifecycle.mjs
 ```
 
 [`atcoder_v11_keychain.swift`](atcoder_v11_keychain.swift)はV-11専用の一時Keychainヘルパーです。実行時にリポジトリ外へコンパイルし、レコードを標準入出力のバイト列として扱います。検証支援コードとローカルテストだけを実サービスの合格証拠または製品実装とは扱いません。
+
+## `atcoder_v12/`
+
+`V-12`の製品相当配布形態を準備する検証専用一式です。CWS upload用の2版の拡張ZIP、実行時compile不要のmacOS arm64 helperとKeychain adapterをリポジトリ外へbuildし、固定ID・版・配布元・権限・hashをcampaign manifestで検査します。通常Chromeの既存profile、developer mode、enterprise policy、外部拡張設定、registryを使いません。
+
+外部接続なしのtestは次で実行します。
+
+```console
+cd scripts/verification/atcoder_v12/helper
+go test ./...
+cd ../../../..
+node --test scripts/verification/test_atcoder_v12.mjs
+```
+
+build、profileの確定・複製・安全な破棄、認証helper、manifest無効化、`TD-11`での順序とcleanupは[`atcoder_v12/README.md`](atcoder_v12/README.md)を参照します。Chrome Web Storeのpublisher登録、支払い、item作成、upload、審査提出、限定公開、更新、停止は人の明示承認が必要であり、ローカル準備commandから実行しません。
 
 ## `atcoder_v03_browser_submit.mjs`
 

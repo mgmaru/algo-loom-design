@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "campaign_id": "v12-example-only",
+  "manifest_revision": 1,
+  "verification_plan": {
+    "version": "abcdef1",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "consent": {
+    "version": "1.0",
+    "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "extension": {
+    "id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "target_version": "0.1.0",
+    "update_from_version": "0.1.0",
+    "update_to_version": "0.1.1",
+    "distribution_origin": "chrome_web_store_unlisted",
+    "listing_url": "https://chromewebstore.google.com/detail/algoloom/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "permissions": [
+      "cookies",
+      "storage"
+    ],
+    "host_permissions": [
+      "https://atcoder.jp/*",
+      "http://127.0.0.1/*"
+    ],
+    "source_revision": "abcdef1",
+    "source_tree_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "upload_packages": [
+      {
+        "alias": "extension-upload-0.1.0",
+        "sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "bytes": 1000
+      },
+      {
+        "alias": "extension-upload-0.1.1",
+        "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "bytes": 1001
+      }
+    ],
+    "signed_builds": [
+      {
+        "alias": "extension-signed-0.1.0",
+        "sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "bytes": 2000
+      }
+    ]
+  },
+  "helper": {
+    "version": "0.1.0",
+    "protocol_version": 1,
+    "source_revision": "abcdef1",
+    "source_tree_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "artifacts": [
+      {
+        "alias": "helper-darwin-arm64",
+        "os": "darwin",
+        "arch": "arm64",
+        "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "bytes": 3000
+      },
+      {
+        "alias": "keychain-darwin-arm64",
+        "os": "darwin",
+        "arch": "arm64",
+        "sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "bytes": 3001
+      }
+    ]
+  },
+  "environments": [
+    {
+      "alias": "macos-arm64",
+      "os": "macOS",
+      "os_version": "26.5",
+      "arch": "arm64",
+      "chrome_version": "140.0.0.0",
+      "secret_store": "macOS Keychain",
+      "representative": true
+    }
+  ],
+  "profile": {
+    "schema_version": "1.0",
+    "status": "pending_v12b",
+    "integrity_id": null
+  }
+}
