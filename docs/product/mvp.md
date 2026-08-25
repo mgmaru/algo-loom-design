@@ -37,7 +37,7 @@ MVPで証明する価値は、機能の多さではない。
 
 MVPにはAI review、Cloud同期、問題推薦、TUI、Repair Labを含めない。これらはCoreの安定した契約を利用する任意Capabilityとして後から追加できる依存方向を保つが、Coreから未実装の任意機能へ依存させず、将来機能のために導入、日常操作、業務データモデルを複雑にしない。
 
-MVPの主要導線は次とする。名称は機能設計で変更できるが、責任の分割は維持する。
+MVPの主要導線は次とする。明示的に確定した`aloom auth login`を除き、名称は機能設計で変更できるが、責任の分割は維持する。
 
 ```text
 問題を選ぶ
@@ -47,8 +47,8 @@ MVPの主要導線は次とする。名称は機能設計で変更できるが�
   → test
   → 中断時はpause、再開時はresume
   → 必要なら明示checkpoint
-  → 初回または失効時は可視の専用browserでAtCoder認証
-  → submit
+  → 必要なら aloom auth login でAtCoder認証を事前確認
+  → submit（初回または失効時は理由と中止方法を表示して認証browserを自動起動）
   → log / show / diffで振り返る
   → 必要ならAtCoderの解説ページをbrowserで開く
   → 定着を確かめるときはfreshな解き直しを新しいSolveAttemptとして始める
@@ -70,7 +70,7 @@ MVPの主要導線は次とする。名称は機能設計で変更できるが�
 
 ### 1.2. 本書で決めないこと
 
-- 最終的なsubcommand名、option名、alias
+- 明示的に確定した`aloom auth login`を除く、最終的なsubcommand名、option名、alias
 - CLI frameworkやdependency injection手法
 - class、module、table、columnの最終名称
 - metadata fileとexport fileの最終形式
@@ -336,6 +336,7 @@ MVPは、commandが存在するだけでは完了としない。少なくとも�
 
 - [ ] 初期利用者がhelpだけで`get → test`へ到達できる。
 - [ ] 初回認証で、専用ブラウザを開く理由、手動操作、取り込む情報、保存先、中断方法を一画面で理解できる。
+- [ ] `auth login`と`submit`からの再認証がCLIとbrowserの一往復で完了し、途中のcopy-and-paste、別command、手動ページ移動を要求しない。
 - [ ] Coreの通常操作が、AlgoLoom所有領域と利用者が明示したworkspace以外のEditor、shell、plugin、toolchain、OS設定を永続的に変更しない。
 - [ ] Editor / IDE、Editor / Viewer Adapter、専用project fileなしで、保存済みの通常source fileからCoreの主要導線を完了できる。
 - [ ] file managerやEditorによるworkspace・問題directory・sourceの移動またはrename後も、file watcherなしで現在のcontextを再認識できる。

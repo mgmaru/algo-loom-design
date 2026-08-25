@@ -694,9 +694,10 @@ Review Backendの追加では、認証方式と実行権限を別々に評価す
 
 AtCoderのusername、password、Turnstileは利用者が可視の専用browser上で操作し、AlgoLoomへ入力しない。認証helperは`https://atcoder.jp`の`REVEL_SESSION`だけを許可し、Cookieの存在だけで認証成功とみなさず、同じsessionからaccount identityを確認する。
 
-- 認証helperは明示的なsetup操作でだけ起動し、`submit`中に暗黙にbrowserを開かない。
+- `aloom auth login`は利用者の明示操作として認証helperを起動する。`submit`で再認証が必要な場合は、初回同意が有効であることを確認し、browserを開く理由と中止方法を表示してから同じ認証helperを自動起動できる。
+- 認証または提出の待機中はCLIから取消でき、取消、timeoutまたはbrowser終了では未確認sessionを破棄して一時資源を回収する。
 - 利用者の既存browser profile、password store、history、extension、他siteのCookieを探索しない。
-- CDP等の制御channelをremoteへ公開せず、可能な場合は子process限定のpipeを使う。
+- Cloudflare保護ページの表示中はCDP、WebDriver、remote debuggingのpipe/portを使わない。拡張機能と認証helperの通信は、認証付きの折返し通信へ限定する。
 - sessionを`argv`、environment、shell history、config file、workspace、履歴DBへ渡さない。
 - secret storeへ確定する前に、期待するaccount identityとの一致を確認する。
 - `Set-Cookie`が返った場合だけ更新し、serverが返していないexpiryを生成しない。
@@ -715,9 +716,9 @@ AtCoderのusername、password、Turnstileは利用者が可視の専用browser�
 | コマンド | 主な境界 | 必須要件 |
 |---|---|---|
 | `get` | problem ID、URL、filesystem | 正規ID検証、1問単位、workspace境界、safe filename |
-| AtCoder認証setup | 専用browser、CDP、Cookie、keyring | 手動login、専用profile、Cookie allowlist、account確認、redaction、cleanup |
+| `auth login` | 専用browser、拡張機能、Cookie、keyring | 初回だけの追加承認、手動login、専用profile、Cookie allowlist、account確認、redaction、cleanup |
 | `test` | source path、compiler、runtime | argv実行、timeout、出力上限、secretを除いた環境 |
-| `submit` | source、oj、AtCoder、DB | file検証、確認、SQL bind、snapshot hash、error redaction |
+| `submit` | source、oj、AtCoder、DB、必要時の認証browser | file検証、再認証の事前表示と取消、確認、SQL bind、snapshot hash、error redaction |
 | `submit --review` | code、contest policy、LLM | 安全判定、送信同意、data最小化、Schema検証、自動操作禁止 |
 | `log` | DB、terminal / Rich | bindされた検索、許可されたsort、plain text表示 |
 | `show` | DB、temp file、Editor / Viewer Adapter | 安全なtemp file、argv、対応toolの読み取り専用mode、terminal fallback |
@@ -821,7 +822,7 @@ AtCoderのusername、password、Turnstileは利用者が可視の専用browser�
 - [ ] AtCoder認証helperが既存browser profileと他siteのCookieを参照せず、専用profileから`REVEL_SESSION`だけを取得する。
 - [ ] AtCoder sessionを`argv`、環境変数、設定file、workspace、通常logへ渡さない。
 - [ ] session確定前と各提出前に期待するaccount identityを確認する。
-- [ ] CDP等の制御channelをremoteへ公開せず、browserと一時profileを異常終了時にも回収する。
+- [ ] Cloudflare保護ページの表示中にCDP、WebDriver、remote debuggingのpipe/portを使わず、browserと一時profileを異常終了時にも回収する。
 - [ ] Cookie更新にserverが返していないexpiryを追加せず、同時更新で新しい値を巻き戻さない。
 - [ ] Provider password、social login情報、OAuth token、認証cacheを要求・読取・複製しない。
 - [ ] keyringが利用できない場合に平文fileへ自動fallbackしない。

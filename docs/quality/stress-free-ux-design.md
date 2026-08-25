@@ -190,9 +190,12 @@ AlgoLoomの最大のUX目標は、機能を増やすことではなく、利用�
 - 初回提出より前に、認証状態を安全に確認できるようにする。
 - 推奨経路は方式Aの可視専用browser一つとし、利用者がusername、password、Turnstileをbrowser上で操作することを先に示す。
 - AlgoLoomが取得するのはAtCoderのsessionであり、passwordを取得しないこと、sessionをOSのsecret storeへ保存することを平易に伝える。
-- 認証browserを`submit`の途中で暗黙に起動せず、初回または失効時の明示操作へ分離する。
+- 明示ログインは`aloom auth login`から開始し、CLIからbrowserへ1回移り、完了後にCLIへ戻る一往復で終える。
+- 初回だけ利用委譲への同意と署名済み拡張機能の追加を求め、同意内容または権限が変わらず、専用templateが健全なら繰り返さない。
+- `submit`で再認証が必要な場合は、browserを開く理由と中止方法をCLIへ表示してから自動起動する。別の認証commandや追加のYes/No確認を要求せず、認証後は同じbrowserで提出確認へ進む。
+- browser表示中にCLIへ戻ってURL、code、commandまたはCookieを入力させず、ページ移動、認証結果の検出、本人確認、保存、後始末を自動化する。
 - 認証中は「browser起動待ち」「利用者のlogin待ち」「account確認」「保存」の段階を示し、Cookie値は表示しない。
-- 利用者の取消とbrowser終了をerror扱いで責めず、提出を行っていないことと再開方法を示す。
+- CLIからいつでも取消できるようにし、取消とbrowser終了をerror扱いで責めず、提出を行っていないことと再開方法を示す。
 - 期限切れ、未認証、account不一致、AtCoder側拒否、構造変更、通信障害、secret store障害を可能な範囲で分ける。
 - errorには、利用者が次に行える行動を1つ示す。
 - Bot対策の回避方法を案内しない。

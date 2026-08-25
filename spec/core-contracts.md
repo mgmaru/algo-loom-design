@@ -127,7 +127,8 @@ PREPARED
 
 AtCoder sessionは次の契約で確立します。
 
-- 可視の専用browserを明示操作で起動し、username、password、Turnstileを利用者がbrowser上で操作します。
+- `aloom auth login`は可視の専用browserを明示起動します。`submit`で再認証が必要な場合は理由と中止方法を表示して自動起動し、別commandを要求しません。username、password、Turnstileは利用者がbrowser上で操作します。
+- 初回だけ利用委譲と署名済み拡張機能の追加を求め、以後はCLIとbrowserの一往復で完了させます。途中でURL、code、commandまたはCookieをcopy-and-pasteさせません。
 - 利用者の既存browser profileを参照せず、`https://atcoder.jp`の`REVEL_SESSION`だけを取得します。
 - 同じsessionで期待するaccount identityを確認した後だけ、OSの秘密情報保管庫へ保存します。
 - CoreとCLIへ生のCookie値を返さず、AtCoder Adapterへ不透明なsession参照または認証済みHTTP clientをaccount確認等の必要な通信中だけ貸し出します。人による最後の提出操作を直接HTTP POSTで置き換えません。

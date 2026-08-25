@@ -541,9 +541,10 @@ stateDiagram-v2
 | R4 | Coreを止めない | 認証エラーを理由にローカルテスト、履歴閲覧、エクスポート、チェックポイントを停止しない |
 | R5 | 次の一手を示す | エラーごとに利用者が行える行動を一つ示す |
 | R6 | アカウントの変更を検出する | 保存済みアカウントと異なる場合は送信前に停止して説明する |
-| R7 | 手動認証でsessionを確立する | 可視の専用browserを明示操作で起動し、利用者がusername、password、Turnstileをbrowser上で操作する |
+| R7 | 手動認証でsessionを確立する | `aloom auth login`で可視の専用browserを起動し、利用者がusername、password、Turnstileをbrowser上で操作する。`submit`で再認証が必要なら、理由と中止方法を表示して自動起動し、別commandを要求しない |
 | R8 | browserとsecretを分離する | 既存profileを参照せず、`REVEL_SESSION`だけをaccount確認後にOSのsecret storeへ保存する |
 | R9 | 認証中断を回復する | 取消、timeout、browser異常終了で提出せず、孤児process、利用可能な一時profile、未確認sessionを残さない |
+| R10 | 一往復で完了する | 初回だけ同意と署名済み拡張機能の追加を求め、以後はCLIからbrowserへ1回移ってCLIへ戻る。途中のcopy-and-paste、手動ページ移動、取り込み要求を求めない |
 
 - Cookie、パスワード、セッショントークンを履歴DB、作業領域、エクスポート、通常ログへ保存しません。
 - 秘密情報保管庫を利用できない場合、平文設定ファイルへ自動的に切り替えません。
@@ -912,7 +913,7 @@ flowchart TB
 | 保存領域 | AlgoLoom所有領域の具体的なパス、設定・DB・キャッシュの配置 | [未決事項一覧](../docs/project/unresolved-decisions.md) 2.1 |
 | ローカルテスト | 空白・改行の正規化規則、浮動小数の既定の許容誤差、近似判定の表示文言 | [未決事項一覧](../docs/project/unresolved-decisions.md) 2.5 |
 | 履歴 | ツールチェーン観測を履歴へ保存するか。Core契約と可搬性設計の記述が一致していない | [未決事項一覧](../docs/project/unresolved-decisions.md) 2.6 |
-| 認証 | 方式Aのsetup・状態確認・削除の最終command名と表示、対応browser matrix | [未決事項一覧](../docs/project/unresolved-decisions.md) 1.6 |
+| 認証 | 状態確認・削除commandと具体表示、対応browser matrix。明示loginは`aloom auth login`で確定済み | [未決事項一覧](../docs/project/unresolved-decisions.md) 1.6 |
 | 時間計測 | 最終的なCLI、表示精度、時計異常の訂正方法 | [未決事項一覧](../docs/project/unresolved-decisions.md) 1.8 |
 | 外部資料 | 最終的なCLI、ネタバレ確認の文言、非対話時の明示オプション | [未決事項一覧](../docs/project/unresolved-decisions.md) 1.9 |
 | 外部資料の表示手段 | ターミナル内で表示崩れの少ない表示手段の選定と、対応OSごとの保証範囲 | [未決事項一覧](../docs/project/unresolved-decisions.md) 1.11 |

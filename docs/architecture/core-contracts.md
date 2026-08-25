@@ -458,7 +458,8 @@ PREPARED
 ### 6.5. AtCoderアカウント
 
 - MVPは一つのAtCoderアカウントを使用する。
-- 初回または失効時は`AtCoderSessionProvider`が可視の専用browserを明示操作で起動し、利用者がusername、password、Turnstileを手動で操作する。
+- `aloom auth login`は`AtCoderSessionProvider`の可視専用browserを明示起動する。`submit`で再認証が必要な場合は、理由と中止方法を表示して自動起動し、別commandを要求しない。username、password、Turnstileは利用者がbrowser上で手動操作する。
+- 初回だけ利用委譲と署名済み拡張機能の追加を求め、以後はCLIとbrowserの一往復で完了させる。途中でURL、code、commandまたはCookieをcopy-and-pasteさせない。
 - `AtCoderSessionProvider`は利用者の既存browser profileを参照せず、`https://atcoder.jp`の`REVEL_SESSION`だけをOSのsecret storeへ保存する。
 - CoreとCLIへ生のCookie値を返さず、AtCoder Adapterには不透明なsession参照または認証済みHTTP clientをaccount確認等の必要な通信中だけ貸し出す。可視browserで利用者が行う最後の提出操作を、sessionを使った直接HTTP POSTへ置き換えない。
 - 手動Cookie importは技術検証の方式Cだけに限定し、MVPの通常導線、CI、共有環境または非対話実行へ提供しない。

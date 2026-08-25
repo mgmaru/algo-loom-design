@@ -156,6 +156,7 @@ WSL上で偶然動作することを妨げないが、native Windows対応また
 |---|---|---|
 | LanguageProfile契約 | template、toolchain診断、BuildPlan、RunPlan | 4 profile |
 | HostPlatform契約 | 起動、取消、timeout、process tree終了、path、出力上限 | 3 OS |
+| AtCoder認証OS統合契約 | 可視Chrome起動、専用profile、process回収、秘密情報保管庫 | 3 OS。詳細は[AtCoder認証設計 §3.4](atcoder-authentication.md#34-認証経路に現れるos差) |
 | Judge言語mapping契約 | canonical language IDとAtCoder提出言語の対応 | 4言語と対応version |
 | End-to-End smoke | `get → test`と代表的な提出前検証 | 4言語 × 3 OS |
 | Core回帰 | workspace、snapshot、履歴、error構造 | 言語・OS非依存fixture |
@@ -331,6 +332,8 @@ flowchart LR
 | symlink | 一般的に利用可能 | 作成条件や権限が異なる | path/context契約 |
 | resource制限 | POSIX APIを利用できる場合がある | Job Object等、別方式が必要 | `ProcessSupervisor` |
 | process計測 | duration、resource usage API等を利用できるが、OS間で意味が完全には一致しない | duration、Job Object / process API等の個別検証が必要 | `ProcessSupervisor`、共通`ProcessMeasurement` |
+
+可視Chromeの検出・起動、専用profileとcacheの配置、秘密情報保管庫、拡張機能の配布方式等、AtCoder認証に固有のOS差は[AtCoder認証設計 §3.4](atcoder-authentication.md#34-認証経路に現れるos差)を正本とします。本書の`HostPlatform`契約は共通のprocess、path、file操作を定義し、認証方式や拡張機能の利用者承認を独自に変更しません。
 
 ### 6.2. 正規化するprocess結果
 
