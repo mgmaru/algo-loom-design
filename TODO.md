@@ -75,11 +75,11 @@ flowchart LR
 - クラス、モジュール、テーブル、カラムの最終名称（実装設計）
 - MVP後の機能に関する未決事項の判断
 
-`TD-37`で作る拡張機能、helper、profile操作は`V-12`の成立性を確認する**検証支援物**であり、製品コード、正式なbuild・release成果物または実装開始とは扱いません。検証物から製品実装へcopyすることを前提にせず、観測した契約だけを`docs/`と`spec/`へ引き渡します。
+`TD-37`で作る拡張機能、helper、profile操作と、`TD-39`で限定公開するCWS itemは`V-12`の成立性を確認する**検証支援物**であり、製品コード、正式なbuild・release成果物または実装開始とは扱いません。検証物から製品実装へcopyすることを前提にせず、観測した契約だけを`docs/`と`spec/`へ引き渡します。
 
 ### 0.3. 工程3から持ち越す作業
 
-工程3は完了していますが、方式Aの**製品形態**だけは工程4の中で追加検証します（[`TD-09`](#td-09-方式aの製品形態候補を机上比較する)〜[`TD-12`](#td-12-3つのosの認証検証マトリクスを作る)）。`V-10`が実証したのは認証方式の原理の成立であり、配布可能な形態と採用した一往復UXの成立ではないためです。
+工程3は完了していますが、方式Aの**製品形態**だけは工程4の中で追加検証します（[`TD-09`](#td-09-方式aの製品形態候補を机上比較する)〜[`TD-12`](#td-12-3つのosの認証検証マトリクスを作る)と[`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する)）。`V-10`が実証したのは認証方式の原理の成立であり、配布可能な形態と採用した一往復UXの成立ではないためです。
 
 ### 0.4. 工程5「実装準備」の扱い
 
@@ -169,8 +169,9 @@ flowchart TD
 | [`TD-08`](#td-08-公開前の公式情報互換性再確認gateを定義し設計へ反映する) | 文書整備 | 公開前の公式情報・互換性再確認gateを定義し、設計へ反映する | `TD-07` | 完了 |
 | [`TD-09`](#td-09-方式aの製品形態候補を机上比較する) | 設計判断 | 方式Aの製品形態候補を机上比較する | `TD-01`, `TD-08` | 完了 |
 | [`TD-10`](#td-10-方式a製品形態の検証項目を追加する) | 技術検証 | 方式A製品形態の検証項目を追加する | `TD-09` | 完了 |
-| [`TD-37`](#td-37-v-12検証用の製品相当配布物を準備する) | 技術検証 | `V-12`検証用の製品相当配布物を準備する | `TD-10` | 進行中 |
-| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-37` | 未着手 |
+| [`TD-37`](#td-37-v-12検証用のローカル配布候補を準備する) | 技術検証 | `V-12`検証用のローカル配布候補を準備する | `TD-10` | 完了 |
+| [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 保留 |
+| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39` | 未着手 |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 |
 | [`TD-38`](#td-38-認証配布物とテンプレートのライフサイクル契約を確定する) | 機能設計 | 認証配布物とテンプレートのライフサイクル契約を確定する | `TD-11`, `TD-12` | 未着手 |
 | [`TD-13`](#td-13-ツールチェーン観測を履歴へ保存するか決定する) | 設計判断 | ツールチェーン観測を履歴へ保存するか決定する | ― | 未着手 |
@@ -525,7 +526,7 @@ flowchart TD
 
 ---
 
-#### `TD-37` `V-12`検証用の製品相当配布物を準備する
+#### `TD-37` `V-12`検証用のローカル配布候補を準備する
 
 | 項目 | 内容 |
 |---|---|
@@ -533,29 +534,74 @@ flowchart TD
 | 対象ファイル | [`scripts/verification/`](scripts/verification/)配下の新しい検証支援物、[`docs/verification/judge-adapter/README.md`](docs/verification/judge-adapter/README.md)、リポジトリ外の隔離したbuild・配布準備領域 |
 | 依存 | `TD-10` |
 
-**目的:** `TD-11`は、署名済み拡張機能、実行時compileを必要としない認証helper、テンプレートprofileの確定・複製・破棄を実際に組み合わせないと実行できません。現在ある`V-10`の手動読込拡張と一時Swift helperは原理検証用であり、`V-12`の合格証拠にはできません。製品実装を先行させず、`V-12`だけに必要な製品相当の検証物を隔離して準備します。
+**目的:** CWSの審査・公開という外部状態に依存せず、`V-12`で使う拡張機能source、実行時compile不要のhelper、認証付きloopback、profile操作、campaign manifest形式、固定入力test、掲載原稿・assetをclean revisionから再現できる状態にします。CWS審査、署名済み配布物、reviewer向けhelper配布は[`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する)へ分離します。
 
-**2026年8月26日の進捗:** [`scripts/verification/atcoder_v12/`](scripts/verification/atcoder_v12/)へ最小権限の拡張source、事前buildするmacOS arm64 helper・Keychain adapter、認証付きloopback、profile操作、campaign manifest検査、固定入力test、同意版を追加しました。[CWS配布準備](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)へ最新公式要件、listing・privacy原稿、費用・公開を含む外部操作の承認gate、停止方法を記録しています。外部接続なしのtestと隔離buildは成功しました。publisher候補accountでは、owner本人の判断と操作で契約同意、一回限り5米ドルの支払い、developer登録、非取引業者の自己申告、Publisher nameの保存、contact emailの検証を完了しました。明示承認された`0.1.0` ZIPで新規itemを作成・uploadし、固定IDをowner-only記録へ保存しました。privacy policy・support pageの公開URLと掲載assetを準備・確認し、承認済み内容でStore listingとPrivacyも保存しました。PrivacyではAtCoder username／account識別子、認証Cookie、website contentの処理を正確に申告しています。Distributionは料金なし・限定公開・日本のみで保存しました。account名、実address、developer dashboard URLは記録していません。test instructions、審査提出、限定公開、CWS署名済み配布物の取得は未実施です。したがって`TD-37`と`T-11`は完了にしません。
+**2026年8月26日の完了記録:** [`scripts/verification/atcoder_v12/`](scripts/verification/atcoder_v12/)へ最小権限の拡張source、事前buildするmacOS arm64 helper・Keychain adapter、認証付きloopback、profile操作、campaign manifest検査、固定入力test、同意版を追加しました。[CWS配布準備](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)へlisting・privacy原稿、費用・公開を含む外部操作の承認gate、停止方法を記録し、clean source revisionから`0.1.0`・`0.1.1` ZIP、helper、掲載assetをowner-only領域へ生成してhashを固定しました。外部接続なしのtest、隔離build、秘密情報非混入検査は成功しています。CWS itemで既に完了した操作と、未実施のtest instructions・審査・限定公開は`TD-39`へ引き渡し、`TD-37`の完了条件には含めません。
 
 **手順:**
 
-1. 公式拡張機能配布基盤の最新要件を確認し、検証用publisher、限定公開範囲、審査、説明、privacy開示、費用、公開後の停止方法を記録する。登録、支払い、審査提出、公開等の外部状態を変更する前に、人間の明示承認を得る。
-2. 単一目的と最小権限を持つ製品相当の検証用拡張機能を作る。固定ID、対象版、更新testに使う版の組、配布元、権限、source revision、build成果物のhashをcampaign manifestへ記録し、publisher credentialや署名用秘密値をrepositoryへ置かない。
+1. 公式拡張機能配布基盤の要件を確認し、listing、privacy開示、費用、公開範囲、公開後の停止方法と、外部操作ごとの承認gateを記録する。
+2. 単一目的と最小権限を持つ検証用拡張機能を作る。対象版と更新testに使う版の組、権限、source revision、upload packageのhashをbuild indexへ記録し、publisher credentialや署名用秘密値をrepositoryへ置かない。
 3. 認証付き折返し通信を提供する製品相当helperを、対象OSで実行時compileを必要としない配布物として準備する。一回限りの秘密値、動的な待受番号、`Host`・送信元・本文上限・状態順序の検査と、通常logへの秘密値非出力を固定入力で確認する。
 4. 標準追加の完了を固定IDで検出し、Chromeを完全終了してからテンプレートを確定し、実行用一時profileへ複製・破棄する検証支援経路を作る。準備中の確認は使い捨てprofileで行い、`V-12B → V-12D`で使う基準templateを先に作成済みにしない。基準templateは`TD-11`の一連の初回導線で一度だけ作る。
 5. 実サービスへ接続する前に、`V-12A`の拡張機能・helper・protocol・同意版と、`V-12C`のtemplateを必要としない版・権限不一致、取消、timeout、process終了、file lock、秘密情報のredactionを固定入力とローカル環境で確認する。templateまたは環境更新を必要とする`V-12C`のcaseは、`TD-11`で基準templateを確定した後、その使い捨て複製または隔離した環境snapshotに対して実行する。
-6. campaign manifestの形式と結果無効化規則を実装する。検証計画revision、拡張機能、helper、protocol、source・build、Chrome・OS、template schema、同意版を記録し、sub検証開始時に期待値との一致を確認できるようにする。
+6. campaign manifestの形式と結果無効化規則を実装する。検証計画revision、拡張機能、helper、protocol、source・build、Chrome・OS、template schema、同意版を記録し、CWS署名済みbuild取得後に実manifestを完成できるようにする。
 7. 検証物を製品コード、CI用認証手段または正式配布物として再利用しない境界をREADMEへ書く。`TD-11`後に残す記録と、各case後に削除する実行用profile・未確認session・待受処理、campaign終了時に削除する基準template・store用一時情報・秘密情報保管庫項目を先に列挙する。
 
 **完了条件:**
 
-- [ ] 通常Chromeの標準追加画面から、開発者向け設定なしで署名済み限定公開版を追加できる事前状態である。最終的な合格証拠は`TD-11`の`V-12B`で記録する
-- [ ] 拡張機能、helper、protocol、template schema、同意版の版とhashが匿名化可能なcampaign manifestで対応付いている
+- [x] clean source revisionから`0.1.0`・`0.1.1`のupload ZIP、macOS arm64 helper、Keychain adapter、listing assetをowner-only領域へ再現し、版・hash・bytesをbuild indexへ固定している
+- [x] campaign manifestのschema、検査、projection hash、変更時の結果無効化規則が実装され、CWS固定ID・listing URL・署名済みbuild取得後に実manifestを作れる
 - [x] 実行時compile、利用者の既存profile、企業向けポリシー、外部拡張設定、OSレジストリへ依存していない
-- [ ] `V-12A`の事前testが合格し、template不要の版・権限不一致と中断点で安全側に停止する
+- [x] 外部接続なしの固定入力testが合格し、template不要の版・権限不一致と中断点で安全側に停止する
 - [x] 準備確認で使ったprofileを`V-12B`の基準templateとして流用せず、基準templateを初回導線内で一度だけ作る手順になっている
 - [x] publisher credential、署名用秘密値、Cookie、実account名がrepository、成果物、通常logへ含まれていない
 - [x] `TD-11`のsub検証順、実行入力、外部通信上限、結果無効化規則、段階別の後始末対象が確定している
+
+---
+
+#### `TD-39` CWS審査用helperの配布方法と限定公開版を確定する
+
+| 項目 | 内容 |
+|---|---|
+| カテゴリ | 技術検証 |
+| 対象ファイル | [`docs/verification/judge-adapter/v12-chrome-web-store-preparation.md`](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)、リポジトリ外のowner-only CWS状態記録、Chrome Web Store dashboard |
+| 依存 | `TD-37` |
+
+**目的:** `TD-37`のローカル配布候補を、reviewerが共有credentialやGatekeeper回避を使わず確認できる形でCWS審査へ渡し、`0.1.0`を料金なし・限定公開・日本のみで標準追加できる事前状態にします。審査提出と公開を分離し、CWSが配信する署名済みbytesを取得して最終campaign manifestへ固定します。
+
+**2026年8月26日の停止記録:** CWS developer登録、契約同意、一回限り5米ドルの登録料支払い、非取引業者の自己申告、Publisher nameとcontact emailの確認、新規item作成、`0.1.0` ZIP upload、固定ID取得、Store listing・Privacy・Distributionの保存まで完了しています。Distributionは料金なし・限定公開・日本のみです。test instructionsのusername、password、追加手順は未入力・未保存で、「審査のため送信」は押していません。itemはdraftで、審査・公開・CWS署名済みbuild取得・`0.1.1` uploadは未実施です。
+
+reviewer用macOS arm64 helper候補はad-hoc署名で、`codesign --verify --strict`には合格しましたが`spctl --assess --type execute`は拒否しました。このMacに有効なcode-signing identityはなく、ownerはApple Developer Programへ未加入です。2026年8月26日時点の[Apple公式案内](https://developer.apple.com/help/account/membership/program-enrollment)ではApple Developer Programは年額99 USD（地域により現地通貨・税）で、Apple Developer app経由の加入は解約まで自動更新です。新規契約・支払い、CWS supportへの問い合わせ送信、GitHub Release等へのhelper公開、test instructions保存、審査提出、公開はいずれも未承認です。この外部判断を急がないため`TD-39`を`保留`とします。
+
+**再開条件:** ownerが次のいずれか一つを、対象と外部影響を確認して明示承認した場合だけ再開します。
+
+1. CWS supportへ、companion helperの安全なreviewer受渡し方法、共有AtCoder credentialを提供しない審査方法、Developer ID署名・notarizationの要否を問い合わせる。
+2. Apple Developer Programの現在の契約、年額、税、自動更新、名義をowner自身が確認し、加入・支払いを明示承認する。
+3. 費用を伴わず、reviewerや利用者にGatekeeper回避、実行時compile、developer mode、CDP、WebDriver、共有credentialを要求しない別の配布方式へ設計を戻す。
+
+**手順:**
+
+1. 再開時にCWS itemがdraft、versionが`0.1.0`、料金なし・限定公開・日本のみで、Store listing・Privacy・Distributionが承認済み内容から変わっていないことを読取り確認する。
+2. reviewer用helperの受渡し方式を確定する。Appleの通常保護下で配布する場合はDeveloper IDで署名し、notarizationを行い、取得した配布物を隔離環境で`codesign`、`spctl`、hash、実行時compile不要、秘密情報非混入について検査する。CWSが別の公式reviewer経路を回答した場合は、その回答と適用範囲を記録する。
+3. AtCoder username、password、Cookieを共有せず、reviewer自身が利用を許可されたaccountと、hash固定済みhelperだけで再現できる500文字以内のtest instructionsを確定する。入力内容とhelper受渡し先を提示し、明示承認後に保存する。
+4. dashboardのpre-submission test、要求権限、data disclosure、listing、Privacy、Distribution、version、ZIP hashを再確認する。不合格、差分、helper再現不能があれば審査へ送信しない。
+5. 審査提出前に、対象item、version、ZIP hash、料金なし、限定公開・日本のみ、test instructions、審査後の自動公開を無効にすることを提示して明示承認を得る。承認後、deferred publishingを選んで審査へ送信し、審査通過だけで自動公開されないようにする。
+6. 審査結果を記録する。不承認なら理由を記録して停止し、credential共有、Gatekeeper回避、別配布元、手動読込で迂回しない。
+7. 審査通過後、対象item、version、限定公開URLを知る日本の利用者が追加できること、停止方法を再提示し、公開の明示承認を別に得る。公開後、通常Chromeの標準画面で追加可能な状態だけを確認し、`TD-11`の基準templateはまだ作らない。
+8. CWS配信済み`0.1.0`の正確なbytesを取得できた場合だけhashを固定し、固定ID、listing URL、helper、protocol、source、build、Chrome・OS、template schema、同意版とともに最終campaign manifestへ記録する。取得不能なら`TD-11`へ進まない。
+9. 更新用`0.1.1` ZIPは`TD-11`の`V-12C`で明示承認後に使うまでuploadしない。`0.1.0`の初回標準追加を確認する前にcurrent versionを置き換えない。
+
+**完了条件:**
+
+- [ ] reviewer用helperの配布方法が確定し、共有credential、Gatekeeper回避、実行時compile、developer modeを要求せず再現できる
+- [ ] test instructionsが秘密情報を含まず、承認済み内容で保存されている
+- [ ] CWSのpre-submission testと人による最終確認が合格し、差分がない
+- [ ] 明示承認後にdeferred publishingで審査へ提出し、審査に合格している
+- [ ] 別の明示承認後に`0.1.0`が料金なし・限定公開・日本のみで公開され、標準追加できる事前状態である
+- [ ] CWS配信済み`0.1.0`のbytesとhashを取得し、最終campaign manifestで拡張機能、helper、protocol、template schema、同意版を一意に対応付けている
+- [ ] publisher credential、署名・notarization用秘密値、AtCoder credential、実account名がrepository、公開成果物、通常logへ含まれていない
+- [ ] `0.1.1`が未uploadのまま保持され、`TD-11`の更新test前に対象版`0.1.0`を置き換えていない
 
 ---
 
@@ -565,14 +611,14 @@ flowchart TD
 |---|---|
 | カテゴリ | 技術検証 |
 | 対象ファイル | `docs/verification/judge-adapter/results/`配下の新しい実行記録 |
-| 依存 | `TD-37` |
+| 依存 | `TD-39` |
 
 **手順:**
 
 1. [実施手順 §3](docs/verification/judge-adapter/README.md#3-当日の外部条件)に従い、当日の外部条件（利用規約、対象コンテストの状態、Bot対策の状態、Cloudflareの対応ブラウザ）を確認する。開始しない条件に該当する場合は実行しない。
 2. リポジトリ外の一時ディレクトリへ隔離したcampaign実行環境を用意する。
-3. `TD-37`で固定した検証物からcampaign IDとmanifestを一つ作り、`V-12A`〜`V-12E`の各開始時に一致を検査する。製品挙動へ影響する項目が変わった場合は同じcampaignの続きとして扱わず、`TD-10`の結果無効化規則に従って新しいcampaignで必要なsub検証からやり直す。
-4. AtCoderへ接続する前に`V-12A`を実行し、`TD-37`の固定入力・ローカル観測と対応付けて結果を記録する。不合格なら後続へ進まない。
+3. `TD-37`で準備し、`TD-39`でCWS配信物まで固定した検証物からcampaign IDとmanifestを一つ作り、`V-12A`〜`V-12E`の各開始時に一致を検査する。製品挙動へ影響する項目が変わった場合は同じcampaignの続きとして扱わず、`TD-10`の結果無効化規則に従って新しいcampaignで必要なsub検証からやり直す。
+4. AtCoderへ接続する前に`V-12A`を実行し、`TD-37`の固定入力・ローカル観測と`TD-39`の署名済み配布物へ対応付けて結果を記録する。不合格なら後続へ進まない。
 5. `aloom auth login`相当から`V-12B → V-12D`を一連の初回導線として実行する。通常Chromeでの標準追加、導入完了の自動検出、Chrome完全終了、基準templateの確定から、そのtemplateを使ったAtCoderログイン、本人確認、秘密情報保管庫への保存、新しいprocessでの再照合、CLIへの結果表示まで続ける。`V-12B`の結果記録のためにCLIへ戻ったり、browser、helper、templateを作り直したりせず、copy-and-pasteや手動ページ移動も行わない。
 6. `V-12D`の観測後、実行用profile、未確認session、待受処理を回収する。AtCoderのCookie、履歴、入力情報を含まない基準templateは`V-12E`まで保持し、確認済みの保存sessionは`V-12C`から隔離する。
 7. `V-12C`を、取消・故障・更新条件ごとの独立caseとして実行する。基準templateが不要なcaseには新しい使い捨てprofileを、必要なcaseには基準templateの使い捨て複製を使い、secret namespaceもcaseごとに隔離する。Chrome本体等の環境全体を変更するcaseは隔離した環境snapshotで行う。AtCoderへは接続せず、基準template、通常系のChrome環境、`V-12D`の保存sessionを変更しない。各caseの終了時にprocess、待受、file lock、一時profile、未確認sessionの残存がないことを確認する。
@@ -1586,7 +1632,7 @@ flowchart TD
 
 | 対象 | 理由 | 再開する条件 |
 |---|---|---|
-| 実装コードの作成 | 実装開始条件10項目を満たし、`spec/`と実装準備の要件を引き渡すまで開始しない。`TD-37`の製品相当物は`V-12`専用の検証支援物であり、製品コードへ流用しない | 工程5の完了後 |
+| 実装コードの作成 | 実装開始条件10項目を満たし、`spec/`と実装準備の要件を引き渡すまで開始しない。`TD-37`のローカル配布候補と`TD-39`のCWS配布物は`V-12`専用の検証支援物であり、製品コードへ流用しない | 工程5の完了後 |
 | 実装準備の成果物そのもの（AIの作業規約、CI、リポジトリ骨格、lint、PR運用） | 実装リポジトリを正本とする（[§0.4](#04-工程5実装準備の扱い)）。本書は要件と完了条件だけを定める | `TD-35`の完了後、実装リポジトリで着手 |
 | タイムアウト、出力量、保持期間、互換性の再確認間隔・保守頻度、性能目標の**確定値** | 公式に一般的な正確な値がない項目は実測後に確定する（未決事項 2.3）。`TD-02`は初期値候補の記録、`TD-36`は値が未確定の間の安全な既定動作に留める | 実装後の計測 |
 | コンパイラとランタイムの詳細なバージョン対応表 | 同上（未決事項 2.2、2.3） | 実装後の計測 |

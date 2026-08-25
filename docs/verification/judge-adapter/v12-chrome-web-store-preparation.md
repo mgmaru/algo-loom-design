@@ -2,15 +2,15 @@
 
 > 確認日: 2026年8月26日
 >
-> 状態: 公式要件、listing・privacy原稿、承認gateをローカルで準備済み。2026年8月26日にpublisher候補accountで必須同意と一回限り5米ドルの登録料を確認し、owner本人の明示判断と操作で契約同意、支払い、developer登録を完了した。さらにowner本人の判断で非取引業者を自己申告し、Publisher nameの保存とcontact emailの検証を完了した。明示承認された`0.1.0` ZIPで新規itemを作成・uploadし、固定IDをowner-only記録へ保存した。承認済み原稿とassetによるStore listing、および個人を特定できる情報・認証情報・website contentを正確に申告したPrivacyの保存も完了した。Distributionは料金なし・`Unlisted`・日本のみで保存した。account名、実address、developer dashboard URLは記録していない。test instructions、審査提出、限定公開は未承認・未実施
+> 状態: `TD-37`のローカル準備は完了し、外部操作を扱う`TD-39`は作業停止中。CWSではdeveloper登録、新規itemへの`0.1.0` upload、Store listing・Privacy・Distributionの保存まで完了した。Distribution設定は料金なし・`Unlisted`・日本のみで、item自体はdraftのままである。test instructionsは未入力・未保存で、審査提出、公開、CWS署名済みbuild取得、`0.1.1` uploadは未実施。account名、実address、developer dashboard URLは記録していない
 >
-> 対象: `TD-37`の検証用拡張機能だけ。製品の正式公開手順ではない
+> 対象: `TD-39`のCWS審査用helperと限定公開版。製品の正式公開手順ではない
 
 ## 0. 結論
 
 `V-12`ではChrome Web Store（CWS）の`Unlisted`を使います。ここでいう限定公開は「listing URLを知る利用者が追加できる」範囲であり、指定accountだけに制限する`Private`ではありません。`Unlisted`もCWS policyと審査の対象です。[公式のvisibility説明](https://developer.chrome.com/docs/webstore/cws-dashboard-distribution)
 
-ローカルbuildと事前testは外部承認なしで実施できます。次は外部状態を変更するため、実行直前に人間が対象、費用、公開範囲を読める形で明示承認するまで行いません。
+ローカルbuildと事前testを扱う`TD-37`は完了しました。CWS審査と限定公開を扱う`TD-39`は、reviewerへhelperを安全に渡す方法が確定していないため停止しています。次の外部操作は、対象、費用、公開範囲を読める形で人間が明示承認するまで行いません。
 
 1. publisher用Google accountのdeveloper登録と登録費用の支払い（2026年8月26日完了）
 2. 新しいCWS itemの作成とZIP upload（2026年8月26日完了）
@@ -19,7 +19,7 @@
 5. 更新test用`0.1.1`のupload・審査提出・反映
 6. campaign終了後にitemを非公開化する操作
 
-一つの承認で複数を許可する場合も、対象item、版、支払画面に表示された金額・通貨・税、`Unlisted`の意味、停止方法、実行者を承認記録へ明記します。「`TD-37`を進めてよい」という一般的な依頼を、支払いまたは公開の承認へ読み替えません。
+一つの承認で複数を許可する場合も、対象item、版、支払画面に表示された金額・通貨・税、`Unlisted`の意味、停止方法、実行者を承認記録へ明記します。「`TD-39`を進めてよい」という一般的な依頼を、問い合わせ送信、契約、支払い、審査提出または公開の承認へ読み替えません。
 
 ## 1. 2026年8月26日時点の公式要件
 
@@ -42,7 +42,7 @@
 
 公式文書が「一回限りの登録費用」と説明していても、実際の金額、通貨、税、支払者はdashboardの現在表示でしか確定しません。2026年8月26日のpublisher候補accountの登録画面では「5ドルの登録料を支払う」「アカウントの登録には、1回限りの登録料が必要」と表示されました。税の表示は確認できていません。承認記録がない契約同意または支払いは行いません。
 
-同じ画面で、Google Chrome ウェブストア デベロッパー契約、Googleプライバシーポリシー、Chromeウェブストア デベロッパー プログラム ポリシーへのlinkと、「デベロッパー契約とプライバシー ポリシーを確認し、内容に同意します」という必須同意項目を確認しました。確認時は同意項目を選択せず、支払いまたは登録確定へ進んでいません。
+同じ画面で、Google Chrome ウェブストア デベロッパー契約、Googleプライバシーポリシー、Chromeウェブストア デベロッパー プログラム ポリシーへのlinkと、「デベロッパー契約とプライバシー ポリシーを確認し、内容に同意します」という必須同意項目を確認しました。その後、owner本人の判断と操作で同意、支払い、登録を完了しています。
 
 ## 2. publisherと配布範囲
 
@@ -112,16 +112,11 @@ Remote codeは`No`です。extension package外のJavaScript、WebAssembly、`ev
 
 screenshotへ実account名、Cookie、profile path、Keychain service ID、publisher情報を写しません。合成画面を実動screenshotと偽らず、UI変更後は撮り直します。
 
-reviewer向けtest instructions案:
+2026年8月26日に実際のdashboardで確認できた入力欄は、username（100文字）、password（100文字）、追加手順（500文字）だけでした。helper bundleの添付欄またはreviewer専用URL欄は確認できませんでした。3欄とも未入力・未保存です。
 
-1. Provide the reviewed macOS arm64 AlgoLoom V-12 helper bundle and its SHA-256 through the reviewer-only mechanism offered by the dashboard.
-2. Start the helper with a fresh Chrome profile and the review-scoped Keychain namespace. The helper opens only a local consent page.
-3. Confirm the consent page lists the one-cookie and GET-only behavior. Declining is tested by closing Chrome.
-4. Add the extension through its CWS listing. Do not enable developer mode.
-5. Use a reviewer-owned AtCoder account, or use the supplied local protocol fixture if reviewer credentials must not be shared. The project does not provide an AtCoder password and does not automate Turnstile.
-6. On `/settings`, confirm that the extension reports account verification and transfers one `REVEL_SESSION` to the local helper. No submission is performed.
+reviewer用macOS arm64 helper候補はad-hoc署名です。`codesign --verify --strict`には合格しますが、`spctl --assess --type execute`は拒否し、このMacには有効なcode-signing identityがありません。ownerはApple Developer Programへ加入していません。このままではreviewerに通常のmacOS保護を回避させずhelperを再現してもらえるとは確認できないため、test instructionsは確定・保存しません。
 
-実際にreviewerが再現できるhelper bundleの受渡手段、privacy policy URL、support URL、screenshot、promo tileが揃うまでは審査へ提出しません。Test instructionsは任意ですが、本拡張では認証付き機能を説明するため使用します。AtCoder credentialを審査資料へ添付せず、共有test accountも作りません。reviewerが利用を許可されたAtCoder accountを持たずfull flowを確認できない場合は、credential共有や回避経路を追加せずCWS supportへ確認します。local fixtureだけで審査可能かはdashboardの表示と審査feedbackに従い、推測で「審査可能」と判定しません。
+Test instructionsではAtCoder usernameとpasswordを空欄に保ち、共有AtCoder account、password、Cookieを作成・提供しません。追加手順は、helperの安全な受渡し方法が確定した後に500文字以内で作成し、reviewer自身が利用を許可されたaccountを使うこと、sign-in・Turnstile・submissionを自動化しないこと、developer modeとGatekeeper回避を使わないことを明記します。reviewerがfull flowを確認できない場合はcredential共有や回避経路を追加せず、明示承認後にCWS supportへ確認します。local fixtureだけで審査可能かは公式回答または審査feedbackに従い、推測で判定しません。
 
 ## 5. 外部操作の承認記録
 
@@ -154,15 +149,39 @@ reviewer向けtest instructions案:
 
 local CookieまたはKeychain項目の削除を、CWS配布停止やAtCoder側失効の証拠にしません。campaign終了時は基準template、store用一時情報、検証用Keychain項目を削除し、限定公開itemを残すならowner、目的、visibility、停止方法、次回確認日を成果物へ残します。
 
-## 7. 現在の未充足項目
+## 7. 現在地
 
-2026年8月26日時点で、契約同意、一回限り5米ドルの支払い、developer登録、非取引業者の自己申告、Publisher nameの保存、contact emailの検証までowner本人の判断と操作で完了しています。さらに、対象版`0.1.0`（SHA-256 `b0a8d07812abd8661630689e57c8c241aaeb223312bafbbc58877a4fa4dbbe78`）について、新規item作成とuploadを明示承認に基づき完了しました。取得した固定IDと操作状態はowner-only記録に保存し、account名、実address、決済情報、developer dashboard URLは記録していません。privacy policyとsupport pageの公開URL、実UIのscreenshot、small promo tileも準備・到達確認済みです。次は外部承認または外部状態が必要なため未実施です。
+2026年8月26日時点で、次まで完了しています。
 
-- reviewer用test instructionsを保存する
-- reviewer用helper受渡し方法を確定し、test instructionsを保存する
-- 審査提出、審査通過、`Unlisted`公開
-- CWS配信済み対象版bytesの取得とhash固定
+- 契約同意、一回限り5米ドルの支払い、developer登録
+- 非取引業者の自己申告、Publisher nameの保存、contact emailの検証
+- 対象版`0.1.0`（SHA-256 `b0a8d07812abd8661630689e57c8c241aaeb223312bafbbc58877a4fa4dbbe78`）による新規item作成とupload、固定IDのowner-only記録
+- privacy policyとsupport pageの公開URL、実UIのscreenshot、small promo tileの準備と到達確認
+- Store listing、個人を特定できる情報・認証情報・website contentを開示したPrivacy、料金なし・`Unlisted`・日本のみのDistribution設定の保存
+
+次は未実施です。
+
+- reviewer用helper受渡し方法の確定
+- test instructionsの確定・保存
+- pre-submission testと最終入力の確認
+- deferred publishingによる審査提出と審査通過
+- 審査とは別の明示承認に基づく`Unlisted`公開
+- CWS配信済み`0.1.0` bytesの取得、hash固定、最終campaign manifestへの反映
 - 標準Chromeの標準追加画面でdeveloper modeなしに追加できることの確認
-- `0.1.1`更新test用uploadと審査
+- `TD-11`の`V-12C`で使う`0.1.1`のupload・審査
 
-これらが完了し、campaign manifestの`signed_builds`まで埋まるまでは、`TD-37`を完了または`T-11`合格にしません。
+この分離により、ローカル成果物を完了条件とする`TD-37`は完了です。上記の外部作業とcampaign manifestの`signed_builds`が未完了であるため、`TD-39`は保留、`T-11`と`V-12`は未完了です。
+
+## 8. 作業停止点と再開手順
+
+作業はtest instructionsの入力前で停止しました。CWS itemはdraftで、「審査のため送信」は押しておらず、公開もしていません。
+
+再開時の推奨する最初の操作は、CWS supportへ次の3点を問い合わせることです。ただし、問い合わせ送信自体が外部操作であるため、文面と送信先を提示して明示承認を得てから行います。
+
+1. dashboardに添付欄がない場合、companion helperをreviewerへ安全に渡す公式経路は何か。
+2. 共有AtCoder credentialを提供せず、reviewer自身のaccountまたはlocal fixtureで審査できるか。
+3. macOS helperにはDeveloper ID署名とnotarizationが必要か、CWSに別の公式要件があるか。
+
+回答によりDeveloper ID署名とnotarizationが必要だと確認できた場合は、Apple Developer Programの現在の契約、年額、税、自動更新、加入名義をowner自身が確認し、加入・支払いを別途明示承認してから進みます。費用を使わない場合は、reviewerや利用者にGatekeeper回避、実行時compile、developer mode、CDP、WebDriverまたは共有credentialを要求しない設計へ戻します。
+
+helper配布方法の確定後は、`TD-39`の手順どおり、test instructions案の承認と保存、pre-submission確認、deferred publishingを指定した審査提出の承認、審査対応、別承認による限定公開、CWS署名済みbytesと最終campaign manifestの固定を順に行います。`0.1.1`は`TD-11`の更新testまでuploadしません。
