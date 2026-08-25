@@ -2,7 +2,7 @@
 
 > 対象: [`JudgeAdapter`技術検証計画](../../project/judge-adapter-verification.md)を安全かつ再現可能に実施するための準備と運用
 >
-> 状態: 方式Cによる主要導線、方式Aの認証確立、認証失敗、Cookie更新・失効、ジャッジ実行時間・メモリを順に確認し、`V-01`〜`V-11`がすべて合格。`p2-01`で`p0-22`の`submission-A`から実行時間とメモリを取得して共通単位へ正規化し、欠損時も判定を保存できることを確認した。P0は5/5、P1は4/4、P2は2/2で、MVP実装開始条件1〜3に対応する技術検証を充足。2026年8月24日に一時データと認証情報の残存がないこと、および成果物の機密情報検査を確認し、技術検証を終了
+> 状態: `V-01`〜`V-11`はすべて合格し、2026年8月24日に成果物確定と後始末を完了。方式Aの配布可能な製品形態と一往復UXを判定する追加P0 `V-12`は実行gateを定義済み・未実施であり、`V-12A`〜`V-12E`の同一campaignによる検証を次に行う
 >
 > 作成日: 2026年8月11日
 >
@@ -41,8 +41,10 @@
 | `T-08` | 安全な障害確認を行う | `T-07` | `V-07`、`V-09`を確認し、未観測の障害を意図的にAtCoderへ起こさない |
 | `T-09` | 方式Aの認証を検証する | `T-02`〜`T-04` | 主要導線とは別の実行で`V-10`、可能な範囲の`V-11`を追加提出なしで確認する |
 | `T-10` | 成果物を確定する | `T-08`または`T-09` | 匿名化、合否判定、初期値候補、問い合わせ用事実、正本文書への反映候補を記録する |
+| `T-11` | `V-12`の製品相当検証物を準備する | `T-02`、`T-04` | 署名済み限定公開拡張機能、実行時compile不要のhelper、protocol、profile操作、campaign manifestを固定し、外部接続前の`V-12A`とtemplate不要の`V-12C`事前caseが合格する |
+| `T-12` | `V-12` campaignを実行して成果物を確定する | `T-11` | 同じcampaign manifestで`V-12A`〜`V-12E`を規定順に実行し、追加提出0件、段階別の後始末、5つを集約した合否を匿名化して記録する |
 
-`T-06`まではAtCoderへの提出を行いません。`T-06`で一つでも確認できない項目がある場合は停止し、提出回数を消費しません。`T-09`は主要導線と別の実行にでき、追加提出を行いません。
+`T-06`まではAtCoderへの提出を行いません。`T-06`で一つでも確認できない項目がある場合は停止し、提出回数を消費しません。`T-09`は主要導線と別の実行にでき、追加提出を行いません。`T-11`と`T-12`は工程4の追加検証であり、製品実装または正式配布の開始とは扱いません。publisher登録、支払い、審査提出または限定公開等の外部状態を変更する操作は、別途人が明示承認した範囲だけで行います。
 
 ## 2. 検証入力
 
@@ -170,6 +172,7 @@ python3 scripts/verification/atcoder_v04_verdict.py \
 - 入出力例の件数と入力・期待出力の対応関係を確認できた事実
 - 言語候補数と、一意に解決したID、表示名、処理系、バージョン
 - 判定待ちと最終判定の時刻付き観測
+- `V-12`のcampaign ID、秘密でないmanifestとそのhash、環境entry、sub検証・case ID、検証層、状態遷移、合否、停止理由、外部通信集計、cleanup結果
 
 ### 5.2. 記録しないもの
 
@@ -179,6 +182,7 @@ python3 scripts/verification/atcoder_v04_verdict.py \
 - 提出用ソースコード、標準入力、標準出力、標準エラー出力
 - 実際のアカウント名、メールアドレス、ホスト名、利用者名、不要な絶対パス
 - 外部ツールの生ログ、例外の完全なスタックトレース
+- `V-12`の一回限りの秘密値、publisher credential、署名用秘密値、実account名、profileの絶対pathと、Cookie・履歴・入力情報を含むtemplateまたはprofileの内容
 
 `oj-api get-problem --full`のように必要な言語一覧と保存禁止の生HTMLを同じ応答へ含める入口を使う場合、応答全体をファイルへ保存しません。処理中に許可したフィールドだけへ射影し、射影後の値だけを観測記録へ転記します。
 
@@ -277,6 +281,74 @@ V-11は、実サービスの通常観測と、AtCoderへ障害を起こさない
 
 実サービスで期限切れや競合を意図的に発生させません。通常操作中に明示失効またはログイン誘導が返った場合は、その実測を記録して安全側で停止します。返らなかった場合は、実サービス未観測とローカル制御を区別したまま合否を判定します。
 
+### 6.5. `V-12` 方式A製品形態の実行gate
+
+`V-12`の合格条件と結果無効化規則は[検証計画 §3.1.1](../../project/judge-adapter-verification.md#311-v-12-方式a製品形態の検証)を正とします。本節は、同じ検証物と状態を安全に受け渡し、外部通信と後始末を実行時に制限する手順を定義します。
+
+#### campaign開始gate
+
+次をすべて確認するまでcampaignを開始しません。
+
+1. リポジトリ外に所有者だけがアクセスできるcampaign用一時directoryを作り、build、実行状態、scratch、caseごとのprofileとsecret namespaceを分離する。
+2. campaign IDとmanifestを一つ確定する。manifestには検証計画revision、同意版、拡張機能の固定ID・対象版・更新test用の版の組・配布元・権限・source revision・build hash、helper版・hash、protocol版、Chrome版、OS・CPU architecture、template schemaを含める。秘密値と実account名は含めない。
+3. 署名済み拡張機能が審査済み・限定公開中であり、公開範囲、owner、停止方法を確認できる。publisher credentialと署名用秘密値をrepository、manifest、通常logへ置かない。
+4. 使用するChrome、OS、秘密情報保管庫、配布物と当日の外部条件を固定し、manifestの環境entryと一致させる。
+5. `V-12A`を外部通信0件で実行でき、caseごとのprocess、待受、file lock、一時profile、未確認sessionの残存を開始前後に検査できる。
+6. 初回導線を開始する前に、対象account、取消操作、各sub検証の通信上限、追加提出0件、campaign終了時の削除対象を人が確認する。
+
+manifestは各sub検証の開始時に再照合します。製品挙動へ影響する不一致を見つけた場合は値をその場で更新せず、現在のcampaignを停止します。検証計画の無効化表で影響する結果を判定し、必要なら新しいcampaign IDを作ります。
+
+#### sub検証ごとの通信上限
+
+| sub検証 | 許可する外部通信 | 上限 | 禁止する通信・作用 |
+|---|---|---|---|
+| `V-12A` | なし | 外部通信0件 | Chrome Web Store、AtCoder、Cloudflareその他への接続 |
+| `V-12B` | 固定したChrome Web Storeの対象拡張機能ページと、通常Chromeが標準追加に必要とするGoogle管理のresource | Store pageを開く操作1回、対象版の標準追加1回。利用者またはCLIが開始するnavigationと追加操作を記録し、browser内部resourceのtransport件数は固定しない | AtCoderへの遷移、Google account追加・同期、developer mode、policy、外部拡張設定、OS registryの変更 |
+| `V-12C` | 契約test・3 OS統合testはなし。配布導線caseだけ、固定した対象拡張機能の標準追加または更新に必要な通信 | 外部通信0件を原則とし、配布導線caseはcaseごとに追加または更新を最大1操作。送信先別に集計する | AtCoder・Cloudflareへの接続、通常系Chrome環境や実サービスsessionへの故障注入 |
+| `V-12D` | 通常ChromeによるAtCoder loginとCloudflareの通常通信、helperによる`GET /settings` | `GET /settings`最大2回。人が行うlogin formの通信は許可し、browserのnavigationと手動操作を記録する。helper・CLIからAtCoderへのPOST、提出formのPOST、提出、自動再試行、session維持目的の通信は0件 | 提出pageへの遷移、提出formのPOST、Bot対策の自動操作・回避、直接HTTP提出 |
+| `V-12E` | 実サービスsmokeでは通常ChromeによるAtCoder login、Cloudflareの通常通信、対象の提出確認pageへの遷移、helperによる`GET /settings`。3 OS統合testはstubだけ | `GET /settings`最大1回。人が行うlogin formの通信は許可し、browserのnavigationと手動操作を記録する。helper・CLIからAtCoderへのPOST、提出formのPOST、最後の提出操作、追加提出、自動再試行は0件 | AtCoder側sessionの意図的失効、直接HTTP提出、実サービスを使う故障注入 |
+
+ChromeやChrome Web Storeが内部で行うresource requestはtransport単位の固定件数を前提にできないため、利用者またはCLIが開始するnavigation・追加・更新操作を上限にします。件数確認だけのためにCDP、proxy、`webRequest`権限または生のnetwork logを追加しません。固定した操作以外のbrowser遷移、challenge、429、helper・CLIの禁止されたAtCoder向けrequest、提出formの送信eventまたは拒否を観測したら停止します。
+
+#### 実行順と分断禁止
+
+次の順で実行し、前段が合格しない限り後段へ進みません。
+
+1. `V-12A`を独立実行する。不合格ならChrome Web StoreとAtCoderへ接続しない。
+2. `aloom auth login`相当から`V-12B → V-12D`を一連の初回導線として実行する。初回同意、標準追加、自動検出、Chrome完全終了、基準template確定、実行用profile起動、AtCoder login、Cookie受領、本人確認、secret store保存、新process再照合、CLI結果表示までを続ける。
+3. `V-12D`の実行用profile、未確認session、待受処理を回収する。確認済みlocal sessionは隔離し、AtCoderのCookie、履歴、入力情報を持たない基準templateだけを`V-12E`まで保持する。
+4. `V-12C`をcaseごとに独立実行する。template不要caseは新しい使い捨てprofile、template必要caseは基準templateの使い捨て複製、環境更新caseは隔離したsnapshotを使う。caseごとにsecret namespaceを分ける。
+5. `V-12E`の直前に、AtCoder側sessionを失効させず、製品の削除契約に従って確認済みlocal sessionだけを除去する。別のCLI実行の`submit`相当から、再認証理由・中止方法表示、browser自動起動、AtCoder login、同じbrowserの提出確認画面までを一連で確認する。
+
+`V-12B → V-12D`、`V-12D`内の「login → Cookie受領 → 本人確認 → 保存 → 新process再照合」、`V-12E`内の「submit開始 → 再認証 → 同じbrowserで提出確認」は、観測の転記、CLIへの入力、利用者によるbrowser・helperの再起動または配布物の再buildで分断しません。`V-12B`で必要なChrome完全終了と、基準templateの一時複製を使うbrowserの自動再起動は、同じCLI実行内の規定手順として続けます。利用者にURL、code、Cookieのcopy-and-paste、初期化pageへ戻る操作、拡張機能画面の操作または手動のpage探索を求めません。
+
+取消、timeout、browser終了、helper異常終了等は実行を終了させるため、正常導線へ注入せず`V-12C`の独立caseにします。各caseは開始前の状態、注入点、期待する安全側停止、cleanup結果を固定し、別caseの残存状態を入力にしません。
+
+#### 後続へ進まない停止条件
+
+次のいずれかを観測したら、該当sub検証を不合格または中止とし、依存する後続へ進みません。
+
+- 審査済み・限定公開状態、固定ID、版、配布元、権限、source revision、build hashまたはmanifest一致を確認できない。
+- 標準追加にdeveloper mode、ChromeへのGoogle account追加・同期、企業向けpolicy、外部拡張設定、OS registryまたは既存profileの変更が必要になる。
+- 権限が最小範囲を超える、折返し通信の`Host`・送信元・本文上限・状態順序・一回限りの秘密値を検査できない、`REVEL_SESSION`以外を読み取る。
+- Chromeの完全終了、templateの無秘密性・完全性、正常な複製・破棄または固定IDによる導入完了の自動検出を確認できない。
+- CloudflareまたはAtCoderに拒否される、`navigator.webdriver`が真になる、CDP、WebDriver、remote debugging、headless化、stealth、指紋偽装またはTurnstile自動操作が必要になる。
+- 本人accountを一意に照合できない、未確認sessionを確定保存する、secret storeへの保存・新process再照合に失敗する。
+- 初回または`submit`からの再認証で、分断禁止区間、手動操作の上限、一往復または同じbrowser内の遷移を維持できない。
+- 一回限りの秘密値、Cookie、publisher credential、署名用秘密値または実account名が配布物、通常log、error、成果物、Gitへ混入する。
+- case終了時にprocess、待受、file lock、一時profile、未確認sessionを回収できない、または基準template、通常系Chrome環境、確認済み保存sessionを故障caseから隔離できない。
+- 規定した外部通信上限を超える、helper・CLIが禁止されたAtCoder向けrequestを開始する、提出formの送信eventが発生する、最後の提出操作または追加提出が必要になる。
+
+停止後は手動読込、CDP、WebDriver、企業向けpolicy、候補B・C、直接HTTP提出へ切り替えません。方式Aの再設計またはMVP範囲の再検討へ戻します。
+
+#### 証拠と後始末
+
+`V-12A`〜`V-12E`ごとに、入力の別名、manifest hash、環境entry、検証層、外部通信集計、状態遷移、手動操作、合否、停止理由、秘密情報検査、cleanup結果を記録します。`V-12C`はcase IDごとに分け、実サービス、配布導線、3 OS統合、OS非依存の証拠を混ぜません。
+
+各case終了時に、実行用profile、未確認session、一回限りの秘密値、待受処理、子process、file lockを回収します。campaign終了時には基準template、store用一時情報、検証用secret store項目を削除します。限定公開拡張機能を残す場合は、公開範囲、目的、owner、停止方法を成果物へ記録します。基準templateは`V-12B`で一度だけ確定し、`V-12E`まで再作成せず、終了後に削除します。
+
+`V-12`全体は、5つすべてが同じ最終campaign manifest revisionで合格した場合だけ合格です。結果文書だけの修正や独立した故障caseの追加で無関係な実サービスsmokeを再実行しません。manifestを変更した場合、旧結果を新revisionへ直接付け替えず、検証計画の無効化規則に従います。再利用可能な結果は、入力projectionのhash一致、旧campaign IDと証拠を記した新しいsub結果として再承認し、影響を受ける結果だけを再実行します。
+
 ## 7. 障害確認
 
 障害の証拠を次の3段階に分けます。
@@ -294,15 +366,16 @@ V-11は、実サービスの通常観測と、AtCoderへ障害を起こさない
 ## 8. 成果物の確定
 
 1. [記録テンプレート](results/run-record-template.md)を同じディレクトリの`YYYY-MM-DD-<run-id>.md`へ複製します。
-2. 各検証項目を`未実施`、`合格`、`不合格`、`未観測`、`中止`のいずれかにします。
+2. 各検証項目を`未実施`、`合格`、`不合格`、`未観測`、`中止`のいずれかにします。`V-12`では`V-12A`〜`V-12E`と`V-12C`の各caseを個別に記録し、最後にtop-levelの合否を集約します。
 3. 実サービス、ローカル制御、静的確認の証拠を混ぜずに記録します。
-4. `V-01`〜`V-04`または`V-10`が一つでも不合格ならMVP実装開始条件を不合格とし、回避実装案ではなく範囲と価値仮説の再検討先を記録します。
+4. `V-01`〜`V-04`または`V-10`が一つでも不合格ならMVP実装開始条件を不合格とします。`V-12A`〜`V-12E`が同じcampaign manifestで全合格でなければ`V-12`を未合格とし、方式Aを製品採用しません。いずれも回避実装案ではなく範囲と価値仮説の再検討先を記録します。
 5. P1が不合格なら影響する機能と見直す正本文書を記録します。
 6. 未決事項2.3の数値は「初期値候補」とし、決定値として書き換えません。
 7. 未決事項8.1へ渡すリクエスト数、間隔、保存内容、認証方式を集計します。
 8. `online-judge-tools`、薄いHTTP Adapter、方式Aの認証helperを別々に評価し、認証、account確認、提出ID、判定確認の根拠を分けます。
 9. 一時データを破棄する前に成果物だけで合否の根拠を説明できるか確認します。
 10. 機密情報検査後に成果物をGitへ追加します。
+11. `V-12`ではmanifest変更の有無と無効化した結果、caseごとの一時資源0件、campaign終了時の基準template・store用一時情報・secret store項目の削除を確認します。
 
 成果物の確定後、検証用作業データ、方式Cの一時Cookie、方式Aの検証用secret store項目と専用browser profileを削除します。外部ツールが利用者の通常環境へ作成した認証状態がないかも確認します。削除対象は作成時に記録した一時ディレクトリとAlgoLoom namespaceの正確な項目に限定し、広いパスや未解決の変数を削除対象にしません。localのCookie削除をAtCoder server上のsession失効とは記録しません。
 
@@ -325,11 +398,12 @@ V-11は、実サービスの通常観測と、AtCoderへ障害を起こさない
 | 対象問題・言語・アカウント | 完了 | `p0-22`で`abc300_a`、期待する本人アカウントとの一致、CPython 3.13.7候補1件を再確認。実際のアカウント名は保存していない |
 | AtCoderへの提出承認 | 完了・許可消費済み | `p0-22`で人によるTurnstileと明示承認後、フォーム`submit`イベント1回、結果ページ遷移、AtCoder発行の提出ID取得を確認。新規提出1件、自動再送0回、同一承認内の再提出0回 |
 | `V-01`〜`V-11` | 完了 | P0は5/5、P1は4/4、P2は2/2で、全11項目が合格。MVP実装開始条件1〜3に対応する技術検証を充足。詳細は[`p0-01`](results/2026-08-11-p0-01.md)〜[`p2-01`](results/2026-08-13-p2-01.md) |
+| `V-12`実行計画 | 計画確定・未実施 | `V-12A`〜`V-12E`を一つのP0 gateとして定義し、同一campaign、分断しない3区間、sub検証ごとの外部通信上限、停止条件、結果無効化、段階別cleanupを§6.5へ追加。製品相当検証物の準備と実行記録は未着手 |
 | 一時データと認証情報の破棄 | 完了 | 2026年8月24日に、リポジトリ外の検証用一時ディレクトリ、方式Cの一時認証ファイル、方式Aの検証用秘密情報保管庫項目、専用ブラウザプロファイル、ゴミ箱内の検証用データの残存が0件であることを確認。ローカルでの削除をAtCoder側のセッション失効とは扱わない |
 | リポジトリ内の一時領域 | 完了 | `.verification-work/`の残存は0件、版管理の対象外設定は有効、同ディレクトリ配下の追跡対象は0件 |
 | 通常環境への認証状態 | 完了 | 外部ツールの認証保存先が検証用一時領域に限定され、専用ブラウザを使う経路が一時プロファイルを削除したことを確認。通常ブラウザに利用者が保有する認証状態は削除対象にせず、検証支援コードが通常環境へ認証情報を保存した事実はない |
 | 検証支援コードの機密情報検査 | 完了 | `scripts/verification/`に実際の認証情報、アカウント名、提出ID、提出用ソースコード、実行固有の絶対パスと生成物がないことを確認。外部通信を行わない全168件の試験も合格 |
-| 技術検証の終了 | 完了 | 匿名化済み成果物だけで合否の根拠を説明でき、全11項目の合格、成果物の確定、後始末を確認したため、2026年8月24日に検証を正式終了 |
+| `V-01`〜`V-11`技術検証の終了 | 完了 | 匿名化済み成果物だけで合否の根拠を説明でき、全11項目の合格、成果物の確定、後始末を確認したため、2026年8月24日に従来の検証を正式終了。追加した`V-12`のcampaignはこの完了実績と分けて管理する |
 
 ## 10. 事前調査で判明した注意点
 
