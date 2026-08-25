@@ -535,7 +535,7 @@ flowchart TD
 
 **目的:** `TD-11`は、署名済み拡張機能、実行時compileを必要としない認証helper、テンプレートprofileの確定・複製・破棄を実際に組み合わせないと実行できません。現在ある`V-10`の手動読込拡張と一時Swift helperは原理検証用であり、`V-12`の合格証拠にはできません。製品実装を先行させず、`V-12`だけに必要な製品相当の検証物を隔離して準備します。
 
-**2026年8月26日の進捗:** [`scripts/verification/atcoder_v12/`](scripts/verification/atcoder_v12/)へ最小権限の拡張source、事前buildするmacOS arm64 helper・Keychain adapter、認証付きloopback、profile操作、campaign manifest検査、固定入力test、同意版を追加しました。[CWS配布準備](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)へ最新公式要件、listing・privacy原稿、費用・公開を含む外部操作の承認gate、停止方法を記録しています。外部接続なしのtestと隔離buildは成功しました。publisher候補accountでは、owner本人の判断と操作で契約同意、一回限り5米ドルの支払い、developer登録、非取引業者の自己申告、Publisher nameの保存、contact emailの検証を完了しました。account名と実addressは記録していません。検証用privacy policyとsupport pageはlocal原稿まで作成済みです。公開URL、item作成、固定ID取得、upload、審査提出、限定公開は未実施です。したがって`TD-37`と`T-11`は完了にしません。
+**2026年8月26日の進捗:** [`scripts/verification/atcoder_v12/`](scripts/verification/atcoder_v12/)へ最小権限の拡張source、事前buildするmacOS arm64 helper・Keychain adapter、認証付きloopback、profile操作、campaign manifest検査、固定入力test、同意版を追加しました。[CWS配布準備](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)へ最新公式要件、listing・privacy原稿、費用・公開を含む外部操作の承認gate、停止方法を記録しています。外部接続なしのtestと隔離buildは成功しました。publisher候補accountでは、owner本人の判断と操作で契約同意、一回限り5米ドルの支払い、developer登録、非取引業者の自己申告、Publisher nameの保存、contact emailの検証を完了しました。明示承認された`0.1.0` ZIPで新規itemを作成・uploadし、固定IDをowner-only記録へ保存しました。account名、実address、developer dashboard URLは記録していません。privacy policy・support pageの公開URLと掲載assetも準備・確認済みです。Store listing、Privacy、Distributionの保存、審査提出、限定公開、CWS署名済み配布物の取得は未実施です。したがって`TD-37`と`T-11`は完了にしません。
 
 **手順:**
 
