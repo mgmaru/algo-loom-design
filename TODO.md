@@ -484,32 +484,35 @@ flowchart TD
 | 対象ファイル | [`docs/project/judge-adapter-verification.md`](docs/project/judge-adapter-verification.md) §3、[`docs/verification/judge-adapter/README.md`](docs/verification/judge-adapter/README.md) §6 |
 | 依存 | `TD-09` |
 
+**目的:** `V-12`は方式Aの製品形態と一往復UXが全体として成立するかを判定する一つのP0 gateです。TODOやtop-levelの検証IDは分けず、原因分離と再実行のために`V-12A`〜`V-12E`のsub検証を持たせます。配布物とクリーンなテンプレートを一度だけ準備して再利用しつつ、状態の受け渡しそのものが検証対象になる区間は一連の実行として切り離しません。
+
 **手順:**
 
-1. 検証計画 §3.1 へ新しいP0項目（`V-12`）を追加する。優先度をP0とする理由は、不合格ならMVPの認証導線が製品として成立しないためである。
-2. 合格条件へ次をすべて含める。
-   - 公式拡張機能配布基盤で署名・限定公開された、固定ID・版・配布元・権限の製品用拡張機能を、通常Chromeの標準画面から追加できる。
-   - 開発者向け設定、ChromeへのGoogleアカウント追加・同期、企業向けポリシー、外部拡張設定、OSレジストリを要求しない。
-   - 初回同意から拡張機能追加、導入完了の自動検出、AtCoderログイン、本人確認、保存までをCLIとbrowserの一往復で完了できる。利用者に初期化ページへ戻る操作、拡張機能画面の操作、URL・code・Cookieのcopy-and-pasteを求めない。
-   - 拡張機能追加後にクリーンなテンプレートを確定し、AtCoderのCookie、履歴、入力情報を含めずに実行用一時profileを複製・起動・破棄できる。Chromeまたは拡張機能の更新前後と、テンプレートの完全性不成立も確認する。
-   - Cloudflare保護ページをリモート制御状態にしない。
-   - `REVEL_SESSION`だけを取得する。
-   - アカウント識別情報が期待値と一致する。
-   - OSの秘密情報保管庫へ保存し、新しいプロセスから再照合できる。
-   - テンプレートが健全な再認証では利用者の認証固有操作をAtCoderログインだけにできる。
-   - `submit`から再認証した場合、別commandや追加のYes/No確認を求めず、認証後に同じbrowserで提出確認画面まで進める。ただし`V-12`では最後の提出操作を行わない。
-   - 初回同意、拡張機能追加、browser起動、Cookie受領、本人確認、秘密情報保管庫への保存、認証後の画面遷移の各境界で取消・timeout・異常終了しても、既存profile、孤児process、待受処理、利用可能な一時profile、未確認sessionを残さない。
-   - 拡張機能、認証helper、テンプレート機構が実行時compileや開発者向け読込を必要としない配布可能な形態である。
-3. 合格条件ごとに、OS非依存の契約test、3 OS統合test、配布導線test、実サービスsmokeのどの層で確認するかを割り当てる。一つの層だけで代用しない。
-4. 実施手順のREADME §6 へ、この項目の外部通信上限、実行ゲートと停止条件を追加する。審査・限定公開状態を確認できない、版・権限・配布元が不一致、標準追加できない、既存環境の変更が必要、CloudflareまたはAtCoderに拒否される、cleanupを確認できない場合は開始または継続しない。
-5. 実サービスで行うのはログイン、本人確認、提出確認画面までの遷移に限定し、追加提出を行わないことを明記する。故障注入と中断境界の大部分は固定入力またはローカル環境で確認する。
-6. 不合格時の扱いを記す。手動読込、CDP、WebDriver、企業向けポリシー、直接HTTP提出等の回避実装へ進まず、方式Aの再設計またはMVP範囲の再検討へ戻す。
+1. 検証計画 §3.1 へP0項目`V-12`を一つ追加する。優先度をP0とする理由は、不合格ならMVPの認証導線が製品として成立しないためである。`V-12A`〜`V-12E`は独立したtop-level gateではなく、`V-12`のsub結果として扱う。
+2. `V-12`を次の5つへ分け、各sub検証へ入力、実行環境、外部通信、事前条件、合格条件、停止条件、残す証拠を定義する。
+
+| sub検証 | 確認すること | 検証層・外部通信 | 実行と状態の扱い |
+|---|---|---|---|
+| `V-12A` 配布物・通信契約 | 署名済み拡張機能の固定ID・版・配布元・最小権限、helper・protocol、`REVEL_SESSION`だけの許可、一回限りの秘密値、通常logと成果物への秘密値非混入 | OS非依存の契約test。AtCoderへ接続しない | 他のsub検証より先に独立実行し、不合格なら外部接続へ進まない |
+| `V-12B` 標準追加・テンプレート | 通常Chromeの標準画面、開発者向け設定・Google account・同期・policy・registry不要、導入完了の自動検出、Chrome完全終了、基準templateの確定と正常な複製・破棄 | 配布導線test。Chrome Web Store以外のAtCoder接続はまだ行わない | `V-12D`の初回認証へ同じCLI導線のまま続ける。sub結果の境界でbrowser、helper、templateを作り直さない |
+| `V-12C` 中断・更新・回復 | 初回同意、追加、起動、受領、本人確認、保存、遷移の各境界における取消・timeout・異常終了、Chrome・拡張機能更新前後、版・権限不一致、template破損、process・待受・file lock・一時profileの回収 | OS非依存の契約test、3 OS統合test、必要最小限の配布導線test。AtCoderへ接続しない | 使い捨てprofile、基準templateの使い捨て複製、隔離したsecret namespaceを使う。Chrome本体等の環境全体を変更するcaseは隔離した環境snapshotで行い、基準template、通常系のChrome環境、`V-12D`の保存済みsessionを壊さない |
+| `V-12D` 初回認証 | `V-12B`からAtCoder login、Cloudflare、Cookie限定取得、本人照合、secret store保存、新しいprocessでの再照合、CLIへの結果表示までの一往復 | 実サービスsmoke 1回目 | `V-12B`から連続実行し、追加後にCLIへ戻る、手動ページ移動、copy-and-paste、配布物の再buildを挟まない |
+| `V-12E` `submit`からの再認証 | local sessionがない状態の理由・中止方法表示、browser自動起動、手動loginだけの再認証、同じbrowserで提出確認画面まで進むこと | 3 OS統合testと実サービスsmoke 2回目。最後の提出操作は行わない | `V-12D`と同じ配布物・基準templateを別のCLI実行から使う。AtCoder側の失効を意図的に起こさず、保存済みlocal sessionだけを削除契約に従って除去する |
+
+3. `V-12B → V-12D`、`V-12D`内の「login → Cookie受領 → 本人確認 → 保存 → 新process再照合」、`V-12E`内の「submit開始 → 再認証 → 同じbrowserで提出確認」の3区間は、個別結果を記録しても実行を分断しない。取消検証は取消によって実行が終わるため、`V-12C`の独立caseとして分ける。
+4. 一つの検証campaignを識別するmanifestを定義する。少なくとも、検証計画revision、拡張機能の対象版と更新testに使う版の組、helper版、protocol版、source revision、build hash、Chrome版、OS、template schema、同意版を含める。`V-12A`〜`V-12E`の全結果を同じcampaign manifestへ結び付ける。
+5. 検証物またはmanifestが変わった場合に、どのsub結果を無効化して再実行するかを依存表にする。拡張機能、helper、protocol、template schema等の製品挙動へ影響する変更後に、変更前の実サービス結果を流用しない。一方、結果文書だけの修正や独立した故障caseの追加で、無関係な実サービスsmokeを再実行しない。
+6. 実行順を`V-12A → V-12B・V-12D（連続） → V-12C → V-12E`とする。基準templateは`V-12B`で一度だけ確定し、`V-12E`まで読取り基準として保持する。各実行用profile、未確認session、待受処理はcaseごとに回収し、基準templateにもAtCoderのCookie、履歴、入力情報を残さない。campaign終了時に検証用templateとsecret store項目も削除する。
+7. 実施手順のREADME §6 へ、sub検証ごとの外部通信上限、実行ゲートと停止条件を追加する。審査・限定公開状態を確認できない、版・権限・配布元が不一致、標準追加できない、既存環境の変更が必要、CloudflareまたはAtCoderに拒否される、cleanupを確認できない場合は、依存する後続sub検証へ進まない。
+8. `V-12`全体は`V-12A`〜`V-12E`が同じcampaign manifestで合格した場合だけ合格とする。一つでも不合格または未実施なら部分合格とせず未合格にする。不合格時は手動読込、CDP、WebDriver、企業向けpolicy、直接HTTP提出等へ迂回せず、方式Aの再設計またはMVP範囲の再検討へ戻す。
 
 **完了条件:**
 
-- [ ] 検証項目、合格条件、関係する機能が追加されている
+- [ ] `V-12`が一つのP0 gateとして定義され、`V-12A`〜`V-12E`に入力、検証層、合格条件、停止条件、証拠がある
 - [ ] [AtCoder認証UX設計 §6](docs/project/atcoder-authentication-manual-operation-automation.md#6-採用条件)の6条件が、検証項目または検証層へ漏れなく対応している
-- [ ] 実行ゲートと停止条件が定義されている
+- [ ] 分断しない3区間と、独立実行する取消・故障caseが区別されている
+- [ ] 同じcampaign manifest、基準templateの再利用、caseごとの秘密値・一時資源回収、変更時の結果無効化規則が定義されている
+- [ ] sub検証の集約規則、実行順、外部通信上限、後続へ進まない停止条件が定義されている
 - [ ] 実サービス観測と、外部接続しない故障注入・中断testが区別されている
 - [ ] 追加提出を行わないことが明記されている
 
@@ -528,20 +531,22 @@ flowchart TD
 **手順:**
 
 1. 公式拡張機能配布基盤の最新要件を確認し、検証用publisher、限定公開範囲、審査、説明、privacy開示、費用、公開後の停止方法を記録する。登録、支払い、審査提出、公開等の外部状態を変更する前に、人間の明示承認を得る。
-2. 単一目的と最小権限を持つ製品相当の検証用拡張機能を作る。固定ID、版、配布元、権限、source revision、build成果物のhashをmanifestへ記録し、publisher credentialや署名用秘密値をrepositoryへ置かない。
+2. 単一目的と最小権限を持つ製品相当の検証用拡張機能を作る。固定ID、対象版、更新testに使う版の組、配布元、権限、source revision、build成果物のhashをcampaign manifestへ記録し、publisher credentialや署名用秘密値をrepositoryへ置かない。
 3. 認証付き折返し通信を提供する製品相当helperを、対象OSで実行時compileを必要としない配布物として準備する。一回限りの秘密値、動的な待受番号、`Host`・送信元・本文上限・状態順序の検査と、通常logへの秘密値非出力を固定入力で確認する。
-4. クリーンなテンプレートprofileを作り、標準追加の完了を固定IDで検出し、Chromeを完全終了してから実行用一時profileへ複製し、終了後に破棄する検証支援経路を作る。テンプレートへAtCoderのCookie、履歴、入力情報を残さない。
-5. 実サービスへ接続する前に、拡張機能とhelperのprotocol、版・権限不一致、同意版、テンプレート完全性、取消、timeout、process終了、file lock、秘密情報のredactionを固定入力とローカル環境で確認する。
-6. 検証物を製品コード、CI用認証手段または正式配布物として再利用しない境界をREADMEへ書く。`TD-11`後に残す記録と、削除する一時profile、store用一時情報、秘密情報保管庫項目を先に列挙する。
+4. 標準追加の完了を固定IDで検出し、Chromeを完全終了してからテンプレートを確定し、実行用一時profileへ複製・破棄する検証支援経路を作る。準備中の確認は使い捨てprofileで行い、`V-12B → V-12D`で使う基準templateを先に作成済みにしない。基準templateは`TD-11`の一連の初回導線で一度だけ作る。
+5. 実サービスへ接続する前に、`V-12A`の拡張機能・helper・protocol・同意版と、`V-12C`のtemplateを必要としない版・権限不一致、取消、timeout、process終了、file lock、秘密情報のredactionを固定入力とローカル環境で確認する。templateまたは環境更新を必要とする`V-12C`のcaseは、`TD-11`で基準templateを確定した後、その使い捨て複製または隔離した環境snapshotに対して実行する。
+6. campaign manifestの形式と結果無効化規則を実装する。検証計画revision、拡張機能、helper、protocol、source・build、Chrome・OS、template schema、同意版を記録し、sub検証開始時に期待値との一致を確認できるようにする。
+7. 検証物を製品コード、CI用認証手段または正式配布物として再利用しない境界をREADMEへ書く。`TD-11`後に残す記録と、各case後に削除する実行用profile・未確認session・待受処理、campaign終了時に削除する基準template・store用一時情報・秘密情報保管庫項目を先に列挙する。
 
 **完了条件:**
 
-- [ ] 通常Chromeの標準追加画面から、開発者向け設定なしで署名済み限定公開版を追加できる状態である
-- [ ] 拡張機能、helper、protocol、テンプレート機構の版とhashが匿名化可能なmanifestで対応付いている
+- [ ] 通常Chromeの標準追加画面から、開発者向け設定なしで署名済み限定公開版を追加できる事前状態である。最終的な合格証拠は`TD-11`の`V-12B`で記録する
+- [ ] 拡張機能、helper、protocol、template schema、同意版の版とhashが匿名化可能なcampaign manifestで対応付いている
 - [ ] 実行時compile、利用者の既存profile、企業向けポリシー、外部拡張設定、OSレジストリへ依存していない
-- [ ] 実サービスへ接続しない事前testが合格し、版・権限・完全性不一致と各中断点で安全側に停止する
+- [ ] `V-12A`の事前testが合格し、template不要の版・権限不一致と中断点で安全側に停止する
+- [ ] 準備確認で使ったprofileを`V-12B`の基準templateとして流用せず、基準templateを初回導線内で一度だけ作る手順になっている
 - [ ] publisher credential、署名用秘密値、Cookie、実account名がrepository、成果物、通常logへ含まれていない
-- [ ] `TD-11`の実行入力、外部通信上限、後始末対象が確定している
+- [ ] `TD-11`のsub検証順、実行入力、外部通信上限、結果無効化規則、段階別の後始末対象が確定している
 
 ---
 
@@ -556,23 +561,29 @@ flowchart TD
 **手順:**
 
 1. [実施手順 §3](docs/verification/judge-adapter/README.md#3-当日の外部条件)に従い、当日の外部条件（利用規約、対象コンテストの状態、Bot対策の状態、Cloudflareの対応ブラウザ）を確認する。開始しない条件に該当する場合は実行しない。
-2. リポジトリ外の一時ディレクトリへ隔離した実行環境を用意する。
-3. `TD-10`で追加した実行ゲートと、`TD-37`で固定した検証物・外部通信上限に従う。
-4. 初回セットアップを、初回同意、標準追加、導入完了の自動検出、テンプレート確定、AtCoderログイン、本人確認、保存、CLIへの結果表示まで一往復で確認する。途中でCLIへのcopy-and-pasteや手動ページ移動を行わない。
-5. テンプレートが健全な別実行で`aloom auth login`相当の再認証を確認し、手動操作がAtCoderログインだけであることを観測する。
-6. `submit`相当の入口からセッション失効を検出した条件で、理由と中止方法の表示、認証browserの自動起動、同じbrowserでの提出確認画面への遷移までを確認する。最後の提出操作は行わない。
-7. 実サービスで故障を意図的に発生させず、取消とcleanupの残りは`TD-37`の固定入力・ローカル観測を引用する。[記録テンプレート](docs/verification/judge-adapter/results/run-record-template.md)を複製し、各合格条件の観測元と合否を匿名化して記録する。
-8. 一時データ、認証情報、実行用profileと検証用秘密情報保管庫項目を破棄する。検証用の限定公開版を残す場合も、公開範囲、目的、停止方法とownerを記録する。
-9. 合格の場合は、方式Aの製品形態と成立したUX範囲を[AtCoder認証設計](docs/architecture/atcoder-authentication.md) §3 へ反映する。不合格の場合は、回避策を追加せず、`TD-09`の別候補または方式Aの再設計へ戻す。
+2. リポジトリ外の一時ディレクトリへ隔離したcampaign実行環境を用意する。
+3. `TD-37`で固定した検証物からcampaign IDとmanifestを一つ作り、`V-12A`〜`V-12E`の各開始時に一致を検査する。製品挙動へ影響する項目が変わった場合は同じcampaignの続きとして扱わず、`TD-10`の結果無効化規則に従って新しいcampaignで必要なsub検証からやり直す。
+4. AtCoderへ接続する前に`V-12A`を実行し、`TD-37`の固定入力・ローカル観測と対応付けて結果を記録する。不合格なら後続へ進まない。
+5. `aloom auth login`相当から`V-12B → V-12D`を一連の初回導線として実行する。通常Chromeでの標準追加、導入完了の自動検出、Chrome完全終了、基準templateの確定から、そのtemplateを使ったAtCoderログイン、本人確認、秘密情報保管庫への保存、新しいprocessでの再照合、CLIへの結果表示まで続ける。`V-12B`の結果記録のためにCLIへ戻ったり、browser、helper、templateを作り直したりせず、copy-and-pasteや手動ページ移動も行わない。
+6. `V-12D`の観測後、実行用profile、未確認session、待受処理を回収する。AtCoderのCookie、履歴、入力情報を含まない基準templateは`V-12E`まで保持し、確認済みの保存sessionは`V-12C`から隔離する。
+7. `V-12C`を、取消・故障・更新条件ごとの独立caseとして実行する。基準templateが不要なcaseには新しい使い捨てprofileを、必要なcaseには基準templateの使い捨て複製を使い、secret namespaceもcaseごとに隔離する。Chrome本体等の環境全体を変更するcaseは隔離した環境snapshotで行う。AtCoderへは接続せず、基準template、通常系のChrome環境、`V-12D`の保存sessionを変更しない。各caseの終了時にprocess、待受、file lock、一時profile、未確認sessionの残存がないことを確認する。
+8. `V-12E`の直前に、AtCoder側のsessionを意図的に失効させず、製品の削除契約に従って保存済みlocal sessionだけを除去する。別のCLI実行から`submit`相当の入口を開始し、失効理由と中止方法、browser自動起動、利用者によるAtCoderログイン、同じbrowserでの提出確認画面への遷移までを確認する。別の認証commandや追加のYes/No確認を挟まず、最後の提出操作は行わない。
+9. [記録テンプレート](docs/verification/judge-adapter/results/run-record-template.md)を複製し、`V-12A`〜`V-12E`ごとに入力、観測元、証拠、manifest、合否を匿名化して記録する。`V-12`全体は5つすべてが同じcampaign manifestで合格した場合だけ合格とする。
+10. caseごとの一時資源を回収し、campaign終了時に基準template、store用一時情報、検証用秘密情報保管庫項目を破棄する。検証用の限定公開版を残す場合も、公開範囲、目的、停止方法とownerを記録する。
+11. 合格の場合は、方式Aの製品形態と成立したUX範囲を[AtCoder認証設計](docs/architecture/atcoder-authentication.md) §3 へ反映する。不合格の場合は、回避策を追加せず、`TD-09`の別候補または方式Aの再設計へ戻す。
 
 **完了条件:**
 
-- [ ] 合否が実行記録に記載されている
-- [ ] 初回、再認証、`submit`からの再認証について、一往復UXの合否と手動操作が記録されている
-- [ ] 署名済み拡張機能、helper、protocol、テンプレートの検証版が一意に対応付いている
+- [ ] `V-12A`〜`V-12E`の各合否、観測元、証拠が実行記録に記載されている
+- [ ] `V-12B → V-12D`が分断されず、初回の一往復UXと手動操作が記録されている
+- [ ] `V-12E`が同じ配布物・基準templateを使う別のCLI実行から始まり、別の認証commandなしで同じbrowserの提出確認画面まで進んでいる
+- [ ] 署名済み拡張機能、helper、protocol、template schema、同意版とすべてのsub結果が、同じcampaign manifestで一意に対応付いている
+- [ ] `V-12C`の各caseが隔離され、基準templateと`V-12D`の保存sessionを変更していない
 - [ ] 秘密情報が成果物、ログ、Gitへ残っていない
 - [ ] 追加提出が0件である
-- [ ] 後始末対象の残存が0件であるか、残す限定公開物のownerと停止方法が記録されている
+- [ ] 基準templateは`V-12B`で一度だけ確定され、再作成せず`V-12E`まで使われた後に削除されている
+- [ ] caseごとの一時資源とcampaign終了時の後始末対象の残存が0件であるか、残す限定公開物のownerと停止方法が記録されている
+- [ ] 5つすべてが合格した場合だけ`V-12`全体を合格としている
 - [ ] 不合格の場合、回避実装ではなく再設計または範囲再検討の記録がある
 
 ---
