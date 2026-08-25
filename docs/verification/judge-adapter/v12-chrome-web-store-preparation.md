@@ -65,7 +65,7 @@ distributionは`Unlisted`です。`Public`、domain限定`Private`、group限定
 | field | 原稿 |
 |---|---|
 | Name | `AlgoLoom Authentication Verification BETA` |
-| Summary | `Connects one AtCoder browser session to the local AlgoLoom V-12 verification helper.` |
+| Summary (`manifest.json`の`description`) | `Transfers one AtCoder session to the local AlgoLoom verification helper after consent.` |
 | Single purpose | `After the user explicitly consents and signs in to AtCoder, transfer exactly one AtCoder REVEL_SESSION cookie to the AlgoLoom verification helper running on the same device so the helper can verify the same account and store the verified session in the OS secret store.` |
 | Category | dashboardで選べる現在の候補から`Developer Tools`相当を人が選び、表示名を記録する |
 | Language | Englishを主、同意と検証UIは日本語。必要なlocalizationは提出前にdashboard上で確認する |
