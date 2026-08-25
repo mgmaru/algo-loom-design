@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const SCRIPT_ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -74,12 +74,13 @@ function artifact(filePath, alias, expectedWidth, expectedHeight) {
 
 function capture(source, destination, width, height, profile) {
   fs.mkdirSync(profile, { mode: 0o700 });
-  execFileSync(CHROME, [
+  const result = spawnSync(CHROME, [
     "--headless=new",
     "--disable-background-networking",
     "--disable-component-update",
     "--disable-default-apps",
     "--disable-extensions",
+    "--disable-gpu",
     "--disable-sync",
     "--hide-scrollbars",
     "--no-default-browser-check",
@@ -89,7 +90,11 @@ function capture(source, destination, width, height, profile) {
     `--window-size=${width},${height}`,
     `--screenshot=${destination}`,
     pathToFileURL(source).href,
-  ], { env: {}, stdio: "pipe" });
+  ], { env: {}, stdio: "pipe", timeout: 10_000, killSignal: "SIGTERM" });
+  const timedOutAfterCapture = result.error?.code === "ETIMEDOUT" && fs.existsSync(destination);
+  if ((result.error && !timedOutAfterCapture) || (!timedOutAfterCapture && result.status !== 0)) {
+    fail("chrome_capture_failed");
+  }
   fs.chmodSync(destination, 0o600);
 }
 
