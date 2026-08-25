@@ -2,7 +2,7 @@
 
 > 確認日: 2026年8月26日
 >
-> 状態: 公式要件、listing・privacy原稿、承認gateをローカルで準備済み。2026年8月26日にpublisher候補accountで必須同意と一回限り5米ドルの登録料を確認し、owner本人の明示判断と操作で契約同意、支払い、developer登録を完了した。さらにowner本人の判断で非取引業者を自己申告し、Publisher nameの保存とcontact emailの検証を完了した。明示承認された`0.1.0` ZIPで新規itemを作成・uploadし、固定IDをowner-only記録へ保存した。account名、実address、developer dashboard URLは記録していない。Store listing、Privacy、Distributionの保存、審査提出、限定公開は未承認・未実施
+> 状態: 公式要件、listing・privacy原稿、承認gateをローカルで準備済み。2026年8月26日にpublisher候補accountで必須同意と一回限り5米ドルの登録料を確認し、owner本人の明示判断と操作で契約同意、支払い、developer登録を完了した。さらにowner本人の判断で非取引業者を自己申告し、Publisher nameの保存とcontact emailの検証を完了した。明示承認された`0.1.0` ZIPで新規itemを作成・uploadし、固定IDをowner-only記録へ保存した。承認済み原稿とassetによるStore listingの保存も完了した。account名、実address、developer dashboard URLは記録していない。Privacy、Distributionの保存、審査提出、限定公開は未承認・未実施
 >
 > 対象: `TD-37`の検証用拡張機能だけ。製品の正式公開手順ではない
 
@@ -157,7 +157,7 @@ local CookieまたはKeychain項目の削除を、CWS配布停止やAtCoder側�
 
 2026年8月26日時点で、契約同意、一回限り5米ドルの支払い、developer登録、非取引業者の自己申告、Publisher nameの保存、contact emailの検証までowner本人の判断と操作で完了しています。さらに、対象版`0.1.0`（SHA-256 `b0a8d07812abd8661630689e57c8c241aaeb223312bafbbc58877a4fa4dbbe78`）について、新規item作成とuploadを明示承認に基づき完了しました。取得した固定IDと操作状態はowner-only記録に保存し、account名、実address、決済情報、developer dashboard URLは記録していません。privacy policyとsupport pageの公開URL、実UIのscreenshot、small promo tileも準備・到達確認済みです。次は外部承認または外部状態が必要なため未実施です。
 
-- Store listing、Privacy、Distributionを承認済み原稿で保存する
+- Privacy、Distributionを承認済み原稿で保存する
 - reviewer用helper受渡し方法を確定し、test instructionsを保存する
 - 審査提出、審査通過、`Unlisted`公開
 - CWS配信済み対象版bytesの取得とhash固定
