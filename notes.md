@@ -78,3 +78,28 @@ Codexに聞いたところ**、詳細化するべきなのは実装方法によ�
   - どの部品をレビューするべきか。
     - エンドユーザに近い部分？外部通信の部分？など...
 ---
+### 2026/8/26
+### やったこと
+- AtCoder認証・認可の環境準備（TD-39）対応
+### わかったこと
+- Chrome Web Serviceに自作の拡張機能を公開する場合、Googleのデベロッパー登録料（初回のみ5ドル）の登録が必要。
+  - しかし、Codexはさらに、「MacではApple Developer Programの加入が必要」と提案してきたので、これに対して、事実を確認した。
+  - Gemini：**Apple Developer Programの加入が必要になるのは、Mac App Storeで「Safari用のWeb拡張機能」を配布する場合**です。
+  - Claude（Opus 5）：Apple Developer Programの加入が必要な場合は、macOS向け実行ファイルを **quarantine が付く経路** で配る場合
+  - **quarantineが付与される経路**：
+    1. Webブラウザからのダウンロード: Chrome、Safari、Edge、Firefoxなどから、ユーザーが直接 .zip や .app、実行可能バイナリをダウンロードした場合。
+    2. メールの添付ファイル: Apple標準の「メール」アプリや、Outlookなどで受信した添付ファイルを保存した場合。
+    3. チャット・コラボレーションツール: Slack、Discord、LINE、Microsoft Teamsなどで共有されたファイルをダウンロードした場合。
+    4. AirDrop経由の受信: 他のMacやiPhoneからAirDropでファイルを受け取った場合。
+    - これら経由でソフトをダウンロードするのを許可する場合は、quarantineが付与されるので、Apple Developer Programの加入が必要
+  - **quarantineが付与されない経路（回避策）**：
+    1. パッケージマネージャー経由: Homebrew (brew install ...)、npm、pip、cargo などを使ってインストールした場合。
+    2. バージョン管理システム: git clone や git pull でソースコードやバイナリを取得した場合。
+    3. コマンドラインツールでのダウンロード: ターミナル上で curl や wget コマンドを使って直接ファイルをダウンロードした場合。
+- つまり、ローカルのhelper（実行ファイル）をwebブラウザからZipでダウンロードさせる場合、quarantineが付与されるので、Apple Developer Programの加入が必要（加入しないとブロックされる。）
+- つまり、ローカルのhelper（実行ファイル）を動作させる場合に、そのファイルを`curl`,`wget`や`homebrew`、`git clone`などでダウンロードする場合は、Apple Developer Programの加入は必要ない。
+- これはCodex（GPT-5.6 Sol）の間違いだった。
+  - これは仮説だが、TD-37でトークンをかなり消費していたので、性能が落ちていたのかもしれない。
+---
+
+---
