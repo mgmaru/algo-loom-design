@@ -16,6 +16,7 @@
 > - [AtCoder公開情報に基づく配布判断記録](../project/atcoder-public-policy-review.md)
 > - [AtCoder認証・認可の境界整理](../project/atcoder-authentication-authorization-boundary.md)
 > - [AtCoder認証UX設計](../project/atcoder-authentication-manual-operation-automation.md)
+> - [拡張機能の責任境界と提出の縮退運転設計](../features/extension-boundary-and-degraded-submission.md)
 > - [`JudgeAdapter`技術検証計画](../project/judge-adapter-verification.md)
 > - [技術検証の実施手順](../verification/judge-adapter/README.md)
 
@@ -174,7 +175,13 @@ sequenceDiagram
     end
 ```
 
-`V-12`の検証支援物では、この責任をGoで書いた独立した実行ファイルとして作り、macOS Keychainへの読み書きだけをSwiftのアダプタへ分けています。これは検証の都合による構成であり、製品では`aloom`と同じパッケージに含めます（§3.6）。
+#### 拡張機能との責任分担
+
+拡張機能でしか行えないのは、**クッキーを1件取り出すこと**と、**提出フォームへソースコードと言語を設定すること**の2つだけです。同意画面の表示、アカウント照合、提出IDの取得、判定確認は、いずれも認証ヘルパーが行います。
+
+この分担は、拡張機能の更新頻度を下げるための設計判断です。拡張機能には「ブラウザの中でしか実現できない能力」だけを置き、AtCoder固有の知識はAlgoLoom本体へ置きます。詳細と、拡張機能側で固定する項目は[拡張機能の責任境界と提出の縮退運転設計 §2](../features/extension-boundary-and-degraded-submission.md#2-拡張機能の責任境界)を正とします。
+
+`V-12`の検証支援物では、この責任をGoで書いた独立した実行ファイルとして作り、macOS Keychainへの読み書きだけをSwiftのアダプタへ分けています。これは検証の都合による構成であり、製品では`aloom`と同じパッケージに含めます（§3.6）。検証支援物の拡張機能は`/settings`のHTMLからアカウント識別情報を読みますが、製品では認証ヘルパーへ一本化します。
 
 ## 2. 方式C: 技術検証用の手動取り込み
 
@@ -337,6 +344,11 @@ Cookieの出現やログイン後のURLだけでは成功としません。次�
 > 判断日: 2026年8月26日
 
 方式Aは、認証用Chrome拡張機能とAlgoLoom本体という2つの配布物だけで成立させます。**どちらか一方だけでは認証が成立しません。** 2つは性質も配布経路も異なり、1つへまとめることはできません。
+
+拡張機能の版と可用性をAlgoLoomが制御できないことから生じる運用リスクは、[Chrome拡張機能配布の運用リスクと緩和策](../project/chrome-extension-distribution-risks.md)へ分けて記録します。採用した緩和策は次の2つで、設計内容は[拡張機能の責任境界と提出の縮退運転設計](../features/extension-boundary-and-degraded-submission.md)を正とします。
+
+1. 拡張機能には、ブラウザの中でしか実現できない能力だけを置く。AtCoder固有の知識はAlgoLoom本体へ置き、AtCoder側の変更へPyPIの更新だけで追随する
+2. 拡張機能が使えない場合に提出を続ける縮退運転を持つ。検知、通知、利用者の明示操作を伴わない縮退運転は採用しない
 
 #### 3.6.1. 2つの配布物は性質が異なる
 

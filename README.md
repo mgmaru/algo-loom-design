@@ -73,6 +73,7 @@ AI review、Cloud同期、問題推薦・TUI、公開用solution bundle、Repair
 |---|---|---|
 | [問題選択・カタログ設計](docs/features/problem-selection-and-catalog.md) | 問題発見、`get`、AtCoder Problemsカタログ、問題・解法タグ | 設計方針 |
 | [外部学習資料参照設計](docs/features/external-learning-resources.md) | AtCoder問題・解説・他ユーザー提出一覧のbrowser参照、著作権・保存境界 | 公式問題・解説はMVP、提出一覧はMVP後 |
+| [拡張機能の責任境界と提出の縮退運転設計](docs/features/extension-boundary-and-degraded-submission.md) | 拡張機能へ置く責任の最小化、能力と知識の分離、提出の縮退運転、事前検知、原因分類と次の一手 | `TD-15`・`TD-38`が参照する設計方針 |
 | [解き直しworkflow設計](docs/features/revisit-workflow.md) | freshな解き直し、sibling checkout、SolveAttempt分離、比較・回復 | MVP機能設計 |
 | [公開用solution bundle将来設計](docs/features/public-solution-bundle-design.md) | 自分のsourceを公開候補として最小構成へ切り出す境界、Git・GitHub等へ委ねる操作、安全・privacy要件 | MVP後の候補。実装・採用は未決 |
 | [学習データアクセス・可視化API将来設計](docs/features/learning-data-access-api-design.md) | 本人の学習履歴をCLI、個人用UI、公式dashboard、外部toolから参照する共通Query契約、指標、段階的API公開 | 長期構想・MVP対象外 |
@@ -95,6 +96,7 @@ AI review、Cloud同期、問題推薦・TUI、公開用solution bundle、Repair
 |---|---|---|
 | [配布方針ガイド](docs/operations/algoloom-distribution.md) | AtCoderコンテンツ、規約、ライセンス、PyPI公開 | 配布上の判断材料 |
 | [AtCoder公開情報に基づく配布判断記録](docs/project/atcoder-public-policy-review.md) | `TD-06`〜`TD-08`の12項目、公式根拠、製品制約、再確認gate | **AtCoderに関する条件付き配布判断の正本** |
+| [Chrome拡張機能配布の運用リスクと緩和策](docs/project/chrome-extension-distribution-risks.md) | 更新の非対称性、外部への可用性依存、変更頻度と制御権の逆転、縮退運転、Firefoxを採用しない判断 | リスク記録。緩和策の採否は未決 |
 | [AtCoder認証・認可の境界整理](docs/project/atcoder-authentication-authorization-boundary.md) | ブラウザ認証、利用委譲、セッション受け渡し、CLI側の本人確認、操作ごとの認可 | 認証と認可の概念境界 |
 | [AtCoder認証UX設計](docs/project/atcoder-authentication-manual-operation-automation.md) | `auth login`、初回設定、`submit`からの再認証、一往復のCLI・ブラウザ導線、取消 | 採用するUX契約。実現手段は検証中 |
 | [契約の考え方](docs/project/contract-concepts.md) | 製品契約、Core契約、保存契約、境界の契約、契約テストの平易な説明 | 用語・概念ガイド |
