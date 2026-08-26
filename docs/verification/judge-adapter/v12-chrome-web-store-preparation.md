@@ -2,7 +2,7 @@
 
 > 確認日: 2026年8月26日
 >
-> 状態: `TD-37`のローカル準備は完了し、外部操作を扱う`TD-39`は作業停止中。CWSではdeveloper登録、新規itemへの`0.1.0` upload、Store listing・Privacy・Distributionの保存まで完了した。Distribution設定は料金なし・`Unlisted`・日本のみで、item自体はdraftのままである。test instructionsは未入力・未保存で、審査提出、公開、CWS署名済みbuild取得、`0.1.1` uploadは未実施。account名、実address、developer dashboard URLは記録していない
+> 状態: `TD-37`のローカル準備は完了。`TD-39`はreviewer用helperの受渡し方式を確定できず一度停止したが、2026年8月26日の再調査で停止理由が誤りであることを確認し、費用を伴わない方式を確定して再開した（[§4.1](#41-macos側の配布要件の再調査結果)、[§4.2](#42-採用するreviewer用helperの受渡し方式)）。CWSではdeveloper登録、新規itemへの`0.1.0` upload、Store listing・Privacy・Distributionの保存まで完了した。Distribution設定は料金なし・`Unlisted`・日本のみで、item自体はdraftのままである。test instructionsは未入力・未保存で、審査提出、公開、CWS署名済みbuild取得、`0.1.1` uploadは未実施。account名、実address、developer dashboard URLは記録していない
 >
 > 対象: `TD-39`のCWS審査用helperと限定公開版。製品の正式公開手順ではない
 
@@ -10,7 +10,9 @@
 
 `V-12`ではChrome Web Store（CWS）の`Unlisted`を使います。ここでいう限定公開は「listing URLを知る利用者が追加できる」範囲であり、指定accountだけに制限する`Private`ではありません。`Unlisted`もCWS policyと審査の対象です。[公式のvisibility説明](https://developer.chrome.com/docs/webstore/cws-dashboard-distribution)
 
-ローカルbuildと事前testを扱う`TD-37`は完了しました。CWS審査と限定公開を扱う`TD-39`は、reviewerへhelperを安全に渡す方法が確定していないため停止しています。次の外部操作は、対象、費用、公開範囲を読める形で人間が明示承認するまで行いません。
+本書でいうhelperは、専用Chromeの起動、拡張機能から受け取った1件のCookieの本人照合、macOS Keychainへの保存、後始末を行う端末内の実行ファイルです。役割の詳しい説明は[AtCoder認証設計 §1.2](../../architecture/atcoder-authentication.md#12-認証ヘルパーとは何か)を参照します。
+
+ローカルbuildと事前testを扱う`TD-37`は完了しました。CWS審査と限定公開を扱う`TD-39`は、reviewerへhelperを安全に渡す方法が確定していないため一度停止しましたが、2026年8月26日の再調査で受渡し方式を確定して再開しました。次の外部操作は、対象、費用、公開範囲を読める形で人間が明示承認するまで行いません。
 
 1. publisher用Google accountのdeveloper登録と登録費用の支払い（2026年8月26日完了）
 2. 新しいCWS itemの作成とZIP upload（2026年8月26日完了）
@@ -37,6 +39,7 @@
 | data disclosure | 2026年のpolicy更新は、収集するuser dataの正確な開示を要求し、2026年8月1日から既存itemにも適用すると案内している。[2026年policy更新](https://developer.chrome.com/blog/cws-policy-updates-2026) | 「端末内だけだから申告不要」と推測しない。提出時のdashboard設問に合わせ、認証情報とwebsite contentを開示する |
 | listing画像 | 128×128 PNG icon、少なくとも1枚のscreenshot、440×280のsmall promo tileが必須。screenshotは1280×800または640×400で実際の体験を示す。[画像仕様](https://developer.chrome.com/docs/webstore/images) | iconはbuild時生成する。`prepare-store-assets.mjs`で実同意UIの1280×800 screenshotとtextなしの440×280 promoをclean buildへ対応付け、placeholderまたは架空のAtCoder画面で提出しない |
 | test instructions | test手順は公開の必須条件ではないが、制限付きcredentialまたは有料accountが全機能に必要な場合、reviewerへcredentialと手順を伝えるために使える。[公式説明](https://developer.chrome.com/docs/webstore/cws-dashboard-test-instructions) | 本拡張はAtCoder認証を扱うため手順を記載する。共有AtCoder account、password、Cookieは作成・提供せず、事前build済みhelperと、reviewer自身が利用を許可されたaccountでの手動操作だけを案内する。これで審査不能ならcredentialを共有せずCWS supportへ確認する |
+| macOS向け実行ファイル | CWSへ拡張機能を配布することにApple側の要件はない。Apple Developer Program（年額99 USD）が必要になるのは、Developer ID署名とnotarizationを行う場合、すなわちquarantine属性が付く経路でmacOS向け実行ファイルを配布する場合だけである。[Developer ID](https://developer.apple.com/support/developer-id) | reviewer用helperをquarantine属性が付かない経路で渡し、Developer ID署名とnotarizationを必要としない。詳細と実測結果は[§4.1](#41-macos側の配布要件の再調査結果) |
 | update | 新しいZIPはversionを増やしてuploadし、再reviewを受ける。CWSは配布packageへ署名する。[更新手順](https://developer.chrome.com/docs/webstore/update) | `0.1.0 → 0.1.1`だけを更新testの版組とし、CWS以外の署名・配布経路へ切り替えない |
 | 停止 | dashboardからunpublishでき、再公開には新しいversionとreviewが必要になる場合がある。[unpublishの説明](https://developer.chrome.com/docs/webstore/account-deletion/) | 新規標準追加を止める手段をunpublishに固定する。実行前承認の対象にし、ローカルsession削除と混同しない |
 
@@ -114,9 +117,56 @@ screenshotへ実account名、Cookie、profile path、Keychain service ID、publi
 
 2026年8月26日に実際のdashboardで確認できた入力欄は、username（100文字）、password（100文字）、追加手順（500文字）だけでした。helper bundleの添付欄またはreviewer専用URL欄は確認できませんでした。3欄とも未入力・未保存です。
 
-reviewer用macOS arm64 helper候補はad-hoc署名です。`codesign --verify --strict`には合格しますが、`spctl --assess --type execute`は拒否し、このMacには有効なcode-signing identityがありません。ownerはApple Developer Programへ加入していません。このままではreviewerに通常のmacOS保護を回避させずhelperを再現してもらえるとは確認できないため、test instructionsは確定・保存しません。
+### 4.1. macOS側の配布要件の再調査結果
 
-Test instructionsではAtCoder usernameとpasswordを空欄に保ち、共有AtCoder account、password、Cookieを作成・提供しません。追加手順は、helperの安全な受渡し方法が確定した後に500文字以内で作成し、reviewer自身が利用を許可されたaccountを使うこと、sign-in・Turnstile・submissionを自動化しないこと、developer modeとGatekeeper回避を使わないことを明記します。reviewerがfull flowを確認できない場合はcredential共有や回避経路を追加せず、明示承認後にCWS supportへ確認します。local fixtureだけで審査可能かは公式回答または審査feedbackに従い、推測で判定しません。
+> 再調査日: 2026年8月26日
+
+作業を一度停止した当初の理由は、「reviewer用helperがad-hoc署名であり、Gatekeeperに拒否されるため、Apple Developer Program（年額99 USD）への加入が必要になる」というものでした。同日、公式資料の確認とこのMac（macOS 26.5、Apple silicon）での実測により、**この理解が誤りであること**を確認しました。
+
+**CWSへ拡張機能を配布することに、Apple側の要件はありません。** 拡張機能はHTML、CSS、JavaScriptのファイル群であり、Chromeが自身のプロファイルへ展開するため、macOSの実行ファイル保護の対象になりません。Apple Developer Programが必要になるのは、Developer ID署名とnotarizationを行う場合、すなわち**quarantine属性が付く経路でmacOS向け実行ファイルを配布する場合**だけです。[Developer ID](https://developer.apple.com/support/developer-id)、[notarizationの説明](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution)
+
+同一のad-hoc署名実行ファイルについて、quarantine属性の有無だけを変えて実測した結果は次のとおりです。
+
+| 条件 | `spctl --assess --type execute` | 実行結果 |
+|---|---|---|
+| ad-hoc署名・quarantine属性なし | 拒否 | **成功** |
+| ad-hoc署名・quarantine属性あり（`0001`、`0081`、`0083`） | 拒否 | **`SIGKILL`で停止** |
+| quarantine属性付きのシェルスクリプト | ― | 成功 |
+| quarantine属性付きの`.py`を`python3`で実行 | ― | 成功 |
+| `curl`で取得し`tar`で展開した実行ファイル | 拒否 | **成功**。付与される拡張属性は`com.apple.provenance`だけで、`com.apple.quarantine`は付かない |
+
+さらに、この端末へ導入済みの`uv`、`go`、`node`はいずれもad-hoc署名で、`spctl --assess --type execute`に拒否されますが、通常どおり動作しています。
+
+したがって、`spctl --assess --type execute`の拒否は「配布できない」という意味ではなく、パッケージマネージャ経由で導入したコマンドラインツール一般の通常状態です。実行を実際に阻害するのはGatekeeperそのものではなく、**ダウンロード時にブラウザ等が付与するquarantine属性**です。当初の停止理由は「reviewerへブラウザでダウンロードさせる」という前提の下でだけ成立していました。
+
+この観測は2026年8月26日のmacOS 26.5・Apple siliconのものです。将来の固定保証とは扱わず、helperの配布方法を変える際に再確認します。
+
+### 4.2. 採用するreviewer用helperの受渡し方式
+
+費用を伴わない次の2経路を採用します。どちらもreviewerへGatekeeperの警告を無効化・上書きさせません。`xattr`によるquarantine属性の削除、右クリックからの実行、「このまま開く」の選択、`spctl`の無効化をいずれも求めません。
+
+| 経路 | 内容 | 位置付け |
+|---|---|---|
+| 経路1 | 公開URLから`curl`で取得し`tar`で展開する。アーカイブとhelperのSHA-256をtest instructionsとサポートページへ明記する | **既定**。AlgoLoom製品の実配布経路（PyPI、`pip` / `pipx` / `uv tool`）と同じく、quarantine属性が付かない導入経路である |
+| 経路2 | 認証付き折返し通信の同じプロトコルを話す単一ファイルのreview用フィクスチャを、`python3`で実行する | **予備**。reviewerがブラウザでダウンロードした場合でも、スクリプトにはGatekeeperが適用されないため成立する |
+
+経路2はhelperの代替であり、**拡張機能側のソースコードは一切変更しません**。reviewer専用の分岐、隠し機能、条件付きコードを拡張機能へ追加しません。
+
+「ブラウザ以外の経路で取得してもらうこと」をGatekeeper回避とは扱いません。ここでいう回避とは、表示された警告を利用者に無効化・上書きさせることを指します。経路1・経路2はいずれも警告を発生させず、`uv`やHomebrewと同じ通常の導入手順です。この解釈は2026年8月26日にownerが判断し、承認記録へ残します。
+
+Developer ID署名とnotarizationは、経路1・経路2のどちらもreviewerが実行できず、かつCWS supportがDeveloper ID署名を必須と回答した場合にだけ再検討します。その場合も、契約、年額、税、自動更新、名義をowner自身が確認し、別途明示承認を得ます。
+
+### 4.3. test instructionsの方針
+
+test instructionsではAtCoder usernameとpasswordを空欄に保ち、共有AtCoder account、password、Cookieを作成・提供しません。追加手順は500文字以内で、次を明記します。
+
+- §4.2の経路1でhelperを取得する手順と、照合するSHA-256
+- 経路1が使えない場合の経路2の実行方法
+- reviewer自身が利用を許可されたaccountを使うこと
+- sign-in、Turnstile、submissionを自動化しないこと
+- developer modeとGatekeeper回避を使わないこと
+
+reviewerがfull flowを確認できない場合はcredential共有や回避経路を追加せず、明示承認後にCWS supportへ確認します。local fixtureだけで審査可能かは公式回答または審査feedbackに従い、推測で判定しません。
 
 ## 5. 外部操作の承認記録
 
@@ -159,9 +209,11 @@ local CookieまたはKeychain項目の削除を、CWS配布停止やAtCoder側�
 - privacy policyとsupport pageの公開URL、実UIのscreenshot、small promo tileの準備と到達確認
 - Store listing、個人を特定できる情報・認証情報・website contentを開示したPrivacy、料金なし・`Unlisted`・日本のみのDistribution設定の保存
 
-次は未実施です。
+reviewer用helperの受渡し方式は[§4.2](#42-採用するreviewer用helperの受渡し方式)で確定しました。次は未実施です。
 
-- reviewer用helper受渡し方法の確定
+- 経路1の`.tar.gz`生成とSHA-256のbuild indexへの記録
+- 経路2のreview用フィクスチャの作成と固定入力testへの追加
+- サポートページへのhelper取得手順の追記と公開URLでの到達確認
 - test instructionsの確定・保存
 - pre-submission testと最終入力の確認
 - deferred publishingによる審査提出と審査通過
@@ -170,31 +222,54 @@ local CookieまたはKeychain項目の削除を、CWS配布停止やAtCoder側�
 - 標準Chromeの標準追加画面でdeveloper modeなしに追加できることの確認
 - `TD-11`の`V-12C`で使う`0.1.1`のupload・審査
 
-この分離により、ローカル成果物を完了条件とする`TD-37`は完了です。上記の外部作業とcampaign manifestの`signed_builds`が未完了であるため、`TD-39`は保留、`T-11`と`V-12`は未完了です。
+この分離により、ローカル成果物を完了条件とする`TD-37`は完了です。上記の作業とcampaign manifestの`signed_builds`が未完了であるため、`TD-39`は未着手、`TD-11`と`V-12`は未完了です。
 
-## 8. 作業停止点と再開手順
+## 8. 判断記録と次の作業
 
-作業はtest instructionsの入力前で停止しました。CWS itemはdraftで、「審査のため送信」は押しておらず、公開もしていません。
+### 8.1. 2026年8月26日の判断
 
-### 8.1. 停止している問題
+作業はtest instructionsの入力前で一度停止しました。CWS itemはdraftで、「審査のため送信」は押しておらず、公開もしていません。この状態は変わっていません。
 
-次の問題が連鎖しているため、test instructionsを確定できず、審査へ提出できません。
+停止時に記録した4つの問題のうち、2番目と3番目は誤った前提に基づいていたため、次のとおり訂正します。
 
-1. 拡張機能のcore flowにはlocal helperが必要ですが、実際のCWS test instructions画面にはhelperの添付欄またはreviewer専用URL欄がなく、公式な受渡し方法が分かりません。
-2. 現在のhelperはad-hoc署名で、`codesign --verify --strict`には合格する一方、Gatekeeperの通常評価である`spctl --assess --type execute`には拒否されます。この状態で配布するとreviewerへGatekeeper回避を要求する可能性があり、安全な審査手順にできません。
-3. このMacにはDeveloper ID署名とnotarizationを行えるidentityがありません。その取得候補であるApple Developer Programには、新しい契約、年額費用、自動更新の判断が伴います。
-4. AtCoderの共有credentialは安全上提供しない方針です。reviewer自身のaccountまたはlocal fixtureでどこまで認証機能を審査できるか、CWSの公式確認が必要です。
+| # | 停止時の記録 | 2026年8月26日の判断 |
+|---|---|---|
+| 1 | test instructions画面にhelperの添付欄またはreviewer専用URL欄がない | 事実として維持する。500文字の追加手順欄へ、公開URLと照合用SHA-256を書いて渡す |
+| 2 | helperがad-hoc署名のためGatekeeperの通常評価で拒否され、渡すとGatekeeper回避を要求しかねない | **訂正する。** 実行を阻害するのはquarantine属性であり、`spctl`の拒否そのものではない（[§4.1](#41-macos側の配布要件の再調査結果)）。quarantine属性が付かない経路で渡せば、回避を求めずに再現できる |
+| 3 | Developer ID署名とnotarizationのidentityがなく、Apple Developer Programの契約・年額費用・自動更新の判断が伴う | **訂正する。** CWSへの拡張機能配布にApple側の要件はない。[§4.2](#42-採用するreviewer用helperの受渡し方式)の方式では署名もnotarizationも必要としないため、加入・支払いの判断は発生しない |
+| 4 | 共有AtCoder credentialを提供しない方針のため、審査可能範囲のCWS公式確認が必要 | 事実として維持する。ただし問い合わせは先行させず、reviewer自身のaccountで審査を試みて、拒否された場合にだけ行う |
 
-このため、helperの公式な受渡し方法と認証機能の審査方法が判明し、安全な署名済みhelperを用意できるか別方式を選ぶまでは、test instructions保存、審査提出、公開へ進みません。
+これにより、`TD-39`の停止は解除されます。**Apple Developer Programへの加入と年額99 USDの支払いは行いません。** CWS supportへの問い合わせも、[§8.2](#82-次に行う作業)の段階2で審査が成立しなかった場合の後段の手段へ移します。
 
-### 8.2. 再開手順
+なお、Developer ID署名を付けても、この設計の認証・認可の強度はほとんど上がりません。方式Aの安全性を支えているのは、拡張機能の固定ID・版・配布元・権限の照合、認証付き折返し通信の一回限りトークン・`Host`・送信元・origin・本文上限・状態順序の検査、および本人照合後にだけ保存する契約です。helperの真正性は、利用者自身が導入したAlgoLoomが起動した子プロセスであることで担保します。詳細は[AtCoder認証設計 §3.6](../../architecture/atcoder-authentication.md#36-配布物と実行ファイル署名の境界)を参照します。
 
-再開時の推奨する最初の操作は、CWS supportへ次の3点を問い合わせることです。ただし、問い合わせ送信自体が外部操作であるため、文面と送信先を提示して明示承認を得てから行います。
+### 8.2. 次に行う作業
 
-1. dashboardに添付欄がない場合、companion helperをreviewerへ安全に渡す公式経路は何か。
-2. 共有AtCoder credentialを提供せず、reviewer自身のaccountまたはlocal fixtureで審査できるか。
-3. macOS helperにはDeveloper ID署名とnotarizationが必要か、CWSに別の公式要件があるか。
+作業は3段階に分かれます。段階1は外部操作を含まないため、追加の承認なしで着手できます。段階2以降は操作ごとに明示承認が必要です。
 
-回答によりDeveloper ID署名とnotarizationが必要だと確認できた場合は、Apple Developer Programの現在の契約、年額、税、自動更新、加入名義をowner自身が確認し、加入・支払いを別途明示承認してから進みます。費用を使わない場合は、reviewerや利用者にGatekeeper回避、実行時compile、developer mode、CDP、WebDriverまたは共有credentialを要求しない設計へ戻します。
+#### 段階1: 受渡し方式の実装（外部操作なし・承認不要）
 
-helper配布方法の確定後は、`TD-39`の手順どおり、test instructions案の承認と保存、pre-submission確認、deferred publishingを指定した審査提出の承認、審査対応、別承認による限定公開、CWS署名済みbytesと最終campaign manifestの固定を順に行います。`0.1.1`は`TD-11`の更新testまでuploadしません。
+| # | 作業 | 完了の目安 |
+|---|---|---|
+| 1 | 本書と[TODO.md](../../../TODO.md)の`TD-39`の停止理由を§4.1の再調査結果へ合わせて訂正する | 「Apple Developer Programが必要」という記述が残っていない（2026年8月26日完了） |
+| 2 | `prepare.mjs`へ、helperとKeychain adapterをまとめた`.tar.gz`の生成と、そのSHA-256・bytesの`build-index.json`への記録を追加する | 隔離buildから経路1の配布物を再現でき、ハッシュが固定されている |
+| 3 | 経路2のreview用フィクスチャを1ファイルで作る。プロトコル、一回限りトークン、`Host`検査、送信元検査、拡張機能origin検査、本文上限、状態順序をhelperと同じ条件で満たす | 拡張機能のソースを変更せずに同意画面から本人照合まで到達できる |
+| 4 | 固定入力testへ、quarantine属性が付いた状態でも経路2が成立することを確認するケースを追加する | `go test ./...`と`node --test`が合格する |
+| 5 | helperとフィクスチャの取得手順、SHA-256、停止方法を[サポートページ](v12-extension-support.md)へ追記し、公開URLで到達確認する | reviewerが500文字のtest instructionsからたどれる |
+
+`TD-11`は未着手のため、この段階でソースリビジョンが変わっても無効化される`V-12`のsub結果はありません。**訂正と追加を行うなら現時点が最も影響が小さくなります。**
+
+#### 段階2: 審査提出（操作ごとに明示承認が必要）
+
+6. [§4.3](#43-test-instructionsの方針)に従いtest instructionsの文面を確定し、入力内容とhelper受渡し先を提示して**明示承認**を得てから保存する。
+7. dashboardのpre-submission test、要求権限、data disclosure、listing、Privacy、Distribution、version、ZIPハッシュを再確認する。不合格、差分、helper再現不能があれば審査へ送信しない。
+8. 対象item、version、ZIPハッシュ、料金なし、`Unlisted`・日本のみ、test instructions、審査通過だけでは自動公開しないことを提示して**明示承認**を得る。承認後、deferred publishingを選んで審査へ送信する。
+9. 審査結果を記録する。不承認なら理由を記録して停止し、credential共有、Gatekeeper回避、別配布元、手動読込で迂回しない。helperを再現できないことが理由の場合にだけ、文面と送信先を提示して**明示承認**を得たうえでCWS supportへ問い合わせる。
+
+#### 段階3: 限定公開と`TD-11`への引き渡し（別の明示承認が必要）
+
+10. 対象item、version、限定公開URL、停止方法を再提示し、公開の**明示承認**を別に得る。公開後、通常Chromeの標準追加画面でdeveloper modeなしに追加できる事前状態だけを確認し、`TD-11`の基準templateはまだ作らない。
+11. CWS配信済み`0.1.0`の正確なbytesを取得できた場合だけハッシュを固定し、固定ID、listing URL、helper、protocol、source、build、Chrome・OS、template schema、同意版とともに最終campaign manifestへ記録する。取得できない場合は`TD-11`へ進まない。
+12. `0.1.1`は`TD-11`の`V-12C`で明示承認を得るまでuploadしない。`0.1.0`の初回標準追加を確認する前にcurrent versionを置き換えない。
+
+**この後に人が判断する必要があるのは、段階2の#6・#8・#9と段階3の#10だけです。** 段階1に外部影響はありません。

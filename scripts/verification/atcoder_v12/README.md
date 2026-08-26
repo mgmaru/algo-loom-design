@@ -9,7 +9,7 @@
 | 場所 | 役割 |
 |---|---|
 | `extension/` | Chrome Web Storeへ提出するManifest V3拡張機能のsource。単一目的、最小権限、固定したCookie範囲を持つ |
-| `helper/` | protocol、AtCoder本人照合、Keychain adapter呼出し、profileの確定・複製・破棄、campaign manifest検査を行うGo helper |
+| `helper/` | protocol、AtCoder本人照合、Keychain adapter呼出し、profileの確定・複製・破棄、campaign manifest検査を行うGo helper。認証ヘルパーの役割は[AtCoder認証設計 §1.2](../../../docs/architecture/atcoder-authentication.md#12-認証ヘルパーとは何か)を参照 |
 | `keychain/` | 実行前に配布物へcompileするmacOS Security Framework adapter |
 | `consent-v1.0.ja.md` | 初回画面と対応付ける同意文面の正本 |
 | `fixtures/` | 秘密値を含まないmanifest例。実campaignへ流用しない |

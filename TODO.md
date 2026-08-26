@@ -170,7 +170,7 @@ flowchart TD
 | [`TD-09`](#td-09-方式aの製品形態候補を机上比較する) | 設計判断 | 方式Aの製品形態候補を机上比較する | `TD-01`, `TD-08` | 完了 |
 | [`TD-10`](#td-10-方式a製品形態の検証項目を追加する) | 技術検証 | 方式A製品形態の検証項目を追加する | `TD-09` | 完了 |
 | [`TD-37`](#td-37-v-12検証用のローカル配布候補を準備する) | 技術検証 | `V-12`検証用のローカル配布候補を準備する | `TD-10` | 完了 |
-| [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 保留 |
+| [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 未着手 |
 | [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39` | 未着手 |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 |
 | [`TD-38`](#td-38-認証配布物とテンプレートのライフサイクル契約を確定する) | 機能設計 | 認証配布物とテンプレートのライフサイクル契約を確定する | `TD-11`, `TD-12` | 未着手 |
@@ -536,7 +536,7 @@ flowchart TD
 
 **目的:** CWSの審査・公開という外部状態に依存せず、`V-12`で使う拡張機能source、実行時compile不要のhelper、認証付きloopback、profile操作、campaign manifest形式、固定入力test、掲載原稿・assetをclean revisionから再現できる状態にします。CWS審査、署名済み配布物、reviewer向けhelper配布は[`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する)へ分離します。
 
-**2026年8月26日の完了記録:** [`scripts/verification/atcoder_v12/`](scripts/verification/atcoder_v12/)へ最小権限の拡張source、事前buildするmacOS arm64 helper・Keychain adapter、認証付きloopback、profile操作、campaign manifest検査、固定入力test、同意版を追加しました。[CWS配布準備](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)へlisting・privacy原稿、費用・公開を含む外部操作の承認gate、停止方法を記録し、clean source revisionから`0.1.0`・`0.1.1` ZIP、helper、掲載assetをowner-only領域へ生成してhashを固定しました。外部接続なしのtest、隔離build、秘密情報非混入検査は成功しています。CWS itemで既に完了した操作と、未実施のtest instructions・審査・限定公開は`TD-39`へ引き渡し、`TD-37`の完了条件には含めません。
+**2026年8月26日の完了記録:** [`scripts/verification/atcoder_v12/`](scripts/verification/atcoder_v12/)へ最小権限の拡張source、事前buildするmacOS arm64 helper・Keychain adapter、認証付きloopback、profile操作、campaign manifest検査、固定入力test、同意版を追加しました。[CWS配布準備](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)へlisting・privacy原稿、費用・公開を含む外部操作の承認gate、停止方法を記録し、clean source revisionから`0.1.0`・`0.1.1` ZIP、helper、掲載assetをowner-only領域へ生成してhashを固定しました。外部接続なしのtest、隔離build、秘密情報非混入検査は成功しています。CWS itemで既に完了した操作と、未実施のtest instructions・審査・限定公開は`TD-39`へ引き渡し、`TD-37`の完了条件には含めません。reviewer用helperの受渡し方式は`TD-39`で確定しました。
 
 **手順:**
 
@@ -570,40 +570,45 @@ flowchart TD
 
 **目的:** `TD-37`のローカル配布候補を、reviewerが共有credentialやGatekeeper回避を使わず確認できる形でCWS審査へ渡し、`0.1.0`を料金なし・限定公開・日本のみで標準追加できる事前状態にします。審査提出と公開を分離し、CWSが配信する署名済みbytesを取得して最終campaign manifestへ固定します。
 
-**2026年8月26日の停止記録:** CWS developer登録、契約同意、一回限り5米ドルの登録料支払い、非取引業者の自己申告、Publisher nameとcontact emailの確認、新規item作成、`0.1.0` ZIP upload、固定ID取得、Store listing・Privacy・Distributionの保存まで完了しています。Distributionは料金なし・限定公開・日本のみです。test instructionsのusername、password、追加手順は未入力・未保存で、「審査のため送信」は押していません。itemはdraftで、審査・公開・CWS署名済みbuild取得・`0.1.1` uploadは未実施です。
+**2026年8月26日の判断記録:** CWS developer登録、契約同意、一回限り5米ドルの登録料支払い、非取引業者の自己申告、Publisher nameとcontact emailの確認、新規item作成、`0.1.0` ZIP upload、固定ID取得、Store listing・Privacy・Distributionの保存まで完了しています。Distributionは料金なし・限定公開・日本のみです。test instructionsのusername、password、追加手順は未入力・未保存で、「審査のため送信」は押していません。itemはdraftで、審査・公開・CWS署名済みbuild取得・`0.1.1` uploadは未実施です。
 
-reviewer用macOS arm64 helper候補はad-hoc署名で、`codesign --verify --strict`には合格しましたが`spctl --assess --type execute`は拒否しました。このMacに有効なcode-signing identityはなく、ownerはApple Developer Programへ未加入です。2026年8月26日時点の[Apple公式案内](https://developer.apple.com/help/account/membership/program-enrollment)ではApple Developer Programは年額99 USD（地域により現地通貨・税）で、Apple Developer app経由の加入は解約まで自動更新です。新規契約・支払い、CWS supportへの問い合わせ送信、GitHub Release等へのhelper公開、test instructions保存、審査提出、公開はいずれも未承認です。この外部判断を急がないため`TD-39`を`保留`とします。
+reviewer用helperの受渡し方法が確定せず一度停止しましたが、同日の再調査で停止理由の一部が誤りであることを確認し、費用を伴わない方式を確定して再開しました。
 
-**停止している問題:** 次の問題が連鎖しているため、test instructionsを確定できず、審査へ提出できません。
+- **CWSへ拡張機能を配布することにApple側の要件はありません。** Apple Developer Program（年額99 USD）が必要になるのは、Developer ID署名とnotarizationを行う場合、すなわちquarantine属性が付く経路でmacOS向け実行ファイルを配布する場合だけです。
+- macOS 26.5・Apple siliconでの実測では、ad-hoc署名の実行ファイルは、quarantine属性がなければ`spctl --assess --type execute`に拒否されても正常に実行できました。逆にquarantine属性が付くと`SIGKILL`で停止しました。`curl`で取得して`tar`で展開した実行ファイルにquarantine属性は付きません。この端末に導入済みの`uv`、`go`、`node`も同じくad-hoc署名で`spctl`に拒否されますが、通常どおり動作しています。
+- したがってreviewerへは、公開URLから`curl`で取得する経路を既定とし、`python3`で実行する単一ファイルのreview用フィクスチャを予備とします。どちらもGatekeeperの警告を無効化・上書きさせません。
 
-1. 拡張機能のcore flowにはlocal helperが必要ですが、実際のCWS test instructions画面にはhelperの添付欄またはreviewer専用URL欄がなく、公式な受渡し方法が未確定です。
-2. 現在のhelperはad-hoc署名のためGatekeeperの通常評価で拒否されます。この状態で渡すとreviewerへGatekeeper回避を要求する可能性があり、安全な審査手順にできません。
-3. Developer ID署名とnotarizationを行えるidentityがなく、その取得候補であるApple Developer Programには新しい契約、年額費用、自動更新の判断が伴います。
-4. AtCoderの共有credentialは安全上提供しない方針のため、reviewer自身のaccountまたはlocal fixtureでどこまで審査できるか、CWSの公式確認が必要です。
+**Apple Developer Programへの加入と年額99 USDの支払いは行いません。** CWS supportへの問い合わせも先行させず、審査がhelper再現不能を理由に不承認となった場合の後段の手段とします。根拠と実測結果は[CWS配布準備 §4.1](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#41-macos側の配布要件の再調査結果)・[§4.2](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#42-採用するreviewer用helperの受渡し方式)、製品側の契約は[AtCoder認証設計 §3.6](docs/architecture/atcoder-authentication.md#36-配布物と実行ファイル署名の境界)を正本とします。
 
-したがって、helperの公式な受渡し方法と認証機能の審査方法が判明し、安全な署名済みhelperを用意できるか別方式を選ぶまでは、test instructions保存、審査提出、公開へ進みません。
+**手順:** 段階1は外部操作を含まないため、追加の承認なしで着手します。段階2以降は操作ごとに明示承認を得ます。各段階の完了の目安は[CWS配布準備 §8.2](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#82-次に行う作業)を参照します。
 
-**再開条件:** ownerが次のいずれか一つを、対象と外部影響を確認して明示承認した場合だけ再開します。
+**段階1: 受渡し方式の実装（外部操作なし）**
 
-1. CWS supportへ、companion helperの安全なreviewer受渡し方法、共有AtCoder credentialを提供しない審査方法、Developer ID署名・notarizationの要否を問い合わせる。
-2. Apple Developer Programの現在の契約、年額、税、自動更新、名義をowner自身が確認し、加入・支払いを明示承認する。
-3. 費用を伴わず、reviewerや利用者にGatekeeper回避、実行時compile、developer mode、CDP、WebDriver、共有credentialを要求しない別の配布方式へ設計を戻す。
+1. 本書と[CWS配布準備](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)の停止理由を再調査結果へ合わせて訂正する（2026年8月26日完了）。
+2. [`prepare.mjs`](scripts/verification/atcoder_v12/prepare.mjs)へ、helperとKeychain adapterをまとめた`.tar.gz`の生成と、そのSHA-256・bytesの`build-index.json`への記録を追加する。
+3. 経路2のreview用フィクスチャを1ファイルで作る。プロトコル、一回限りの秘密値、`Host`検査、送信元検査、拡張機能origin検査、本文上限、状態順序をhelperと同じ条件で満たす。拡張機能のsourceへreviewer専用の分岐やコードを追加しない。
+4. 外部接続なしの固定入力testへ、quarantine属性が付いた状態でも経路2が成立することを確認するcaseを追加する。
+5. helperとフィクスチャの取得手順、SHA-256、停止方法を[サポートページ](docs/verification/judge-adapter/v12-extension-support.md)へ追記し、公開URLで到達確認する。
 
-**手順:**
+**段階2: 審査提出（操作ごとに明示承認）**
 
-1. 再開時にCWS itemがdraft、versionが`0.1.0`、料金なし・限定公開・日本のみで、Store listing・Privacy・Distributionが承認済み内容から変わっていないことを読取り確認する。
-2. reviewer用helperの受渡し方式を確定する。Appleの通常保護下で配布する場合はDeveloper IDで署名し、notarizationを行い、取得した配布物を隔離環境で`codesign`、`spctl`、hash、実行時compile不要、秘密情報非混入について検査する。CWSが別の公式reviewer経路を回答した場合は、その回答と適用範囲を記録する。
-3. AtCoder username、password、Cookieを共有せず、reviewer自身が利用を許可されたaccountと、hash固定済みhelperだけで再現できる500文字以内のtest instructionsを確定する。入力内容とhelper受渡し先を提示し、明示承認後に保存する。
-4. dashboardのpre-submission test、要求権限、data disclosure、listing、Privacy、Distribution、version、ZIP hashを再確認する。不合格、差分、helper再現不能があれば審査へ送信しない。
-5. 審査提出前に、対象item、version、ZIP hash、料金なし、限定公開・日本のみ、test instructions、審査後の自動公開を無効にすることを提示して明示承認を得る。承認後、deferred publishingを選んで審査へ送信し、審査通過だけで自動公開されないようにする。
-6. 審査結果を記録する。不承認なら理由を記録して停止し、credential共有、Gatekeeper回避、別配布元、手動読込で迂回しない。
-7. 審査通過後、対象item、version、限定公開URLを知る日本の利用者が追加できること、停止方法を再提示し、公開の明示承認を別に得る。公開後、通常Chromeの標準画面で追加可能な状態だけを確認し、`TD-11`の基準templateはまだ作らない。
-8. CWS配信済み`0.1.0`の正確なbytesを取得できた場合だけhashを固定し、固定ID、listing URL、helper、protocol、source、build、Chrome・OS、template schema、同意版とともに最終campaign manifestへ記録する。取得不能なら`TD-11`へ進まない。
-9. 更新用`0.1.1` ZIPは`TD-11`の`V-12C`で明示承認後に使うまでuploadしない。`0.1.0`の初回標準追加を確認する前にcurrent versionを置き換えない。
+6. 再開時にCWS itemがdraft、versionが`0.1.0`、料金なし・限定公開・日本のみで、Store listing・Privacy・Distributionが承認済み内容から変わっていないことを読取り確認する。
+7. AtCoder username、password、Cookieを共有せず、reviewer自身が利用を許可されたaccountと、hash固定済みhelperまたはフィクスチャだけで再現できる500文字以内のtest instructionsを確定する。入力内容とhelper受渡し先を提示し、明示承認後に保存する。
+8. dashboardのpre-submission test、要求権限、data disclosure、listing、Privacy、Distribution、version、ZIP hashを再確認する。不合格、差分、helper再現不能があれば審査へ送信しない。
+9. 対象item、version、ZIP hash、料金なし、限定公開・日本のみ、test instructions、審査後の自動公開を無効にすることを提示して明示承認を得る。承認後、deferred publishingを選んで審査へ送信する。
+10. 審査結果を記録する。不承認なら理由を記録して停止し、credential共有、Gatekeeper回避、別配布元、手動読込で迂回しない。helperを再現できないことが理由の場合にだけ、文面と送信先を提示して明示承認を得たうえでCWS supportへ問い合わせる。
+
+**段階3: 限定公開と`TD-11`への引き渡し（別の明示承認）**
+
+11. 審査通過後、対象item、version、限定公開URLを知る日本の利用者が追加できること、停止方法を再提示し、公開の明示承認を別に得る。公開後、通常Chromeの標準画面で追加可能な状態だけを確認し、`TD-11`の基準templateはまだ作らない。
+12. CWS配信済み`0.1.0`の正確なbytesを取得できた場合だけhashを固定し、固定ID、listing URL、helper、protocol、source、build、Chrome・OS、template schema、同意版とともに最終campaign manifestへ記録する。取得不能なら`TD-11`へ進まない。
+13. 更新用`0.1.1` ZIPは`TD-11`の`V-12C`で明示承認後に使うまでuploadしない。`0.1.0`の初回標準追加を確認する前にcurrent versionを置き換えない。
 
 **完了条件:**
 
 - [ ] reviewer用helperの配布方法が確定し、共有credential、Gatekeeper回避、実行時compile、developer modeを要求せず再現できる
+- [ ] 経路1の`.tar.gz`が隔離buildから再現でき、SHA-256とbytesが`build-index.json`へ固定されている
+- [ ] 経路2のreview用フィクスチャが、拡張機能のsourceを変更せずに同意画面から本人照合まで到達し、外部接続なしの固定入力testが合格している
 - [ ] test instructionsが秘密情報を含まず、承認済み内容で保存されている
 - [ ] CWSのpre-submission testと人による最終確認が合格し、差分がない
 - [ ] 明示承認後にdeferred publishingで審査へ提出し、審査に合格している
@@ -674,7 +679,7 @@ reviewer用macOS arm64 helper候補はad-hoc署名で、`codesign --verify --str
    - ログ、エラー、DB、エクスポート、配布物への秘密情報の非混入
    - アカウントの変更、期限切れ、ページ構造の変更における送信前停止
    - 初回、再認証、`submit`からの再認証における一往復と、同じbrowserでの認証後の提出確認
-2. 秘密情報保管庫を、macOS Keychain、Windowsの保護領域、Linux Secret Serviceとして明示する。
+2. 秘密情報保管庫を、macOS Keychain、Windowsの保護領域、Linux Secret Serviceとして明示する。あわせて[未決事項 7.3](docs/project/unresolved-decisions.md#73-秘密情報保管庫が保証する範囲と表示文言)に従い、各OSで「同じ利用者として動作する他のプロセスから読めるか」「AlgoLoomの更新時に再認可を求められるか」を確認し、[認証設計 §4.1](docs/architecture/atcoder-authentication.md#41-保管先)の保証範囲と利用者への表示文言を確定する。
 3. 各セルの確認方法を、OS非依存の契約test、3 OS統合test、配布導線test、実サービスsmoke、未対応から選ぶ。VMで証明できる範囲と、通常Chromeを備えた物理端末を最終確認へ含める範囲を分け、`TD-18`と整合させる。
 4. 利用者による拡張機能追加・権限承認、AtCoderログイン、Turnstile、最後の提出操作を、手動の受け入れ操作として明示する。それ以外で自動化する処理は、単に「手動」とせず確認層と自動testを割り当てる。
 5. MVP完了条件 §5.1〜§5.3、`F-SUBMIT-01-R7`〜`R10`、`E2E-30`および`TD-15`で追加する認証UXシナリオと対応付ける。
@@ -686,6 +691,7 @@ reviewer用macOS arm64 helper候補はad-hoc署名で、`codesign --verify --str
 - [ ] VM、物理端末、実サービスのそれぞれで証明する範囲が明示されている
 - [ ] 3 OSすべてで拡張機能、helper、テンプレート、秘密情報保管庫、一往復UXの確認方法がある
 - [ ] 確認手段を用意できない組み合わせは、MVP保証範囲の変更提案として記録されている
+- [ ] 3 OSそれぞれで秘密情報保管庫が実際に保証する範囲を観測し、過大でない表示文言が確定している
 
 ---
 
@@ -709,7 +715,8 @@ reviewer用macOS arm64 helper候補はad-hoc署名で、`codesign --verify --str
 4. 再同意と再設定の境界を固定する。同じ同意版と権限で健全なテンプレートを再利用するときは繰り返さず、取得対象、用途、保存先、権限が変わる場合は認証開始前に再同意を求める。標準追加画面以外の強制導入へ切り替えない。
 5. 削除の意味を分ける。保存済みsessionの削除、テンプレートと実行用profileの削除、拡張機能の端末内削除、AtCoder server上のsession失効を同一操作として表示しない。AlgoLoom所有領域を削除した後も利用者の既存Chromeへ触れない。
 6. 更新中断とrollbackの契約を決める。互換な旧版へ戻せる条件、戻せない場合の停止、原子的に置き換えるmetadata、途中状態の回収、次回開始時の診断を含める。
-7. 正常系、版不一致、権限変更、完全性不成立、削除、更新中断について、機能要件と受け入れシナリオへ投影する内容を`TD-15`へ渡す。配布・build・release手順へ渡す要件を`TD-35`へ対応付ける。
+7. 拡張機能とAlgoLoom本体のrelease順序を決める。拡張機能はChrome Web Store、本体はPyPIという別経路で配られ、審査の所要時間も異なる。AlgoLoomは審査済みの版を固定して照合するため、新しい拡張機能の版を要求する本体を、その版の審査通過前に公開しない条件を明記する（[配布方針ガイド §16](docs/operations/algoloom-distribution.md#16-段階的な配布計画)）。
+8. 正常系、版不一致、権限変更、完全性不成立、削除、更新中断について、機能要件と受け入れシナリオへ投影する内容を`TD-15`へ渡す。配布・build・release手順へ渡す要件を`TD-35`へ対応付ける。
 
 **完了条件:**
 
@@ -718,6 +725,7 @@ reviewer用macOS arm64 helper候補はad-hoc署名で、`codesign --verify --str
 - [ ] 初回、再利用、更新、破損、配布停止、削除、中断の状態遷移がある
 - [ ] session削除、AlgoLoom所有browser領域の削除、拡張機能削除、AtCoder側失効を誤表示しない
 - [ ] 未知の版、権限増加、完全性不成立で既存profileの再利用や強制導入へfallbackしない
+- [ ] 拡張機能とAlgoLoom本体のrelease順序が決まり、審査通過前に新しい版を要求する本体を公開しない条件が明記されている
 - [ ] `TD-15`と`TD-35`へ渡す要件が対応付いている
 
 ---

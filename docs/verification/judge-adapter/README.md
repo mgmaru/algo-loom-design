@@ -2,7 +2,7 @@
 
 > 対象: [`JudgeAdapter`技術検証計画](../../project/judge-adapter-verification.md)を安全かつ再現可能に実施するための準備と運用
 >
-> 状態: `V-01`〜`V-11`はすべて合格し、2026年8月24日に成果物確定と後始末を完了。追加P0 `V-12`は、`TD-37`のローカル準備を完了し、CWS外部作業を`TD-39`へ分離して保留中。CWSではpublisher登録、対象ZIPのupload、固定ID取得、Store listing・Privacy・Distribution保存まで完了し、itemはdraftである。test instructions、審査、限定公開、署名済み配布物取得と、`V-12A`〜`V-12E`の同一campaignによる検証は未実施
+> 状態: `V-01`〜`V-11`はすべて合格し、2026年8月24日に成果物確定と後始末を完了。追加P0 `V-12`は、`TD-37`のローカル準備を完了し、CWS外部作業を`TD-39`へ分離している。CWSではpublisher登録、対象ZIPのupload、固定ID取得、Store listing・Privacy・Distribution保存まで完了し、itemはdraftである。`TD-39`はreviewer用helperの受渡し方式を確定できず一度停止したが、2026年8月26日にquarantine属性が付かない受渡し方式を確定して再開した。test instructions、審査、限定公開、署名済み配布物取得と、`V-12A`〜`V-12E`の同一campaignによる検証は未実施
 >
 > 作成日: 2026年8月11日
 >
@@ -283,7 +283,7 @@ V-11は、実サービスの通常観測と、AtCoderへ障害を起こさない
 
 ### 6.5. `V-12` 方式A製品形態の実行gate
 
-製品相当検証物のsource、build、manifest、profile操作、ローカル事前testは[`scripts/verification/atcoder_v12/`](../../../scripts/verification/atcoder_v12/)を使います。このローカル準備は`TD-37`で完了しています。CWSの最新要件、listing・privacy原稿、登録・支払い・upload・審査・限定公開・停止の承認境界は[`V-12 Chrome Web Store配布準備`](v12-chrome-web-store-preparation.md)を正とし、外部作業は`TD-39`で保留しています。外部承認前はCWSの状態を変更せず、ローカルtestの成功を署名済み限定公開版の準備完了へ読み替えません。
+製品相当検証物のsource、build、manifest、profile操作、ローカル事前testは[`scripts/verification/atcoder_v12/`](../../../scripts/verification/atcoder_v12/)を使います。このローカル準備は`TD-37`で完了しています。CWSの最新要件、listing・privacy原稿、登録・支払い・upload・審査・限定公開・停止の承認境界は[`V-12 Chrome Web Store配布準備`](v12-chrome-web-store-preparation.md)を正とし、外部作業は`TD-39`で扱います。reviewer用helperの受渡し方式は同書の§4.2で確定しました。外部承認前はCWSの状態を変更せず、ローカルtestの成功を署名済み限定公開版の準備完了へ読み替えません。
 
 `V-12`の合格条件と結果無効化規則は[検証計画 §3.1.1](../../project/judge-adapter-verification.md#311-v-12-方式a製品形態の検証)を正とします。本節は、同じ検証物と状態を安全に受け渡し、外部通信と後始末を実行時に制限する手順を定義します。
 
@@ -400,7 +400,7 @@ ChromeやChrome Web Storeが内部で行うresource requestはtransport単位の
 | 対象問題・言語・アカウント | 完了 | `p0-22`で`abc300_a`、期待する本人アカウントとの一致、CPython 3.13.7候補1件を再確認。実際のアカウント名は保存していない |
 | AtCoderへの提出承認 | 完了・許可消費済み | `p0-22`で人によるTurnstileと明示承認後、フォーム`submit`イベント1回、結果ページ遷移、AtCoder発行の提出ID取得を確認。新規提出1件、自動再送0回、同一承認内の再提出0回 |
 | `V-01`〜`V-11` | 完了 | P0は5/5、P1は4/4、P2は2/2で、全11項目が合格。MVP実装開始条件1〜3に対応する技術検証を充足。詳細は[`p0-01`](results/2026-08-11-p0-01.md)〜[`p2-01`](results/2026-08-13-p2-01.md) |
-| `V-12`実行計画 | `TD-37`完了・`TD-39`保留・実行未実施 | `V-12A`〜`V-12E`を一つのP0 gateとして定義済み。2026年8月26日に[`atcoder_v12/`](../../../scripts/verification/atcoder_v12/)へ拡張source、事前build helper、protocol、profile操作、manifest検査と固定入力testを追加し、`TD-37`のローカル準備を完了した。[CWS配布準備](v12-chrome-web-store-preparation.md)に従い、publisher登録と支払い、明示承認された`0.1.0` ZIPによる新規item作成・upload、固定IDのowner-only記録、承認済みStore listing・Privacy・Distributionの保存まで完了した。itemはdraftで、reviewer用helper配布方法が未確定であるため`TD-39`をtest instructions入力前で停止した。審査、限定公開、署名済み配布物取得が未完了のため`T-11`と`V-12`は未完了 |
+| `V-12`実行計画 | `TD-37`完了・`TD-39`未着手・実行未実施 | `V-12A`〜`V-12E`を一つのP0 gateとして定義済み。2026年8月26日に[`atcoder_v12/`](../../../scripts/verification/atcoder_v12/)へ拡張source、事前build helper、protocol、profile操作、manifest検査と固定入力testを追加し、`TD-37`のローカル準備を完了した。[CWS配布準備](v12-chrome-web-store-preparation.md)に従い、publisher登録と支払い、明示承認された`0.1.0` ZIPによる新規item作成・upload、固定IDのowner-only記録、承認済みStore listing・Privacy・Distributionの保存まで完了した。itemはdraftで、reviewer用helper配布方法が未確定であるため`TD-39`をtest instructions入力前で一度停止した。2026年8月26日の再調査でquarantine属性が付かない受渡し方式を確定し、Apple Developer Programへの加入を伴わずに再開した。審査、限定公開、署名済み配布物取得が未完了のため`TD-11`と`V-12`は未完了 |
 | 一時データと認証情報の破棄 | 完了 | 2026年8月24日に、リポジトリ外の検証用一時ディレクトリ、方式Cの一時認証ファイル、方式Aの検証用秘密情報保管庫項目、専用ブラウザプロファイル、ゴミ箱内の検証用データの残存が0件であることを確認。ローカルでの削除をAtCoder側のセッション失効とは扱わない |
 | リポジトリ内の一時領域 | 完了 | `.verification-work/`の残存は0件、版管理の対象外設定は有効、同ディレクトリ配下の追跡対象は0件 |
 | 通常環境への認証状態 | 完了 | 外部ツールの認証保存先が検証用一時領域に限定され、専用ブラウザを使う経路が一時プロファイルを削除したことを確認。通常ブラウザに利用者が保有する認証状態は削除対象にせず、検証支援コードが通常環境へ認証情報を保存した事実はない |
