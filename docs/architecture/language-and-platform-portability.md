@@ -203,10 +203,12 @@ sequenceDiagram
 | `LanguageProfile` | 拡張子、template、toolchain要件、build/run計画、生成物種別 | process tree終了、AtCoder通信、DB保存、任意shell実行 |
 | `HostPlatform` | process起動・取消・終了、path、temp、terminal capability、原子的file操作 | 言語template、judge提出言語、sample比較 |
 | `JudgeAdapter` | 問題取得、認証、可視browserへの提出準備、提出ID・判定、canonical language IDからjudge言語への解決 | 人による最後の提出操作、local compilerの探索、OS process制御、履歴Schema |
-| `HistoryStore` | SolveAttempt、milestone、snapshot、言語ID、toolchain観測、提出と判定の永続化 | sourceのbuild/run、host pathを恒久IDにすること |
+| `HistoryStore` | SolveAttempt、milestone、snapshot、言語ID、toolchain観測（種類・version・OS・architecture）、提出と判定の永続化 | sourceのbuild/run、host pathを恒久IDにすること、compiler/runtimeの絶対path・hostname・利用者名・環境変数の保存、toolchain観測を識別子や結合keyにすること |
 | workspace context | 問題metadata探索、source候補解決、曖昧性の検出 | compiler実行、暗黙のsource選択、別directoryの自動merge |
 | workspace filesystem境界 | 保存済みsourceの読み取り、宣言済みfileの安全な作成、command開始時のcontext再検証 | 未保存buffer、Editor project設定、plugin API、file watcherによるEditor操作の追跡 |
 | Editor / Viewer Adapter | 検証済みcapabilityからの安全なargv生成、任意の表示先の一時起動 | Coreの編集・test・提出、外部toolのinstall、plugin追加、永続設定変更 |
+
+`HistoryStore`が保存するtoolchain観測の範囲、紐づけ先、export・同期の扱いは[Core契約 §5.1](core-contracts.md#51-mvpで保存する履歴)を正本とする。
 
 ### 4.3. 許可する依存方向
 
@@ -561,7 +563,7 @@ flowchart TD
 | problem ID、judge ID | Yes | No | pathに依存しない識別子 |
 | snapshot ID、source bytes、code hash | Yes | No | 履歴の不変記録 |
 | canonical language ID | Yes | No | compiler名やjudge versionと分離する |
-| profile ID / version、toolchainの種類・version | 条件付き | Yes | 診断・再現性の補助情報。恒久IDにせず、共有・export時はprivacyと必要性を確認する |
+| profile ID / version、toolchainの種類・version・OS・architecture | 条件付き | Yes | 診断・再現性の補助情報。恒久IDにせず、私的exportへ含め、公開用bundleへ含めない。MVPでは同期対象にしない。範囲は[Core契約 §5.1](core-contracts.md#51-mvpで保存する履歴) |
 | logical source name | Yes | No | 絶対pathではない表示・復元用metadata |
 | workspaceの絶対path | No | Yes | OS・端末ごとに異なるlocator |
 | compiler/runtimeの絶対path | No | Yes | 端末固有toolchain |

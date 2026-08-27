@@ -278,6 +278,26 @@ MVPでは、Editorの保存、source変更、local testのたびにsource全文�
 
 したがってMVPの「学習履歴」は、AlgoLoom導入後の**明示的なSolveAttemptとcheckpoint、提出の軌跡、その試行中に観測した最小milestone**を意味する。端末上のすべての編集履歴やAtCoder上の全過去履歴を意味しない。
 
+#### ツールチェーン観測
+
+> 判断日: 2026年8月27日
+
+上の7項目は「利用者が何をしたか」の記録である。**ツールチェーン観測はこれらと性質が異なり、観測が生まれた文脈として保存する。** 8番目の履歴項目として並べない。
+
+| 区分 | 内容 |
+|---|---|
+| 保存する | toolchainの種類（`g++`、`clang++`、`cpython`、`go`、`rustc`等）、toolchainが自己申告したversion文字列、host OS名とversion、CPU architecture |
+| 保存しない | compiler/runtimeの絶対path、hostname、利用者名、環境変数、`PATH` |
+| 紐づけ先 | SolveAttempt。取得時刻付きの観測として扱う |
+| 欠損の扱い | 推測または既定値で補わない。観測できなかったことと、観測して値がなかったことを区別する |
+
+- canonical language IDを識別子とし、**ツールチェーン観測を識別子や結合keyにしない**（[アーキテクチャ概要](overview.md)）。
+- compilerとruntimeの詳細なversion matrixを維持しない。観測した事実だけを残す（[MVPスコープ](../product/mvp.md)）。
+- 私的exportへ含める（§7.3）。**公開用solution bundleへ含めない**（[公開用solution bundle将来設計](../features/public-solution-bundle-design.md)）。
+- MVPでは端末ローカルに保存する。Cloud同期での扱いは[可搬性設計 §9.1](language-and-platform-portability.md#91-共有可能な論理データと端末固有データ)の「条件付き」を維持し、同期を採用するときに再確認する。
+
+保存する理由は比較の健全性である。実行時間や試行を比較するとき、**ツールチェーンが変わったことを示せないと、環境差による変化を成長と誤読させる。** [解き直しworkflow設計](../features/revisit-workflow.md)の「時間短縮だけを成長と断定しない」を支える情報として残す。観測は[初回起動・環境診断](../../spec/features.md#31-初回起動環境診断f-base-01)で既に行うため、追加の外部作用を必要としない。
+
 ### 5.2. snapshotの不変条件
 
 - snapshotは保存後にsource本文を上書きしない。
