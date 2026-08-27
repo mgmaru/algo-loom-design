@@ -223,6 +223,28 @@ test instructionsではAtCoder usernameとpasswordを空欄に保ち、共有AtC
 
 reviewerがfull flowを確認できない場合はcredential共有や回避経路を追加せず、明示承認後にCWS supportへ確認します。local fixtureだけで審査可能かは公式回答または審査feedbackに従い、推測で判定しません。
 
+#### test instructions原稿（2026年8月27日、承認待ち）
+
+username欄とpassword欄は**空欄のまま保存します**。追加手順欄へ次を入力します。`<EXTENSION_ID>`だけを、dashboardで確認した実際の32文字の固定IDへ置き換えます。**置き換え後で486文字**であり、500文字上限に14文字の余裕があります。
+
+```text
+This extension sends one AtCoder session cookie to a local companion program, so one must run while you test. Ours is one Python file (3.9+). Link, SHA-256 and steps: see the reviewer section of our Support URL.
+
+python3 algoloom_v12_review_fixture.py --extension-id <EXTENSION_ID>
+
+Enter your own AtCoder account name, open the printed 127.0.0.1 URL, consent, sign in. No compiler, developer mode or shared credentials. Never override a macOS warning. Stores nothing.
+```
+
+Support URLはlistingへ設定済みの[サポートページ](v12-extension-support.md)を指します。同ページの「For Chrome Web Store reviewers」節に、commit SHAで固定した取得URL、フィクスチャのSHA-256、`--self-test`、経路B（要望があれば提供）を記載しています。**固定URLと固定IDの記載場所を分け、test instructionsとサポートページが互いを指す循環参照を作りません。**
+
+取得URLは次のcommitへ固定しています。commit SHAが内容を一意に決めるため、この経路自体が改ざん検知になります。
+
+```text
+https://raw.githubusercontent.com/mgmaru/algo-loom-design/0f17861f4a0037bc6376f5bf0300fd62e29f257a/scripts/verification/atcoder_v12/algoloom_v12_review_fixture.py
+```
+
+原稿には次を含めません。AtCoderのusername、password、Cookie、実account名、publisher credential、Keychainのservice識別子。
+
 ## 5. 外部操作の承認記録
 
 外部操作前に、リポジトリ外の作業記録へ次を記入します。credential、実account名、支払情報は記録しません。

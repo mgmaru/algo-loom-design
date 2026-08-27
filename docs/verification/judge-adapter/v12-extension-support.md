@@ -25,11 +25,12 @@ AtCoder account.
 ### Route A — single-file fixture (recommended)
 
 One Python file, served straight from the public source repository at a pinned
-commit, so the contents cannot change under you. The exact URL and extension ID
-are in the Test instructions field of this item.
+commit, so the contents cannot change under you. The extension ID to pass is in
+the Test instructions field of this item.
 
 ```console
-curl -fsSLO <pinned-raw-url>/algoloom_v12_review_fixture.py
+curl -fsSLO \
+  https://raw.githubusercontent.com/mgmaru/algo-loom-design/0f17861f4a0037bc6376f5bf0300fd62e29f257a/scripts/verification/atcoder_v12/algoloom_v12_review_fixture.py
 shasum -a 256 algoloom_v12_review_fixture.py
 python3 algoloom_v12_review_fixture.py --self-test
 python3 algoloom_v12_review_fixture.py --extension-id <EXTENSION_ID>
@@ -131,10 +132,11 @@ Windows、Linux、Chrome policy、developer modeによる追加、unpacked exten
 
 ### 経路A: 単一ファイルのフィクスチャ（推奨）
 
-Pythonファイル1つです。公開ソースリポジトリの固定したコミットから直接配信するため、内容が後から変わることはありません。正確なURLと拡張機能IDは、本itemのtest instructions欄に記載しています。
+Pythonファイル1つです。公開ソースリポジトリの固定したコミットから直接配信するため、内容が後から変わることはありません。指定する拡張機能IDは、本itemのtest instructions欄に記載しています。
 
 ```console
-curl -fsSLO <pinned-raw-url>/algoloom_v12_review_fixture.py
+curl -fsSLO \
+  https://raw.githubusercontent.com/mgmaru/algo-loom-design/0f17861f4a0037bc6376f5bf0300fd62e29f257a/scripts/verification/atcoder_v12/algoloom_v12_review_fixture.py
 shasum -a 256 algoloom_v12_review_fixture.py
 python3 algoloom_v12_review_fixture.py --self-test
 python3 algoloom_v12_review_fixture.py --extension-id <EXTENSION_ID>
