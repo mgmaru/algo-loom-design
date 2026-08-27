@@ -29,6 +29,15 @@ AlgoLoomは、利用者が既に導入しているtoolを選択して安全に�
 
 AI review、Cloud同期、問題推薦・TUI、公開用solution bundle、Repair Lab、Web dashboard、学習データAPIはMVP対象外です。将来機能として設計資料がありますが、実装や正式採用が確定したことを意味しません。
 
+## 作業を再開するとき
+
+設計変更の作業を再開する場合は、[作業ガイド](CLAUDE.md)を先に読みます。最初に見る場所、変更後に実行する検査、外部操作の承認境界、リポジトリへ書かないものをまとめています。
+
+```console
+node scripts/todo-status.mjs   # 着手可能な作業と解放する下流の件数
+node scripts/check-docs.mjs    # 相対リンクとアンカーの検査
+```
+
 ## はじめに読む文書
 
 実装を始める開発者は、まず[開発用仕様の案内](spec/README.md)から、現在の実装に必要な文書を確認します。
