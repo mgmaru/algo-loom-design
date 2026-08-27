@@ -360,6 +360,28 @@ reviewer用helperの受渡し方式は[§4.2](#42-採用するreviewer用helper�
 
 **新たに判明した外部条件:** 確認dialogに「**後で公開するアイテムの有効期限は、審査の合格後30日です**」と表示されました。deferred publishingを選んだ場合、審査通過から30日以内に公開しないと期限切れになります。手順12の公開承認は、審査通過の連絡を受けてから30日以内に行います。この30日を`TD-11`の実行期間と混同しません。**公開そのものは短時間で終わるため、`V-12`の実行完了を30日以内に収める必要はありません。**
 
+#### 審査中に変更してはいけないもの
+
+listingへ設定したサポートURLとprivacy policy URLは、**GitHubの`main`ブランチを指しています。**
+
+```text
+https://github.com/mgmaru/algo-loom-design/blob/main/docs/verification/judge-adapter/v12-extension-support.md
+https://github.com/mgmaru/algo-loom-design/blob/main/docs/verification/judge-adapter/v12-extension-privacy-policy.md
+```
+
+**`main`へコミットすると、審査担当者が見るページが即座に変わります。** 審査中に手順や開示内容が変わると、test instructionsの記載と食い違い、審査担当者を混乱させます。
+
+したがって審査結果が出るまで、次の2ファイルを変更しません。
+
+| 変更しないfile | 理由 |
+|---|---|
+| [`v12-extension-support.md`](v12-extension-support.md) | 取得URL、SHA-256、実行手順が審査中に変わる |
+| [`v12-extension-privacy-policy.md`](v12-extension-privacy-policy.md) | 開示内容が審査中に変わる |
+
+誤りを見つけた場合も、その場で直さず**審査担当者へ影響するかを先に判断**します。影響する場合は、直す前に審査への影響を記録します。
+
+test instructionsが指すフィクスチャの取得URLはcommit SHAで固定しているため、`main`への通常のコミットでは変わりません。**固定されているのはフィクスチャだけで、サポートページとprivacy policyは固定されていない**という非対称があります。
+
 現在は審査結果待ちです。結果が出るまでCWSの状態を変更しません。
 
 ### 8.2. 次に行う作業
@@ -371,7 +393,7 @@ reviewer用helperの受渡し方式は[§4.2](#42-採用するreviewer用helper�
 | # | 作業 | 完了の目安 |
 |---|---|---|
 | 1 | 本書と[TODO.md](../../../TODO.md)の`TD-39`の停止理由を§4.1の再調査結果へ合わせて訂正する | 「Apple Developer Programが必要」という記述が残っていない（2026年8月26日完了） |
-| 2 | `prepare.mjs`へ、helperとKeychain adapterをまとめた`.tar.gz`の生成と、そのSHA-256・bytesの`build-index.json`への記録を追加する | 隔離buildから経路1の配布物を再現でき、ハッシュが固定されている |
+| 2 | `prepare.mjs`へ、helperとKeychain adapterをまとめた`.tar.gz`の生成と、そのSHA-256・bytesの`build-index.json`への記録を追加する | 隔離buildから経路1の配布物を再現でき、ハッシュが固定されている。**2026年8月27日完了。** buildは再現可能で、owner専用領域を失っても`prepare.mjs`を新しいpathへ実行すれば同じ`0.1.0` ZIP（`b0a8d078…4dbbe78`）が得られる |
 | 3 | 経路2のreview用フィクスチャを1ファイルで作る。プロトコル、一回限りトークン、`Host`検査、送信元検査、拡張機能origin検査、本文上限、状態順序をhelperと同じ条件で満たす | 拡張機能のソースを変更せずに同意画面から本人照合まで到達できる |
 | 4 | 固定入力testへ、quarantine属性が付いた状態でも経路2が成立することを確認するケースを追加する | `go test ./...`と`node --test`が合格する |
 | 5 | helperとフィクスチャの取得手順、SHA-256、停止方法を[サポートページ](v12-extension-support.md)へ追記し、公開URLで到達確認する | reviewerが500文字のtest instructionsからたどれる。**2026年8月27日完了。** 主経路の配布先は公開repositoryのcommit SHA固定`raw`URLで、到達確認と`--self-test`合格を確認済み |

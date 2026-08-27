@@ -169,6 +169,13 @@ AlgoLoomの側では進められず、外部の応答を待っている作業を
 
 審査結果が出るまでCWSの状態を変更しません。待っている間は、依存を持たない作業（`TD-14`、`TD-17`、`TD-21`、`TD-25`、`TD-31`）を並行して進められます。
 
+**⚠️ 審査中は次の2ファイルを変更しません。** listingのサポートURLとprivacy policy URLがGitHubの`main`を指しているため、コミットすると審査担当者が見るページが即座に変わります。
+
+- [`docs/verification/judge-adapter/v12-extension-support.md`](docs/verification/judge-adapter/v12-extension-support.md)
+- [`docs/verification/judge-adapter/v12-extension-privacy-policy.md`](docs/verification/judge-adapter/v12-extension-privacy-policy.md)
+
+詳細は[CWS配布準備 §8.1.1](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#審査中に変更してはいけないもの)を参照します。
+
 | ID | カテゴリ | 作業 | 依存 | 状態 |
 |---|---|---|---|---|
 | [`TD-01`](#td-01-未決事項一覧へv-06v-11の結果を反映する) | 文書整備 | 未決事項一覧へ`V-06`〜`V-11`の結果を反映する | ― | 完了 |
