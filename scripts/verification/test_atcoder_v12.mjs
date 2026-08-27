@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "atcoder_v12");
@@ -16,6 +19,16 @@ const HELPER_SOURCES = fs.readdirSync(path.join(ROOT, "helper"))
   .join("\n");
 const CONSENT_PAGE = fs.readFileSync(path.join(ROOT, "helper", "consent.html"), "utf8");
 const STORE_ASSET_PREPARATION = fs.readFileSync(path.join(ROOT, "prepare-store-assets.mjs"), "utf8");
+const PREPARATION = fs.readFileSync(path.join(ROOT, "prepare.mjs"), "utf8");
+const REVIEW_FIXTURE_PATH = path.join(ROOT, "algoloom_v12_review_fixture.py");
+const REVIEW_FIXTURE = fs.readFileSync(REVIEW_FIXTURE_PATH, "utf8");
+
+function fixtureSelfTest(scriptPath) {
+  const output = execFileSync("python3", [scriptPath, "--self-test"], {
+    encoding: "utf8", env: {}, stdio: ["ignore", "pipe", "pipe"],
+  });
+  return JSON.parse(output);
+}
 
 test("V-12 extension has one purpose and the exact minimal permission set", () => {
   assert.equal(MANIFEST.manifest_version, 3);
@@ -95,4 +108,65 @@ test("store asset preparation is local, fixed-size, and bound to a clean build",
   assert.match(STORE_ASSET_PREPARATION, /extension-upload-\$\{targetVersion\}/);
   assert.match(STORE_ASSET_PREPARATION, /file-only rendering; no extension execution and no external account/);
   assert.doesNotMatch(STORE_ASSET_PREPARATION, /https:\/\/atcoder\.jp|chrome-extension:\/\//);
+});
+
+test("review fixture speaks the helper protocol under fixed inputs and stores nothing", () => {
+  const result = fixtureSelfTest(REVIEW_FIXTURE_PATH);
+  assert.equal(result.ok, true);
+  assert.equal(result.protocol_version, 1);
+  assert.equal(result.external_connections, 0);
+  assert.equal(result.sockets_opened, 0);
+  assert.ok(result.cases >= 16, `expected the full case set, saw ${result.cases}`);
+  for (const required of [
+    "host_header_must_match_the_bound_port",
+    "client_must_be_ipv4_loopback",
+    "origin_must_be_the_fixed_extension",
+    "bearer_token_must_match",
+    "body_over_32_kib_is_rejected",
+    "state_order_is_enforced",
+    "cookie_scope_and_attributes_are_enforced",
+    "session_value_is_not_retained_anywhere",
+  ]) assert.ok(result.case_names.includes(required), required);
+});
+
+test("review fixture still runs when the file carries the download quarantine attribute", (context) => {
+  if (process.platform !== "darwin") return context.skip("macOS only");
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "v12-quarantine-"));
+  try {
+    const quarantined = path.join(directory, "algoloom_v12_review_fixture.py");
+    fs.copyFileSync(REVIEW_FIXTURE_PATH, quarantined);
+    const stamp = `0001;68aa6f00;Google Chrome;${crypto.randomUUID()}`;
+    execFileSync("xattr", ["-w", "com.apple.quarantine", stamp, quarantined], { stdio: "pipe" });
+    const attributes = execFileSync("xattr", [quarantined], { encoding: "utf8", stdio: "pipe" });
+    assert.match(attributes, /com\.apple\.quarantine/);
+    assert.equal(fixtureSelfTest(quarantined).ok, true);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("review fixture cannot reach the network, the filesystem, or another process", () => {
+  const imported = new Set();
+  for (const match of REVIEW_FIXTURE.matchAll(/^import\s+([\w.]+)|^from\s+([\w.]+)\s+import/gm)) {
+    imported.add((match[1] || match[2]).split(".")[0]);
+  }
+  assert.deepEqual([...imported].sort(), [
+    "argparse", "ast", "hmac", "http", "json", "re", "secrets", "sys", "threading",
+  ]);
+  assert.doesNotMatch(REVIEW_FIXTURE, /urllib|requests|socket\.socket|keyring|Keychain|subprocess/);
+  assert.doesNotMatch(REVIEW_FIXTURE, /open\(.*["']w/);
+  assert.match(REVIEW_FIXTURE, /"secret_store_written": False/);
+  assert.match(REVIEW_FIXTURE, /hmac\.compare_digest/);
+});
+
+test("build preparation ships both reviewer routes from one reproducible bundle", () => {
+  assert.match(PREPARATION, /review_bundle_not_reproducible/);
+  assert.match(PREPARATION, /algoloom-v12-review-darwin-arm64\.tar\.gz/);
+  assert.match(PREPARATION, /route: "curl-and-tar"/);
+  assert.match(PREPARATION, /route: "python3-single-file"/);
+  assert.match(PREPARATION, /quarantine_safe: true/);
+  assert.match(PREPARATION, /review_delivery: reviewDelivery/);
+  assert.match(PREPARATION, /review_fixture: sha256\(fs\.readFileSync\(REVIEW_FIXTURE_SOURCE\)\)/);
+  assert.match(PREPARATION, /FIXED_UNIX_TIME/);
+  assert.doesNotMatch(PREPARATION, /xattr|spctl|codesign|--deep/);
 });

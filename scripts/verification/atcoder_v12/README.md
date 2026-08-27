@@ -13,7 +13,8 @@
 | `keychain/` | 実行前に配布物へcompileするmacOS Security Framework adapter |
 | `consent-v1.0.ja.md` | 初回画面と対応付ける同意文面の正本 |
 | `fixtures/` | 秘密値を含まないmanifest例。実campaignへ流用しない |
-| `prepare.mjs` | リポジトリ外へ拡張ZIPと実行時compile不要のhelperを排他的に生成する |
+| `algoloom_v12_review_fixture.py` | CWS reviewerがhelperなしで拡張機能を確認するための単一ファイル。同じprotocolと同じ検査を実装し、**何も保存せず、外部へ接続しない** |
+| `prepare.mjs` | リポジトリ外へ拡張ZIP、実行時compile不要のhelper、reviewer受渡し用の再現可能な`.tar.gz`を排他的に生成する |
 | `prepare-store-assets.mjs` | clean buildに対応する実同意UIのscreenshot、small promo、iconをリポジトリ外へ生成する |
 
 拡張機能の版は、対象版兼更新元`0.1.0`と更新先`0.1.1`です。helper版は`0.1.0`、protocol版は`1`、template schema版と同意版は`1.0`です。Chrome Web Storeが割り当てる固定IDは、最初の外部操作が承認され、実際のitemを作るまでsourceへ仮置きしません。
@@ -25,9 +26,12 @@
 ```console
 go test ./...
 node --test scripts/verification/test_atcoder_v12.mjs
+python3 scripts/verification/atcoder_v12/algoloom_v12_review_fixture.py --self-test
 ```
 
-Go testは、protocolの状態順序、版・同意不一致、`Host`、接続元、拡張機能origin、Bearer token、JSON本文上限・余剰data、Cookieの一意性、redaction、取消、timeout、browser process終了、profile file lock、template完全性、campaign manifestと結果無効化を固定入力で確認します。Node testは、拡張機能の権限、Cookie取得範囲、ログイン・Turnstile・提出の非自動化、秘密値の非出力、build入力にpublisher credentialがないことを確認します。
+Go testは、protocolの状態順序、版・同意不一致、`Host`、接続元、拡張機能origin、Bearer token、JSON本文上限・余剰data、Cookieの一意性、redaction、取消、timeout、browser process終了、profile file lock、template完全性、campaign manifestと結果無効化を固定入力で確認します。Node testは、拡張機能の権限、Cookie取得範囲、ログイン・Turnstile・提出の非自動化、秘密値の非出力、build入力にpublisher credentialがないこと、review fixtureがhelperと同じ検査を満たすこと、quarantine属性が付いた複製でも動くことを確認します。
+
+review fixtureの`--self-test`は、socketを一つも開かず固定入力だけでprotocolを確認します。16のcaseで、`Host`、接続元、拡張機能origin、Bearer token、`Content-Type`、32 KiB上限、状態順序、余剰key、版不一致、自動操作識別値、Cookieの範囲と属性、本人不一致、そして**受け取った値がどこにも残らないこと**を検査します。
 
 テスト成功は、Chrome Web Storeの審査、標準追加、AtCoder実サービス、Keychainへの実session保存、`V-12`全体の合格証拠ではありません。
 
@@ -45,7 +49,11 @@ node scripts/verification/atcoder_v12/prepare.mjs \
 - CWS upload用`0.1.0`、`0.1.1` ZIP
 - `darwin/arm64`用Go helper実行ファイル
 - `darwin/arm64`用Keychain helper実行ファイル
+- reviewer受渡し用`algoloom-v12-review-darwin-arm64.tar.gz`（helper、Keychain adapter、review fixture、`SHA256SUMS`、`README.txt`）
+- 単体で配れるreview fixture
 - source revision、source tree hash、各配布物のSHA-256とbytesを持つ`build-index.json`
+
+`.tar.gz`はuid・gid・modeとmtimeを固定したustar形式で組み立て、同じsourceからbyte単位で再現します。`prepare.mjs`は生成のたびに再生成して一致を確認し、一致しなければ`review_bundle_not_reproducible`で停止します。
 
 拡張ZIPとindexは`0600`、実行ファイルは`0700`です。GoとSwiftはこの準備時にだけcompileし、`V-12B`〜`V-12E`の実行時にはcompileしません。作業treeがdirtyならindexの`campaign_ready`は`false`になり、そのbuildをCWS uploadまたはcampaign manifestへ使いません。
 
@@ -61,6 +69,26 @@ node scripts/verification/atcoder_v12/prepare-store-assets.mjs \
 ```
 
 `listing/`へ、ZIP内と同じ128×128 PNG icon、440×280 PNG small promo、1280×800 PNG screenshot、各hashとcapture条件を持つ`listing-index.json`を作ります。screenshotはhelperへ埋め込む実際の同意HTMLを、外部account・拡張機能実行・AtCoder接続なしの`file:`表示でcaptureしたものです。これはStore listing用assetであり、通常Chrome、標準追加、一往復UXまたは`V-12`の合格証拠にはしません。small promoはtextを含まないbrand図形で、実機能を追加示唆しません。
+
+## reviewerへの受渡し
+
+CWS reviewerへは2経路を用意します。どちらもGatekeeperの警告を無効化・上書きさせません。
+
+| 経路 | 内容 | 実測した性質 |
+|---|---|---|
+| 経路1 | `.tar.gz`を`curl`で取得して`tar`で展開し、事前build済みhelperを実行する | `curl`はquarantine属性を付けないため、ad-hoc署名のhelperがそのまま動く |
+| 経路2 | review fixtureを`python3`で実行する | **取得方法にかかわらず動く。** scriptにはGatekeeperが適用されない |
+
+2026年8月27日にmacOS 26.5・Apple siliconで実測した結果は次のとおりです。
+
+| 取得方法 | 展開後のquarantine属性 | helper（Mach-O） | fixture（script） |
+|---|---|---|---|
+| `curl` + `tar` | 付かない | 実行できる | 実行できる |
+| ブラウザ等でダウンロード + `tar` | **付く。`tar`が展開先へ伝播する** | **`SIGKILL`で停止** | **実行できる** |
+
+**`tar`はアーカイブのquarantine属性を展開したfileへ伝播します。** したがって経路1は取得方法に依存し、経路2だけが取得方法に依存しません。
+
+fixtureは受け取ったCookieを検査した後に破棄します。秘密情報保管庫、file、logのいずれへも書きません。AtCoderを含む外部hostへ接続しません。製品相当helperが行う本人照合とKeychain保存は、拡張機能の審査範囲外のため実装していません。
 
 ## helperの公開command
 

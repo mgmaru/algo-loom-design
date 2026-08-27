@@ -15,9 +15,12 @@ const EXTENSION_SOURCE = path.join(SCRIPT_ROOT, "extension");
 const HELPER_SOURCE = path.join(SCRIPT_ROOT, "helper");
 const KEYCHAIN_SOURCE = path.join(SCRIPT_ROOT, "keychain", "atcoder_v12_keychain.swift");
 const CONSENT_SOURCE = path.join(SCRIPT_ROOT, "consent-v1.0.ja.md");
+const REVIEW_FIXTURE_SOURCE = path.join(SCRIPT_ROOT, "algoloom_v12_review_fixture.py");
+const REVIEW_BUNDLE_DIRECTORY = "algoloom-v12-review";
 const EXTENSION_VERSIONS = ["0.1.0", "0.1.1"];
 const HELPER_VERSION = "0.1.0";
 const FIXED_TIME = new Date("2026-08-26T00:00:00.000Z");
+const FIXED_UNIX_TIME = Math.floor(FIXED_TIME.getTime() / 1000);
 const HASH_PATTERN = /^[0-9a-f]{64}$/;
 
 function fail(reason) {
@@ -181,7 +184,7 @@ function buildHelper(outputRoot) {
     stdio: "pipe",
   });
   fs.chmodSync(output, 0o700);
-  return artifact(output, "helper-darwin-arm64", { os: "darwin", arch: "arm64" });
+  return artifact(output, "helper-darwin-arm64", { file: path.basename(output), os: "darwin", arch: "arm64" });
 }
 
 function buildKeychainHelper(outputRoot) {
@@ -191,7 +194,101 @@ function buildKeychainHelper(outputRoot) {
     stdio: "pipe",
   });
   fs.chmodSync(output, 0o700);
-  return artifact(output, "keychain-darwin-arm64", { os: "darwin", arch: "arm64" });
+  return artifact(output, "keychain-darwin-arm64", { file: path.basename(output), os: "darwin", arch: "arm64" });
+}
+
+function tarHeader(name, size, mode, typeflag) {
+  if (Buffer.byteLength(name, "utf8") > 99) fail("tar_entry_name_too_long");
+  const header = Buffer.alloc(512);
+  const put = (value, offset, length) => header.write(value, offset, length, "ascii");
+  const octal = (value, width) => value.toString(8).padStart(width - 1, "0") + "\0";
+  put(name, 0, 100);
+  put(octal(mode, 8), 100, 8);
+  put(octal(0, 8), 108, 8);
+  put(octal(0, 8), 116, 8);
+  put(octal(size, 12), 124, 12);
+  put(octal(FIXED_UNIX_TIME, 12), 136, 12);
+  put(" ".repeat(8), 148, 8);
+  put(typeflag, 156, 1);
+  put("ustar\0", 257, 6);
+  put("00", 263, 2);
+  let checksum = 0;
+  for (const byte of header) checksum += byte;
+  put(`${checksum.toString(8).padStart(6, "0")}\0 `, 148, 8);
+  return header;
+}
+
+function tarArchive(entries) {
+  const padding = (size) => (size % 512 === 0 ? Buffer.alloc(0) : Buffer.alloc(512 - (size % 512)));
+  const blocks = [tarHeader(`${REVIEW_BUNDLE_DIRECTORY}/`, 0, 0o755, "5")];
+  for (const entry of [...entries].sort((a, b) => a.name.localeCompare(b.name))) {
+    blocks.push(tarHeader(`${REVIEW_BUNDLE_DIRECTORY}/${entry.name}`, entry.data.length, entry.mode, "0"));
+    blocks.push(entry.data, padding(entry.data.length));
+  }
+  blocks.push(Buffer.alloc(1024));
+  return Buffer.concat(blocks);
+}
+
+function reviewReadme(entries) {
+  return Buffer.from([
+    "AlgoLoom Authentication Verification BETA - Chrome Web Store review bundle",
+    "",
+    "This bundle contains everything needed to exercise the extension locally.",
+    "Nothing here installs itself, requires a compiler, requires developer mode,",
+    "or asks you to override a macOS security warning.",
+    "",
+    "Route 1 - prebuilt helper (macOS, Apple silicon)",
+    "  ./algoloom-v12-helper-darwin-arm64 version",
+    "",
+    "Route 2 - single-file fixture, no compiled binary at all",
+    "  python3 algoloom_v12_review_fixture.py --self-test",
+    "  python3 algoloom_v12_review_fixture.py --extension-id <EXTENSION_ID>",
+    "",
+    "Route 2 needs only Python 3.9 or later. Use it if route 1 is blocked for any",
+    "reason. The fixture speaks the same authenticated loopback protocol as the",
+    "helper, applies the same checks, stores nothing, and contacts no external host.",
+    "",
+    "Verify this bundle's contents:",
+    "  shasum -a 256 -c SHA256SUMS",
+    "",
+    `Files: ${entries.map((entry) => entry.name).sort().join(", ")}`,
+    "",
+  ].join("\n"), "utf8");
+}
+
+function buildReviewBundle(outputRoot, helperArtifacts) {
+  const fixtureData = fs.readFileSync(REVIEW_FIXTURE_SOURCE);
+  const fixtureCopy = path.join(outputRoot, "artifacts", "algoloom_v12_review_fixture.py");
+  fs.writeFileSync(fixtureCopy, fixtureData, { mode: 0o700 });
+
+  const entries = [{ name: "algoloom_v12_review_fixture.py", data: fixtureData, mode: 0o755 }];
+  for (const item of helperArtifacts) {
+    const source = path.join(outputRoot, "artifacts", item.file);
+    entries.push({ name: item.file, data: fs.readFileSync(source), mode: 0o755 });
+  }
+  const checksums = Buffer.from(
+    [...entries].sort((a, b) => a.name.localeCompare(b.name))
+      .map((entry) => `${sha256(entry.data)}  ${entry.name}\n`).join(""),
+    "utf8",
+  );
+  entries.push({ name: "SHA256SUMS", data: checksums, mode: 0o644 });
+  entries.push({ name: "README.txt", data: reviewReadme(entries), mode: 0o644 });
+
+  const bundle = zlib.gzipSync(tarArchive(entries), { level: 9 });
+  const bundlePath = path.join(outputRoot, "artifacts", "algoloom-v12-review-darwin-arm64.tar.gz");
+  fs.writeFileSync(bundlePath, bundle, { mode: 0o600 });
+
+  if (Buffer.compare(zlib.gzipSync(tarArchive(entries), { level: 9 }), bundle) !== 0) {
+    fail("review_bundle_not_reproducible");
+  }
+  return {
+    bundle: artifact(bundlePath, "review-bundle-darwin-arm64", {
+      file: path.basename(bundlePath), route: "curl-and-tar", entries: entries.length,
+    }),
+    fixture: artifact(fixtureCopy, "review-fixture", {
+      file: path.basename(fixtureCopy), route: "python3-single-file", quarantine_safe: true,
+    }),
+  };
 }
 
 function gitObservation() {
@@ -214,6 +311,7 @@ function main() {
     const git = gitObservation();
     const uploadPackages = EXTENSION_VERSIONS.map((version) => buildExtension(outputRoot, version));
     const helperArtifacts = [buildHelper(outputRoot), buildKeychainHelper(outputRoot)];
+    const reviewDelivery = buildReviewBundle(outputRoot, helperArtifacts);
     const helperSourceHash = sourceTreeHash(HELPER_SOURCE);
     const keychainSourceHash = sha256(fs.readFileSync(KEYCHAIN_SOURCE));
     const index = {
@@ -225,6 +323,7 @@ function main() {
         extension: sourceTreeHash(EXTENSION_SOURCE),
         helper: helperSourceHash,
         keychain: keychainSourceHash,
+        review_fixture: sha256(fs.readFileSync(REVIEW_FIXTURE_SOURCE)),
         helper_bundle: sha256(Buffer.from(`${helperSourceHash}\0${keychainSourceHash}`, "utf8")),
       },
       versions: {
@@ -239,6 +338,7 @@ function main() {
       },
       extension_upload_packages: uploadPackages,
       helper_artifacts: helperArtifacts,
+      review_delivery: reviewDelivery,
       signed_extension_artifacts: [],
       secrets_present: false,
     };
@@ -253,6 +353,8 @@ function main() {
       campaign_ready: index.campaign_ready,
       extension_packages: uploadPackages.length,
       helper_artifacts: helperArtifacts.length,
+      review_bundle_sha256: reviewDelivery.bundle.sha256,
+      review_fixture_sha256: reviewDelivery.fixture.sha256,
       signed_extension_artifacts: 0,
     })}\n`);
   } catch (error) {
