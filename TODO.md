@@ -172,7 +172,7 @@ flowchart TD
 | [`TD-09`](#td-09-方式aの製品形態候補を机上比較する) | 設計判断 | 方式Aの製品形態候補を机上比較する | `TD-01`, `TD-08` | 完了 |
 | [`TD-10`](#td-10-方式a製品形態の検証項目を追加する) | 技術検証 | 方式A製品形態の検証項目を追加する | `TD-09` | 完了 |
 | [`TD-37`](#td-37-v-12検証用のローカル配布候補を準備する) | 技術検証 | `V-12`検証用のローカル配布候補を準備する | `TD-10` | 完了 |
-| [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 未着手 |
+| [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 進行中 |
 | [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39` | 未着手 |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 |
 | [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 |
@@ -588,7 +588,9 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 
 **段階1: 受渡し方式の実装（外部操作なし）**
 
-**2026年8月27日の実施記録:** 手順1〜4を完了しました。[`algoloom_v12_review_fixture.py`](scripts/verification/atcoder_v12/algoloom_v12_review_fixture.py)がhelperと同じprotocolと検査を実装し、受け取った値を破棄して保存も外部接続も行いません。`prepare.mjs`が再現可能な`.tar.gz`を生成し、固定入力testはNode 12件・Goすべて・fixtureの`--self-test` 16 caseが合格しています。macOS 26.5・Apple siliconの実測で、**`tar`はアーカイブのquarantine属性を展開先へ伝播し、ブラウザ取得ではhelperが`SIGKILL`で停止する**ことを確認したため、主経路をフィクスチャ（経路2）としました。手順5は原稿を完了し、GitHubリリースへのuploadだけが明示承認待ちです。
+**2026年8月27日の実施記録（段階2）:** 手順7〜10を実施し、**version `0.1.0`を審査へ提出しました。** deferred publishingを選び、審査通過だけでは自動公開されない状態です。提出前の確認では上部バナー・tab警告がなく、Category `Developer Tools`、Language English、料金なし・限定公開・日本のみ、test instructions 486文字を確認しています。**確認dialogで「後で公開するアイテムの有効期限は、審査の合格後30日」と表示されたため、手順12を通過後30日以内に行う制約が加わりました。** 現在は審査結果待ちです。詳細は[CWS配布準備 §8.1.1](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#811-2026年8月27日の審査提出記録)を参照します。
+
+**2026年8月27日の実施記録（段階1）:** 手順1〜4を完了しました。[`algoloom_v12_review_fixture.py`](scripts/verification/atcoder_v12/algoloom_v12_review_fixture.py)がhelperと同じprotocolと検査を実装し、受け取った値を破棄して保存も外部接続も行いません。`prepare.mjs`が再現可能な`.tar.gz`を生成し、固定入力testはNode 12件・Goすべて・fixtureの`--self-test` 16 caseが合格しています。macOS 26.5・Apple siliconの実測で、**`tar`はアーカイブのquarantine属性を展開先へ伝播し、ブラウザ取得ではhelperが`SIGKILL`で停止する**ことを確認したため、主経路をフィクスチャ（経路2）としました。手順5は原稿を完了し、GitHubリリースへのuploadだけが明示承認待ちです。
 
 1. 本書と[CWS配布準備](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)の停止理由を再調査結果へ合わせて訂正する（2026年8月26日完了）。
 2. [`prepare.mjs`](scripts/verification/atcoder_v12/prepare.mjs)へ、helperとKeychain adapterをまとめた`.tar.gz`の生成と、そのSHA-256・bytesの`build-index.json`への記録を追加する。
@@ -607,7 +609,7 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 
 **段階3: 限定公開と`TD-11`への引き渡し（別の明示承認）**
 
-12. 審査通過後、対象item、version、限定公開URLを知る日本の利用者が追加できること、停止方法を再提示し、公開の明示承認を別に得る。公開後、通常Chromeの標準画面で追加可能な状態だけを確認し、`TD-11`の基準templateはまだ作らない。
+12. 審査通過後、対象item、version、限定公開URLを知る日本の利用者が追加できること、停止方法を再提示し、公開の明示承認を別に得る。**deferred publishingの有効期限は審査合格後30日**（2026年8月27日の確認dialogで観測）であるため、通過の連絡を受けてから30日以内に実施する。公開後、通常Chromeの標準画面で追加可能な状態だけを確認し、`TD-11`の基準templateはまだ作らない。
 13. CWS配信済み`0.1.0`の正確なbytesを取得できた場合だけhashを固定し、固定ID、listing URL、helper、protocol、source、build、Chrome・OS、template schema、同意版とともに最終campaign manifestへ記録する。取得不能なら`TD-11`へ進まない。
 14. 更新用`0.1.1` ZIPは`TD-11`の`V-12C`で明示承認後に使うまでuploadしない。`0.1.0`の初回標準追加を確認する前にcurrent versionを置き換えない。
 

@@ -63,6 +63,7 @@
 | test instructions | test手順は公開の必須条件ではないが、制限付きcredentialまたは有料accountが全機能に必要な場合、reviewerへcredentialと手順を伝えるために使える。[公式説明](https://developer.chrome.com/docs/webstore/cws-dashboard-test-instructions) | 本拡張はAtCoder認証を扱うため手順を記載する。共有AtCoder account、password、Cookieは作成・提供せず、事前build済みhelperと、reviewer自身が利用を許可されたaccountでの手動操作だけを案内する。これで審査不能ならcredentialを共有せずCWS supportへ確認する |
 | macOS向け実行ファイル | CWSへ拡張機能を配布することにApple側の要件はない。Apple Developer Program（年額99 USD）が必要になるのは、Developer ID署名とnotarizationを行う場合、すなわちquarantine属性が付く経路でmacOS向け実行ファイルを配布する場合だけである。[Developer ID](https://developer.apple.com/support/developer-id) | reviewer用helperをquarantine属性が付かない経路で渡し、Developer ID署名とnotarizationを必要としない。詳細と実測結果は[§4.1](#41-macos側の配布要件の再調査結果) |
 | update | 新しいZIPはversionを増やしてuploadし、再reviewを受ける。CWSは配布packageへ署名する。[更新手順](https://developer.chrome.com/docs/webstore/update) | `0.1.0 → 0.1.1`だけを更新testの版組とし、CWS以外の署名・配布経路へ切り替えない |
+| deferred publishingの有効期限 | 審査へ送信する確認dialogに「後で公開するアイテムの有効期限は、審査の合格後30日です」と表示された。2026年8月27日に観測 | 審査通過後30日以内に公開の承認と実行を行う。過ぎた場合は再提出が必要になる前提で計画する |
 | 停止 | dashboardからunpublishでき、再公開には新しいversionとreviewが必要になる場合がある。[unpublishの説明](https://developer.chrome.com/docs/webstore/account-deletion/) | 新規標準追加を止める手段をunpublishに固定する。実行前承認の対象にし、ローカルsession削除と混同しない |
 
 公式文書が「一回限りの登録費用」と説明していても、実際の金額、通貨、税、支払者はdashboardの現在表示でしか確定しません。2026年8月26日のpublisher候補accountの登録画面では「5ドルの登録料を支払う」「アカウントの登録には、1回限りの登録料が必要」と表示されました。税の表示は確認できていません。承認記録がない契約同意または支払いは行いません。
@@ -342,6 +343,24 @@ reviewer用helperの受渡し方式は[§4.2](#42-採用するreviewer用helper�
 これにより、`TD-39`の停止は解除されます。**Apple Developer Programへの加入と年額99 USDの支払いは行いません。** CWS supportへの問い合わせも、[§8.2](#82-次に行う作業)の段階2で審査が成立しなかった場合の後段の手段へ移します。
 
 なお、Developer ID署名を付けても、この設計の認証・認可の強度はほとんど上がりません。方式Aの安全性を支えているのは、拡張機能の固定ID・版・配布元・権限の照合、認証付き折返し通信の一回限りトークン・`Host`・送信元・origin・本文上限・状態順序の検査、および本人照合後にだけ保存する契約です。helperの真正性は、利用者自身が導入したAlgoLoomが起動した子プロセスであることで担保します。詳細は[AtCoder認証設計 §3.6](../../architecture/atcoder-authentication.md#36-配布物と実行ファイル署名の境界)を参照します。
+
+### 8.1.1. 2026年8月27日の審査提出記録
+
+段階2の手順7〜10を実施し、**審査へ提出しました。** 実施内容は次のとおりです。
+
+| 項目 | 内容 |
+|---|---|
+| 対象 | 固定IDのitem、version `0.1.0` |
+| ZIP SHA-256 | `b0a8d07812abd8661630689e57c8c241aaeb223312bafbbc58877a4fa4dbbe78` |
+| Distribution | 料金なし・`Unlisted`・日本のみ |
+| test instructions | username・password欄は空欄。追加手順486文字を保存 |
+| 自動公開 | **無効化した。** 確認dialogの「審査の合格後に自動的に公開する」チェックボックスを外した |
+| 提出前の確認 | 上部バナーなし、tab警告なし、送信ボタン活性 |
+| 提出後の表示 | 「この拡張機能は審査のために送信されました」「デベロッパーダッシュボードのホームページでステータスを確認できます」 |
+
+**新たに判明した外部条件:** 確認dialogに「**後で公開するアイテムの有効期限は、審査の合格後30日です**」と表示されました。deferred publishingを選んだ場合、審査通過から30日以内に公開しないと期限切れになります。手順12の公開承認は、審査通過の連絡を受けてから30日以内に行います。この30日を`TD-11`の実行期間と混同しません。**公開そのものは短時間で終わるため、`V-12`の実行完了を30日以内に収める必要はありません。**
+
+現在は審査結果待ちです。結果が出るまでCWSの状態を変更しません。
 
 ### 8.2. 次に行う作業
 
