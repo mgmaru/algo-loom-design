@@ -588,11 +588,13 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 
 **段階1: 受渡し方式の実装（外部操作なし）**
 
+**2026年8月27日の実施記録:** 手順1〜4を完了しました。[`algoloom_v12_review_fixture.py`](scripts/verification/atcoder_v12/algoloom_v12_review_fixture.py)がhelperと同じprotocolと検査を実装し、受け取った値を破棄して保存も外部接続も行いません。`prepare.mjs`が再現可能な`.tar.gz`を生成し、固定入力testはNode 12件・Goすべて・fixtureの`--self-test` 16 caseが合格しています。macOS 26.5・Apple siliconの実測で、**`tar`はアーカイブのquarantine属性を展開先へ伝播し、ブラウザ取得ではhelperが`SIGKILL`で停止する**ことを確認したため、主経路をフィクスチャ（経路2）としました。手順5は原稿を完了し、GitHubリリースへのuploadだけが明示承認待ちです。
+
 1. 本書と[CWS配布準備](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)の停止理由を再調査結果へ合わせて訂正する（2026年8月26日完了）。
 2. [`prepare.mjs`](scripts/verification/atcoder_v12/prepare.mjs)へ、helperとKeychain adapterをまとめた`.tar.gz`の生成と、そのSHA-256・bytesの`build-index.json`への記録を追加する。
 3. 経路2のreview用フィクスチャを1ファイルで作る。プロトコル、一回限りの秘密値、`Host`検査、送信元検査、拡張機能origin検査、本文上限、状態順序をhelperと同じ条件で満たす。拡張機能のsourceへreviewer専用の分岐やコードを追加しない。
 4. 外部接続なしの固定入力testへ、quarantine属性が付いた状態でも経路2が成立することを確認するcaseを追加する。
-5. helperとフィクスチャの取得手順、SHA-256、停止方法を[サポートページ](docs/verification/judge-adapter/v12-extension-support.md)へ追記し、公開URLで到達確認する。
+5. helperとフィクスチャの取得手順、SHA-256、停止方法を[サポートページ](docs/verification/judge-adapter/v12-extension-support.md)へ追記する。公開先はGitHubリリースとし、**リリースの作成とファイルのuploadは外部操作として明示承認を得てから行う**。upload後に公開URLで到達確認する。
 
 **段階2: 審査提出（操作ごとに明示承認）**
 
@@ -611,8 +613,8 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 **完了条件:**
 
 - [ ] reviewer用helperの配布方法が確定し、共有credential、Gatekeeper回避、実行時compile、developer modeを要求せず再現できる
-- [ ] 経路1の`.tar.gz`が隔離buildから再現でき、SHA-256とbytesが`build-index.json`へ固定されている
-- [ ] 経路2のreview用フィクスチャが、拡張機能のsourceを変更せずに同意画面から本人照合まで到達し、外部接続なしの固定入力testが合格している
+- [x] 経路1の`.tar.gz`が隔離buildから再現でき、SHA-256とbytesが`build-index.json`へ固定されている
+- [x] 経路2のreview用フィクスチャが、拡張機能のsourceを変更せずに同意画面から本人照合まで到達し、外部接続なしの固定入力testが合格している
 - [ ] test instructionsが秘密情報を含まず、承認済み内容で保存されている
 - [ ] CWSのpre-submission testと人による最終確認が合格し、差分がない
 - [ ] 明示承認後にdeferred publishingで審査へ提出し、審査に合格している

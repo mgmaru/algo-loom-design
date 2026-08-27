@@ -147,8 +147,12 @@ screenshotへ実account名、Cookie、profile path、Keychain service ID、publi
 
 | 経路 | 内容 | 位置付け |
 |---|---|---|
-| 経路1 | 公開URLから`curl`で取得し`tar`で展開し、事前build済みhelperを実行する | AlgoLoom製品の実配布経路（PyPI、`pip` / `pipx` / `uv tool`）と同じく、quarantine属性が付かない導入経路である |
-| 経路2 | 認証付き折返し通信の同じプロトコルを話す単一ファイルのreview用フィクスチャを、`python3`で実行する | **取得方法に依存しない。** スクリプトにはGatekeeperが適用されない |
+| 経路2 | 認証付き折返し通信の同じプロトコルを話す単一ファイルのreview用フィクスチャを、`python3`で実行する | **主経路**（2026年8月27日決定）。取得方法に依存しない。スクリプトにはGatekeeperが適用されない。要件はPython 3.9以上 |
+| 経路1 | 公開URLから`curl`で取得し`tar`で展開し、事前build済みhelperを実行する | 任意。製品相当helperを実際に動かしたいreviewer向け。`curl`で取得する必要がある |
+
+主経路を経路2としたのは、下の実測により**経路1がreviewerの取得方法に依存する**ためです。reviewerがブラウザで取得した場合、helperは説明のない`SIGKILL`で停止し、reviewerには壊れたツールとして見えます。経路2は1ファイル1コマンドで完結し、500文字のtest instructionsにも収まります。
+
+配布物は[GitHubリリース](https://github.com/mgmaru/algo-loom-design/releases)で公開します（2026年8月27日決定）。各リリースへ全ファイルのSHA-256を記載します。**リリースの作成とファイルのuploadは外部操作であり、明示承認まで行いません。**
 
 経路2はhelperの代替であり、**拡張機能側のソースコードは一切変更しません**。reviewer専用の分岐、隠し機能、条件付きコードを拡張機能へ追加しません。フィクスチャは受け取ったCookieを検査した後に破棄し、秘密情報保管庫、ファイル、ログのいずれへも書かず、外部ホストへ接続しません。
 
@@ -173,8 +177,8 @@ Developer ID署名とnotarizationは、経路1・経路2のどちらもreviewer�
 
 test instructionsではAtCoder usernameとpasswordを空欄に保ち、共有AtCoder account、password、Cookieを作成・提供しません。追加手順は500文字以内で、次を明記します。
 
-- §4.2の経路1でhelperを取得する手順と、照合するSHA-256
-- 経路1が使えない場合の経路2の実行方法
+- §4.2の経路2でフィクスチャを取得して実行する手順と、照合するSHA-256
+- 製品相当helperを動かしたい場合の経路1と、`curl`で取得する必要があること
 - reviewer自身が利用を許可されたaccountを使うこと
 - sign-in、Turnstile、submissionを自動化しないこと
 - developer modeとGatekeeper回避を使わないこと
@@ -268,7 +272,7 @@ reviewer用helperの受渡し方式は[§4.2](#42-採用するreviewer用helper�
 | 2 | `prepare.mjs`へ、helperとKeychain adapterをまとめた`.tar.gz`の生成と、そのSHA-256・bytesの`build-index.json`への記録を追加する | 隔離buildから経路1の配布物を再現でき、ハッシュが固定されている |
 | 3 | 経路2のreview用フィクスチャを1ファイルで作る。プロトコル、一回限りトークン、`Host`検査、送信元検査、拡張機能origin検査、本文上限、状態順序をhelperと同じ条件で満たす | 拡張機能のソースを変更せずに同意画面から本人照合まで到達できる |
 | 4 | 固定入力testへ、quarantine属性が付いた状態でも経路2が成立することを確認するケースを追加する | `go test ./...`と`node --test`が合格する |
-| 5 | helperとフィクスチャの取得手順、SHA-256、停止方法を[サポートページ](v12-extension-support.md)へ追記し、公開URLで到達確認する | reviewerが500文字のtest instructionsからたどれる |
+| 5 | helperとフィクスチャの取得手順、SHA-256、停止方法を[サポートページ](v12-extension-support.md)へ追記し、公開URLで到達確認する | reviewerが500文字のtest instructionsからたどれる。**原稿は2026年8月27日に完了。GitHubリリースの作成とuploadは外部操作のため明示承認待ち** |
 
 `TD-11`は未着手のため、この段階でソースリビジョンが変わっても無効化される`V-12`のsub結果はありません。**訂正と追加を行うなら現時点が最も影響が小さくなります。**
 
