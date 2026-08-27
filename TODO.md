@@ -594,21 +594,22 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 2. [`prepare.mjs`](scripts/verification/atcoder_v12/prepare.mjs)へ、helperとKeychain adapterをまとめた`.tar.gz`の生成と、そのSHA-256・bytesの`build-index.json`への記録を追加する。
 3. 経路2のreview用フィクスチャを1ファイルで作る。プロトコル、一回限りの秘密値、`Host`検査、送信元検査、拡張機能origin検査、本文上限、状態順序をhelperと同じ条件で満たす。拡張機能のsourceへreviewer専用の分岐やコードを追加しない。
 4. 外部接続なしの固定入力testへ、quarantine属性が付いた状態でも経路2が成立することを確認するcaseを追加する。
-5. helperとフィクスチャの取得手順、SHA-256、停止方法を[サポートページ](docs/verification/judge-adapter/v12-extension-support.md)へ追記する。公開先はGitHubリリースとし、**リリースの作成とファイルのuploadは外部操作として明示承認を得てから行う**。upload後に公開URLで到達確認する。
+5. helperとフィクスチャの取得手順、SHA-256、停止方法を[サポートページ](docs/verification/judge-adapter/v12-extension-support.md)へ追記する。主経路である経路2の配布先は、公開repositoryのcommit SHAで固定した`raw`URLとし、**新たな外部操作を伴わない**。到達確認と`--self-test`の合格は2026年8月27日に完了した。
+6. 経路1（GitHubリリース）は先に用意しない。**reviewerから実際のhelperを動かしたいという要望があった場合にだけ**、タグ名、添付file、記載するSHA-256、製品releaseでないことの明示を提示して明示承認を得たうえで作成する。拡張機能の固定IDはリリースへ記載しない。
 
 **段階2: 審査提出（操作ごとに明示承認）**
 
-6. 再開時にCWS itemがdraft、versionが`0.1.0`、料金なし・限定公開・日本のみで、Store listing・Privacy・Distributionが承認済み内容から変わっていないことを読取り確認する。
-7. AtCoder username、password、Cookieを共有せず、reviewer自身が利用を許可されたaccountと、hash固定済みhelperまたはフィクスチャだけで再現できる500文字以内のtest instructionsを確定する。入力内容とhelper受渡し先を提示し、明示承認後に保存する。
-8. dashboardのpre-submission test、要求権限、data disclosure、listing、Privacy、Distribution、version、ZIP hashを再確認する。不合格、差分、helper再現不能があれば審査へ送信しない。
-9. 対象item、version、ZIP hash、料金なし、限定公開・日本のみ、test instructions、審査後の自動公開を無効にすることを提示して明示承認を得る。承認後、deferred publishingを選んで審査へ送信する。
-10. 審査結果を記録する。不承認なら理由を記録して停止し、credential共有、Gatekeeper回避、別配布元、手動読込で迂回しない。helperを再現できないことが理由の場合にだけ、文面と送信先を提示して明示承認を得たうえでCWS supportへ問い合わせる。
+7. 再開時にCWS itemがdraft、versionが`0.1.0`、料金なし・限定公開・日本のみで、Store listing・Privacy・Distributionが承認済み内容から変わっていないことを読取り確認する。
+8. AtCoder username、password、Cookieを共有せず、reviewer自身が利用を許可されたaccountと、hash固定済みhelperまたはフィクスチャだけで再現できる500文字以内のtest instructionsを確定する。入力内容とhelper受渡し先を提示し、明示承認後に保存する。
+9. dashboardのpre-submission test、要求権限、data disclosure、listing、Privacy、Distribution、version、ZIP hashを再確認する。不合格、差分、helper再現不能があれば審査へ送信しない。
+10. 対象item、version、ZIP hash、料金なし、限定公開・日本のみ、test instructions、審査後の自動公開を無効にすることを提示して明示承認を得る。承認後、deferred publishingを選んで審査へ送信する。
+11. 審査結果を記録する。不承認なら理由を記録して停止し、credential共有、Gatekeeper回避、別配布元、手動読込で迂回しない。helperを再現できないことが理由の場合にだけ、文面と送信先を提示して明示承認を得たうえでCWS supportへ問い合わせる。
 
 **段階3: 限定公開と`TD-11`への引き渡し（別の明示承認）**
 
-11. 審査通過後、対象item、version、限定公開URLを知る日本の利用者が追加できること、停止方法を再提示し、公開の明示承認を別に得る。公開後、通常Chromeの標準画面で追加可能な状態だけを確認し、`TD-11`の基準templateはまだ作らない。
-12. CWS配信済み`0.1.0`の正確なbytesを取得できた場合だけhashを固定し、固定ID、listing URL、helper、protocol、source、build、Chrome・OS、template schema、同意版とともに最終campaign manifestへ記録する。取得不能なら`TD-11`へ進まない。
-13. 更新用`0.1.1` ZIPは`TD-11`の`V-12C`で明示承認後に使うまでuploadしない。`0.1.0`の初回標準追加を確認する前にcurrent versionを置き換えない。
+12. 審査通過後、対象item、version、限定公開URLを知る日本の利用者が追加できること、停止方法を再提示し、公開の明示承認を別に得る。公開後、通常Chromeの標準画面で追加可能な状態だけを確認し、`TD-11`の基準templateはまだ作らない。
+13. CWS配信済み`0.1.0`の正確なbytesを取得できた場合だけhashを固定し、固定ID、listing URL、helper、protocol、source、build、Chrome・OS、template schema、同意版とともに最終campaign manifestへ記録する。取得不能なら`TD-11`へ進まない。
+14. 更新用`0.1.1` ZIPは`TD-11`の`V-12C`で明示承認後に使うまでuploadしない。`0.1.0`の初回標準追加を確認する前にcurrent versionを置き換えない。
 
 **完了条件:**
 

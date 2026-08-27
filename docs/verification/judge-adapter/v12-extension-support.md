@@ -22,20 +22,26 @@ are provided. **Neither asks you to bypass a macOS security warning**, and neith
 needs a compiler, developer mode, or shared AtCoder credentials. Use your own
 AtCoder account.
 
-Both files are published on the
-[releases page](https://github.com/mgmaru/algo-loom-design/releases). Each release
-lists the SHA-256 of every file.
-
 ### Route A — single-file fixture (recommended)
 
-One Python file. It works no matter how you download it.
+One Python file, served straight from the public source repository at a pinned
+commit, so the contents cannot change under you. The exact URL and extension ID
+are in the Test instructions field of this item.
 
 ```console
-curl -fsSLO <release-url>/algoloom_v12_review_fixture.py
-shasum -a 256 algoloom_v12_review_fixture.py     # compare with the release notes
+curl -fsSLO <pinned-raw-url>/algoloom_v12_review_fixture.py
+shasum -a 256 algoloom_v12_review_fixture.py
 python3 algoloom_v12_review_fixture.py --self-test
 python3 algoloom_v12_review_fixture.py --extension-id <EXTENSION_ID>
 ```
+
+Expected SHA-256 of the fixture:
+
+```text
+18b3be7b4023dffd2db06c66e96b86bb3f7f1697c744fbcf7e0836eb43f29153
+```
+
+It works no matter how you download it, including a plain browser download.
 
 The fixture prints a `http://127.0.0.1:<port>/bootstrap` URL. Open it in the
 browser where the extension is installed, consent, and sign in to AtCoder as
@@ -48,24 +54,19 @@ discards the value. It writes no keychain item, no file, and no log entry, and i
 never contacts atcoder.jp. `--self-test` verifies this offline, without opening a
 socket. Requires Python 3.9 or later.
 
-### Route B — prebuilt helper (optional)
+### Route B — prebuilt helper (on request)
 
-If you would rather run the actual macOS helper, download the bundle **with
-`curl`**:
+Route A is enough to exercise every behaviour of the extension. If you would
+rather run the actual compiled macOS helper instead of the fixture, ask through
+the publisher contact shown on this item's Chrome Web Store listing and a signed-
+off bundle will be published for you.
 
-```console
-curl -fsSLO <release-url>/algoloom-v12-review-darwin-arm64.tar.gz
-shasum -a 256 algoloom-v12-review-darwin-arm64.tar.gz
-tar xzf algoloom-v12-review-darwin-arm64.tar.gz
-cd algoloom-v12-review && shasum -a 256 -c SHA256SUMS
-```
-
-**Please use `curl` rather than a browser download for this route.** `tar`
+That bundle must be fetched with `curl` rather than a browser download. `tar`
 propagates the download quarantine attribute to the files it extracts, and macOS
 then terminates the extracted helper without an explanatory dialog. `curl` does
 not set that attribute, so the helper runs normally. Route A is unaffected either
-way. If Route B is blocked for any reason, use Route A instead of overriding any
-warning.
+way. **Never override a macOS security warning to run either route.** If something
+is blocked, use Route A or contact the publisher.
 
 ## Before requesting support
 
@@ -128,35 +129,34 @@ Windows、Linux、Chrome policy、developer modeによる追加、unpacked exten
 
 本拡張機能は、AtCoderのセッションクッキー1件を同じ端末上の相棒プログラムへ渡します。中核の動作にはローカルの相棒プログラムが必要です。2つの経路を用意しています。**どちらもmacOSの警告の回避を求めません。** コンパイラ、デベロッパーモード、共有のAtCoder認証情報も不要です。ご自身のAtCoderアカウントをお使いください。
 
-どちらのファイルも[リリースページ](https://github.com/mgmaru/algo-loom-design/releases)で公開しています。各リリースにすべてのファイルのSHA-256を記載しています。
-
 ### 経路A: 単一ファイルのフィクスチャ（推奨）
 
-Pythonファイル1つです。取得方法にかかわらず動作します。
+Pythonファイル1つです。公開ソースリポジトリの固定したコミットから直接配信するため、内容が後から変わることはありません。正確なURLと拡張機能IDは、本itemのtest instructions欄に記載しています。
 
 ```console
-curl -fsSLO <release-url>/algoloom_v12_review_fixture.py
-shasum -a 256 algoloom_v12_review_fixture.py     # リリースノートの値と照合します
+curl -fsSLO <pinned-raw-url>/algoloom_v12_review_fixture.py
+shasum -a 256 algoloom_v12_review_fixture.py
 python3 algoloom_v12_review_fixture.py --self-test
 python3 algoloom_v12_review_fixture.py --extension-id <EXTENSION_ID>
 ```
+
+フィクスチャの期待するSHA-256:
+
+```text
+18b3be7b4023dffd2db06c66e96b86bb3f7f1697c744fbcf7e0836eb43f29153
+```
+
+ブラウザーでのダウンロードを含め、取得方法にかかわらず動作します。
 
 フィクスチャが`http://127.0.0.1:<port>/bootstrap`を表示します。拡張機能を追加したブラウザで開き、同意してご自身のAtCoderアカウントでログインしてください。Ctrl-Cでいつでも停止できます。
 
 フィクスチャは製品相当ヘルパーと同じ認証付き折返し通信を話し、同じ検査を行います。**何も保存しません。** クッキーの名前、ホスト、パス、安全属性を検査して結果を返し、値を破棄します。Keychain項目、ファイル、ログのいずれにも書かず、atcoder.jpへ接続しません。`--self-test`はソケットを開かずにこれを確認します。Python 3.9以上が必要です。
 
-### 経路B: 事前ビルド済みヘルパー（任意）
+### 経路B: 事前ビルド済みヘルパー（要望があれば提供）
 
-実際のmacOSヘルパーを動かす場合は、**`curl`で**取得してください。
+拡張機能の挙動はすべて経路Aで確認できます。フィクスチャではなく実際にコンパイルしたmacOSヘルパーを動かしたい場合は、本itemのChromeウェブストア掲載情報に表示されるpublisher連絡先からご連絡ください。承認のうえ配布物を公開します。
 
-```console
-curl -fsSLO <release-url>/algoloom-v12-review-darwin-arm64.tar.gz
-shasum -a 256 algoloom-v12-review-darwin-arm64.tar.gz
-tar xzf algoloom-v12-review-darwin-arm64.tar.gz
-cd algoloom-v12-review && shasum -a 256 -c SHA256SUMS
-```
-
-**この経路ではブラウザではなく`curl`をお使いください。** `tar`はダウンロード時のquarantine属性を展開したファイルへ伝播し、macOSは展開されたヘルパーを説明なく終了させます。`curl`はこの属性を付けないため、ヘルパーは通常どおり動作します。経路Aはどちらの取得方法でも影響を受けません。経路Bが動かない場合は、警告を回避せず経路Aをお使いください。
+その配布物は、ブラウザーではなく`curl`で取得してください。`tar`はダウンロード時のquarantine属性を展開したファイルへ伝播し、macOSは展開されたヘルパーを説明なく終了させます。`curl`はこの属性を付けないため、ヘルパーは通常どおり動作します。経路Aはどちらの取得方法でも影響を受けません。**どちらの経路でも、macOSの警告を回避して実行しないでください。** 動かない場合は経路Aをお使いいただくか、publisherへご連絡ください。
 
 ## 問い合わせ前の確認
 
