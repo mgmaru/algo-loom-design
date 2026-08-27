@@ -91,9 +91,9 @@ distributionは`Unlisted`です。`Public`、domain限定`Private`、group限定
 |---|---|
 | Name | `AlgoLoom Authentication Verification BETA` |
 | Summary (`manifest.json`の`description`) | `Transfers one AtCoder session to the local AlgoLoom verification helper after consent.` |
-| Single purpose | `After the user explicitly consents and signs in to AtCoder, transfer exactly one AtCoder REVEL_SESSION cookie to the AlgoLoom verification helper running on the same device so the helper can verify the same account and store the verified session in the OS secret store.` |
-| Category | dashboardで選べる現在の候補から`Developer Tools`相当を人が選び、表示名を記録する |
-| Language | Englishを主、同意と検証UIは日本語。必要なlocalizationは提出前にdashboard上で確認する |
+| Single purpose | `After the user explicitly consents and signs in to AtCoder, transfer exactly one AtCoder REVEL_SESSION cookie to the AlgoLoom verification helper running on the same device so the helper can verify the same account and temporarily store the verified session in macOS Keychain.` |
+| Category | `Developer Tools`（2026年8月27日に選択・確認済み） |
+| Language | English（2026年8月27日に選択・確認済み）。同意画面と検証UIは日本語 |
 
 Long description案:
 
@@ -107,8 +107,9 @@ Long description案:
 |---|---|
 | `cookies` | Read exactly one cookie named `REVEL_SESSION` for `https://atcoder.jp/` after consent and a unique account check. The extension does not enumerate other cookie stores and does not set or delete cookies. |
 | `storage` | Keep the one-time loopback port, bearer token, consent version, and account-gate tab ID in `chrome.storage.session` only for the active browser session. |
-| `https://atcoder.jp/*` | Run the account-check content script only on `/settings` and read the allowlisted AtCoder session cookie. It does not run on the login page or submission pages. |
-| `http://127.0.0.1/*` | Receive the local consent bootstrap and send authenticated protocol events to the helper on a dynamic loopback port. No non-loopback HTTP host is allowed. |
+| ホスト権限（`https://atcoder.jp/*`と`http://127.0.0.1/*`） | `Access is limited to https://atcoder.jp/* and http://127.0.0.1/*. On AtCoder, the content script runs only on /settings to read the visible account identifier and the allowlisted REVEL_SESSION cookie after consent. On 127.0.0.1, it receives the local consent bootstrap and sends authenticated protocol events to the helper on a dynamic loopback port. It does not run on login or submission pages, automate sign-in, or contact any non-loopback HTTP host.` |
+
+dashboardは2つのホストを1つの「ホスト権限が必要な理由」欄へまとめます。上の文面は両方の理由を統合したもので、2026年8月27日に保存済みです。
 
 Remote codeは`No`です。extension package外のJavaScript、WebAssembly、`eval`、remote scriptを読み込みません。
 
@@ -222,6 +223,28 @@ test instructionsではAtCoder usernameとpasswordを空欄に保ち、共有AtC
 - developer modeとGatekeeper回避を使わないこと
 
 reviewerがfull flowを確認できない場合はcredential共有や回避経路を追加せず、明示承認後にCWS supportへ確認します。local fixtureだけで審査可能かは公式回答または審査feedbackに従い、推測で判定しません。
+
+#### 2026年8月27日の確認結果（手順7）
+
+dashboardの現在の保存内容を読取り確認しました。
+
+| 項目 | 確認結果 |
+|---|---|
+| item状態 | draft。「審査のため送信」は未実施 |
+| version | `0.1.0`。表示はZIP内`manifest.json`由来のため、対象版のZIPが上がっていることの確認になる |
+| Distribution | 料金なし・`Unlisted`・日本のみ |
+| Store listing | タイトル・概要・説明が原稿と一致。Categoryは`Developer Tools`、LanguageはEnglish |
+| URL | ホームページ、サポート、privacy policyの3つがHTTP 200で到達。サポートページにreviewer節と固定URLが反映済み |
+| Privacy | 単一用途、`cookies`、`storage`、ホスト権限の理由を保存済み。Remote codeは`No` |
+| データ使用 | 個人を特定できる情報、認証に関する情報、website contentを申告。3つの表明もチェック済み |
+| 権限 | `cookies`、`storage`とホスト2件のみ |
+
+原稿との差分は2件で、いずれも**より正確または詳しい**方向のため、dashboardの内容を正としてこの原稿へ反映しました。
+
+| # | 差分 | 扱い |
+|---|---|---|
+| 1 | 単一用途の説明が`temporarily store ... in macOS Keychain`（原稿は`store ... in the OS secret store`） | 一時保存であることと保管先が明示され、より正確。採用 |
+| 2 | ホスト権限の理由がdashboardの1欄へ統合され、ログイン・提出pageで動作しないこと等が追記されている | 申告範囲を狭めておらず、より詳しい。採用 |
 
 #### test instructions原稿（2026年8月27日、承認待ち）
 
