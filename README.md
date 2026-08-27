@@ -89,6 +89,7 @@ AI review、Cloud同期、問題推薦・TUI、公開用solution bundle、Repair
 | [Turso設計ガイド](docs/integrations/turso-design-guide.md) | データの権威、Turso方式、競合、障害、backup | 現在の同期方式判断の正本 |
 | [Turso移行互換性設計](docs/integrations/turso-migration-compatibility-design.md) | Adapter境界、方式変更、移行、契約test | 同期実装の互換性設計 |
 | [DB候補比較メモ](docs/research/db-comparison.md) | Cloud DB候補、料金、無料枠の比較 | 2026年7月時点の調査メモ |
+| [拡張機能とヘルパーの配布：ステークホルダーと注意点](docs/research/extension-and-helper-distribution.md) | 登場人物、2つの配布物、誰がいつどうヘルパーを入手するか、実行ファイル署名が必要になる条件、実測結果、よくある誤解 | 2026年8月時点の調査・整理メモ |
 
 ### 配布・プロジェクト管理
 

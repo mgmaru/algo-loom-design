@@ -6,6 +6,27 @@
 >
 > 対象: `TD-39`のCWS審査用helperと限定公開版。製品の正式公開手順ではない
 
+## 用語
+
+本書はChrome Web Storeの画面表記と対応付けるため英語表記を多く残します。主な語を次のとおり対応付けます。
+
+| 本書の表記 | 意味 |
+|---|---|
+| CWS | Chrome Web Store。Chrome拡張機能を審査、署名、配布するGoogleの公式基盤 |
+| **reviewer** | **CWSの審査を行うGoogle側の担当者。** AlgoLoomの利用者でも開発者でもない第三者。拡張機能を実際に動かして判断するため、本拡張機能の場合は端末内helperの役割を渡す必要がある |
+| publisher | CWSへitemを登録した主体。本検証では検証owner |
+| owner | 本検証の所有者。外部操作を承認し実行する人 |
+| item | CWS上の登録単位。1つの拡張機能に1つの固定IDが割り当てられる |
+| listing | itemの掲載情報。名称、説明、画像、カテゴリ等 |
+| visibility | itemの公開範囲。`Public`、`Unlisted`（限定公開）、`Private`のいずれか |
+| helper | 端末内で動く認証ヘルパー。専用ブラウザーの起動、同意画面の配信、拡張機能からのCookie受領、本人照合、秘密情報保管庫への保存を行う。役割の詳細は[AtCoder認証設計 §1.2](../../architecture/atcoder-authentication.md#12-認証ヘルパーとは何か) |
+| review fixture | reviewerがhelperなしで拡張機能を確認するための単一ファイル。同じprotocolと同じ検査を実装し、受け取った値を保存しない |
+| quarantine属性 | macOSがダウンロードしたfileへ付ける`com.apple.quarantine`。Gatekeeperはこの印を見て未notarizeの実行ファイルを止める |
+| test instructions | CWS dashboardでreviewerへ手順とcredentialを伝える欄。username・password各100文字と追加手順500文字 |
+| deferred publishing | 審査通過だけでは自動公開せず、公開を別操作にする設定 |
+
+登場人物の全体像と、誰がいつどうhelperを入手するかは[拡張機能とヘルパーの配布：ステークホルダーと注意点](../../research/extension-and-helper-distribution.md)を参照します。
+
 ## 0. 結論
 
 `V-12`ではChrome Web Store（CWS）の`Unlisted`を使います。ここでいう限定公開は「listing URLを知る利用者が追加できる」範囲であり、指定accountだけに制限する`Private`ではありません。`Unlisted`もCWS policyと審査の対象です。[公式のvisibility説明](https://developer.chrome.com/docs/webstore/cws-dashboard-distribution)

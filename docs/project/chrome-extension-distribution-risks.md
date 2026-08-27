@@ -11,6 +11,7 @@
 > - [配布方針ガイド §9.3](../operations/algoloom-distribution.md#93-atcoder認証用chrome拡張機能)
 > - [V-12 Chrome Web Store配布準備](../verification/judge-adapter/v12-chrome-web-store-preparation.md)
 > - [拡張機能の責任境界と提出の縮退運転設計](../features/extension-boundary-and-degraded-submission.md)
+> - [拡張機能とヘルパーの配布：ステークホルダーと注意点](../research/extension-and-helper-distribution.md)
 > - [未決事項一覧](unresolved-decisions.md)
 
 ## ドキュメント概要

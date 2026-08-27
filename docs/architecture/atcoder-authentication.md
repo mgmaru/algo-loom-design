@@ -382,6 +382,15 @@ Cookieの出現やログイン後のURLだけでは成功としません。次�
 
 利用者がChrome Web Storeを自分で検索する必要はありません。掲載ページを開くところまでAlgoLoomが行います。この一往復が実際に成立するかは`V-12B`で確認します。
 
+**利用者は認証ヘルパーをダウンロードしません。** ヘルパーは`aloom`の一部であり、単独で取得する場面が存在しないためです。ヘルパーをファイルとして受け取るのは、Chrome Web Storeの審査担当者だけです。
+
+| 誰 | いつ | 入手方法 | quarantine属性 | Gatekeeper |
+|---|---|---|---|---|
+| 利用者 | 審査通過後、ずっと | `pipx install algoloom` | 付かない | **出番なし** |
+| 審査担当者 | 審査中の一度だけ | ファイルを直接ダウンロード | 取得方法しだいで付く | **ここだけ検討が要る** |
+
+一般的なソフトウェアは開発元がインストーラを配るため全利用者へquarantine属性が付き、署名が必要になります。AlgoLoomはこの構造を採らないため、**利用者が何人になっても署名の要否は変わりません**。審査担当者への受渡しは[V-12 Chrome Web Store配布準備 §4.2](../verification/judge-adapter/v12-chrome-web-store-preparation.md#42-採用するreviewer用helperの受渡し方式)、登場人物の全体像は[拡張機能とヘルパーの配布：ステークホルダーと注意点](../research/extension-and-helper-distribution.md)を参照します。
+
 #### 3.6.4. 実行ファイル署名が必要になる条件
 
 macOSのGatekeeperとWindowsのSmartScreenは、**ダウンロードされた実行ファイルに付く印**（macOSのquarantine属性、WindowsのMark-of-the-Web）を見て動きます。したがって有償の署名制度への加入が必要かどうかは、**端末側の実行ファイルをどうやって利用者の端末へ届けるか**だけで決まります。拡張機能の配布経路はこの判断に関係しません。
