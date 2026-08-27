@@ -153,6 +153,8 @@ flowchart TD
 
 フェーズ1は完了済みです。AtCoderからの回答を待つ依存はなく、各releaseで公式情報と互換性を再確認するgateへ置き換えました。フェーズ2は、依存を持たないフェーズ3の作業と並行して進められます。認証関連の`TD-38`、`TD-15`とその後続だけは、`TD-11`・`TD-12`の完了を待ちます。
 
+`TD-40`と`TD-41`は、[拡張機能の責任境界と提出の縮退運転設計 §5.1](docs/features/extension-boundary-and-degraded-submission.md#51-v-12が確認しない範囲)で確認した`V-12`の対象外範囲を扱います。**`V-12`の合格は、製品形態の拡張機能が成立した証拠にはなりません。**
+
 ## 4. TODO一覧
 
 状態は`未着手`、`進行中`、`完了`、`保留`のいずれかで記します。IDは追加した順に振るため、`TD-31`以降は表の並び（実行順）とID順が一致しません。順序は「依存」列で判断します。
@@ -173,7 +175,9 @@ flowchart TD
 | [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 未着手 |
 | [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39` | 未着手 |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 |
+| [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 |
 | [`TD-38`](#td-38-認証配布物とテンプレートのライフサイクル契約を確定する) | 機能設計 | 認証配布物とテンプレートのライフサイクル契約を確定する | `TD-11`, `TD-12` | 未着手 |
+| [`TD-41`](#td-41-製品形態の拡張機能の審査条件と確認gateを確定する) | 設計判断 | 製品形態の拡張機能の審査条件と確認gateを確定する | `TD-38`, `TD-40` | 未着手 |
 | [`TD-13`](#td-13-ツールチェーン観測を履歴へ保存するか決定する) | 設計判断 | ツールチェーン観測を履歴へ保存するか決定する | ― | 未着手 |
 | [`TD-14`](#td-14-学習履歴の論理モデルを設計する) | 機能設計 | 学習履歴の論理モデルを設計する | `TD-13` | 未着手 |
 | [`TD-15`](#td-15-認証の機能要件へux削除更新失敗分類を反映する) | 機能設計 | 認証の機能要件へUX・削除・更新・失敗分類を反映する | `TD-01`, `TD-38` | 未着手 |
@@ -193,7 +197,7 @@ flowchart TD
 | [`TD-25`](#td-25-ライブラリ選定基準を確定する) | 設計判断 | ライブラリ選定基準を確定する | `TD-05` | 未着手 |
 | [`TD-26`](#td-26-各ライブラリを選定する) | 設計判断 | 各ライブラリを選定する | `TD-14`, `TD-25`, `TD-31`, `TD-32`, `TD-33` | 未着手 |
 | [`TD-27`](#td-27-cli契約を確定する) | 機能設計 | CLI契約を確定する | `TD-14`, `TD-15`, `TD-20`, `TD-24`, `TD-26` | 未着手 |
-| [`TD-28`](#td-28-実装開始条件の充足を確認する) | 文書整備 | 実装開始条件の充足を確認する | `TD-12`, `TD-16`, `TD-21`, `TD-22`, `TD-23`, `TD-27` | 未着手 |
+| [`TD-28`](#td-28-実装開始条件の充足を確認する) | 文書整備 | 実装開始条件の充足を確認する | `TD-12`, `TD-16`, `TD-21`, `TD-22`, `TD-23`, `TD-27`, `TD-41` | 未着手 |
 | [`TD-29`](#td-29-specを実装リポジトリへ移せる状態にする) | 文書整備 | `spec/`を実装リポジトリへ移せる状態にする | `TD-27`, `TD-28` | 未着手 |
 | [`TD-30`](#td-30-実装リポジトリを作成し同期方式を決める) | 環境整備 | 実装リポジトリを作成し、同期方式を決める | `TD-29` | 未着手 |
 | [`TD-34`](#td-34-実装期間中の禁止事項を引き渡す) | 文書整備 | 実装期間中の禁止事項を引き渡す | `TD-29` | 未着手 |
@@ -695,6 +699,45 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 
 ---
 
+#### `TD-40` 提出ページのcontent scriptとTurnstileの共存を検証する
+
+| 項目 | 内容 |
+|---|---|
+| カテゴリ | 技術検証 |
+| 対象ファイル | [`docs/verification/judge-adapter/results/`](docs/verification/judge-adapter/results/)配下の新しい実行記録、[`docs/architecture/atcoder-authentication.md`](docs/architecture/atcoder-authentication.md) §3.3 |
+| 依存 | `TD-11` |
+| 参照 | [拡張機能の責任境界と提出の縮退運転設計 §2.1](docs/features/extension-boundary-and-degraded-submission.md#21-拡張機能でしかできない処理は2つ)、[同 §5.1](docs/features/extension-boundary-and-degraded-submission.md#51-v-12が確認しない範囲) |
+
+**目的:** 緩和策Hにより、製品形態の拡張機能は提出pageで動作するcontent scriptを持ちます。一方`V-12`の検証支援物は提出pageで動作せず、`V-12E`も提出確認画面までで止まります。Cloudflareは拡張機能が検証へ影響し得ると説明しており、**提出form内のTurnstileと同じpageで動くcontent scriptが共存できるかは未検証**です。ここが成立しない場合、緩和策Hの前提と方式Aの提出導線が崩れるため、製品形態の設計を確定する前に確認します。
+
+**手順:**
+
+1. [実施手順 §3](docs/verification/judge-adapter/README.md#3-当日の外部条件)に従い、当日の外部条件（利用規約、対象コンテストの状態、Bot対策の状態、Cloudflareの対応ブラウザ）を確認する。開始しない条件に該当する場合は実行しない。
+2. リポジトリ外の隔離した実行環境を用意する。`V-12`の基準templateと保存sessionを使わず、この検証専用のcampaignとして分離する。
+3. 提出pageで動作する検証専用拡張を、段階を分けた最小の版で作る。
+   - 版1: `https://atcoder.jp/contests/*/submit*`へmatchするが、DOMを読み書きしない
+   - 版2: ソースコード欄と言語選択だけを設定する
+   どちらの版も、Turnstile、送信button、Turnstileが使うframeへ触れない。`debugger`、`webRequest`、`tabs`、`scripting`を要求しない。
+4. 利用者が通常のGoogle Chromeで手動ログインし、対象の終了済みコンテストの提出pageを開く。CDP、WebDriver、remote debugging、headlessを使わない。
+5. 拡張機能なし・版1・版2の3条件で、Turnstileの表示と完了、`navigator.webdriver`が偽であること、Cloudflareの拒否がないこと、提出formの値が期待どおりであることを観測する。
+6. **最後の提出操作は行わない。追加提出を0件とする。**
+7. [記録テンプレート](docs/verification/judge-adapter/results/run-record-template.md)を複製し、条件ごとの入力、観測元、証拠、合否を匿名化して記録する。
+8. 版2が不合格の場合、Turnstileの回避、自動化または自動化信号の隠蔽へ切り替えない。[設計 §4.3](docs/features/extension-boundary-and-degraded-submission.md#43-td-36へ渡す)の範囲を超えるため、緩和策Hの設計へ差し戻し、[配布リスク §4.3](docs/project/chrome-extension-distribution-risks.md#43-緩和策の候補)の選択肢I（拡張機能を認証だけに限定する）の再評価を含める。
+9. 合格の場合、成立した範囲を[AtCoder認証設計 §3.3](docs/architecture/atcoder-authentication.md#33-ブラウザ境界)と[設計 §2](docs/features/extension-boundary-and-degraded-submission.md#2-拡張機能の責任境界)へ反映し、`TD-41`へ引き渡す。
+
+**完了条件:**
+
+- [ ] 拡張機能なし・版1・版2の3条件でTurnstileの表示と完了が記録されている
+- [ ] 3条件すべてで`navigator.webdriver`が偽であり、CloudflareまたはAtCoderの拒否がない
+- [ ] content scriptがTurnstile、送信button、Turnstileが使うframeへ触れていない
+- [ ] 版2で提出formの値が期待どおりに設定されている
+- [ ] 追加提出が0件である
+- [ ] 不合格の場合、回避策ではなく設計への差し戻しが記録されている
+- [ ] 秘密情報が成果物、ログ、Gitへ残っていない
+- [ ] `V-12`の基準template、保存session、通常のChrome環境を変更していない
+
+---
+
 ### フェーズ3: 機能設計の本体
 
 #### `TD-38` 認証配布物とテンプレートのライフサイクル契約を確定する
@@ -738,6 +781,45 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 - [ ] 利用者が残っている状態での配布停止手順が決まっている
 - [ ] 拡張機能とAlgoLoom本体のrelease順序が決まり、審査通過前に新しい版を要求する本体を公開しない条件が明記されている
 - [ ] `TD-15`と`TD-35`へ渡す要件が対応付いている
+
+---
+
+#### `TD-41` 製品形態の拡張機能の審査条件と確認gateを確定する
+
+| 項目 | 内容 |
+|---|---|
+| カテゴリ | 設計判断 |
+| 対象ファイル | [`docs/project/chrome-extension-distribution-risks.md`](docs/project/chrome-extension-distribution-risks.md)、[`docs/features/extension-boundary-and-degraded-submission.md`](docs/features/extension-boundary-and-degraded-submission.md)、[配布方針ガイド](docs/operations/algoloom-distribution.md) §9.3・§16 |
+| 依存 | `TD-38`, `TD-40` |
+| 参照 | [設計 §2.3](docs/features/extension-boundary-and-degraded-submission.md#23-拡張機能側で固定する項目)、[同 §5.1](docs/features/extension-boundary-and-degraded-submission.md#51-v-12が確認しない範囲)、[配布リスク §3](docs/project/chrome-extension-distribution-risks.md#3-リスク2-外部への可用性依存) |
+
+**目的:** `V-12`が審査を通っても、それは「クッキーを1件読む拡張機能」の審査結果です。緩和策Hを採る製品形態の拡張機能は提出formの操作を加えるため単一目的の説明が変わり、**`V-12`の審査通過は製品形態へ転移しません**。製品形態の拡張機能は工程6でしか作れないため、工程4では「何を満たす必要があるか」と「いつ誰が確認するか」を確定し、審査を実装後の未知のリスクとして残さないようにします。
+
+**この作業では審査へ提出しません。** 原稿、条件、gateの確定までを扱います。
+
+**手順:**
+
+1. 製品形態の拡張機能について、CWSへ提出する単一目的の説明、各権限の理由、data disclosure、remote codeの申告を原稿として作る。[`V-12`の原稿](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)との差分を明示する。
+2. 審査で不利になり得る点を列挙し、緩和を対応付ける。少なくとも次を含める。
+   - 認証情報を読み取って端末内へ渡すこと
+   - 認証helperから要素指定を受け取ること。汎用的なDOM操作ではないことをどう示すか
+   - 提出formを操作すること
+   - `TD-38`で確定した対象page、操作の種類、要求権限の固定
+3. `V-12`のitemを更新して使うか、別itemを新規作成するかを決める。`V-12`の限定公開itemを一般公開へ流用しない条件と、流用する場合の版・権限・原稿の扱いを明記する。
+4. 審査通過を確認するgateを決める。[配布方針ガイド §16](docs/operations/algoloom-distribution.md#16-段階的な配布計画)のPhase 2「限定公開ベータ」前を既定とし、確認する内容、担当、不合格時に停止する範囲（提出だけを止め、ローカル機能を継続する）を書く。
+5. 審査が通らない場合の代替を先に決める。[配布リスク §4.3](docs/project/chrome-extension-distribution-risks.md#43-緩和策の候補)の選択肢I、縮退運転の常用、[`TD-09`](#td-09-方式aの製品形態候補を机上比較する)の候補Cの再評価のいずれを採るかの判断条件を書く。判断条件が決まるまで、審査通過を前提にした実装計画を確定しない。
+6. `TD-40`の結果を前提条件へ反映する。提出pageのcontent scriptが成立しない場合は、本TODOの原稿を作らず設計の差し戻しを記録する。
+7. 決定を対象文書へ反映し、`TD-28`の実装開始条件の確認と`TD-35`の実装準備の要件へ引き渡す。
+
+**完了条件:**
+
+- [ ] 製品形態の単一目的、権限理由、data disclosure、remote codeの原稿があり、`V-12`との差分が明示されている
+- [ ] 審査で不利になり得る点と緩和が対応付いている
+- [ ] `V-12`のitemを更新するか別itemを新規作成するかが決まっている
+- [ ] 審査通過を確認するgate、担当、不合格時に停止する範囲が決まっている
+- [ ] 審査が通らない場合の代替と判断条件が決まっている
+- [ ] `V-12`の審査通過を製品形態の審査通過として扱わないことが明記されている
+- [ ] この作業で審査への提出、item作成、公開等の外部操作を行っていない
 
 ---
 
@@ -1445,7 +1527,7 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 |---|---|
 | カテゴリ | 文書整備 |
 | 対象ファイル | [`docs/product/mvp.md`](docs/product/mvp.md) §4、[`spec/scope.md`](spec/scope.md) §6 |
-| 依存 | `TD-12`、`TD-16`、`TD-21`、`TD-22`、`TD-23`、`TD-27` |
+| 依存 | `TD-12`、`TD-16`、`TD-21`、`TD-22`、`TD-23`、`TD-27`、`TD-41` |
 
 **手順:**
 
@@ -1453,7 +1535,7 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 
 | 条件 | 対応する成果物 |
 |---|---|
-| 1〜3（技術検証） | `V-01`〜`V-11`の実行記録、`TD-11`の実行記録 |
+| 1〜3（技術検証） | `V-01`〜`V-11`の実行記録、`TD-11`と`TD-40`の実行記録、`TD-41`の審査条件と確認gate |
 | 4（`LanguageProfile`と契約テスト） | `TD-17`、`TD-22` |
 | 5（`HostPlatform`と検証マトリクス） | `TD-17`、`TD-18` |
 | 6（論理モデル） | `TD-14` |
