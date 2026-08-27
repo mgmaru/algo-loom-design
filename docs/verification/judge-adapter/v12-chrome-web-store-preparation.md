@@ -20,7 +20,8 @@
 | listing | itemの掲載情報。名称、説明、画像、カテゴリ等 |
 | visibility | itemの公開範囲。`Public`、`Unlisted`（限定公開）、`Private`のいずれか |
 | helper | 端末内で動く認証ヘルパー。専用ブラウザーの起動、同意画面の配信、拡張機能からのCookie受領、本人照合、秘密情報保管庫への保存を行う。役割の詳細は[AtCoder認証設計 §1.2](../../architecture/atcoder-authentication.md#12-認証ヘルパーとは何か) |
-| review fixture | reviewerがhelperなしで拡張機能を確認するための単一ファイル。同じprotocolと同じ検査を実装し、受け取った値を保存しない |
+| fixture | テストや検証のために用意する、内容または振る舞いが固定されたもの。固定データと代用部品の両方を指す。本書で扱うのは後者 |
+| **review fixture** | **helperの代用部品。** reviewerがhelperなしで拡張機能を確認するための単一fileで、同じprotocolと同じ検査を実装する。**本物のhelperとは違い、受け取った値を保存せず、外部hostへ接続しない。** 審査期間だけのものであり、製品では使わない。Pythonで書いてあるのは実装形式の話で、「スクリプト」は形式、「フィクスチャ」は役割を指す |
 | quarantine属性 | macOSがダウンロードしたfileへ付ける`com.apple.quarantine`。Gatekeeperはこの印を見て未notarizeの実行ファイルを止める |
 | test instructions | CWS dashboardでreviewerへ手順とcredentialを伝える欄。username・password各100文字と追加手順500文字 |
 | deferred publishing | 審査通過だけでは自動公開せず、公開を別操作にする設定 |

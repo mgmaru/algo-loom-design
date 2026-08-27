@@ -13,7 +13,7 @@
 | `keychain/` | 実行前に配布物へcompileするmacOS Security Framework adapter |
 | `consent-v1.0.ja.md` | 初回画面と対応付ける同意文面の正本 |
 | `fixtures/` | 秘密値を含まないmanifest例。実campaignへ流用しない |
-| `algoloom_v12_review_fixture.py` | CWS reviewerがhelperなしで拡張機能を確認するための単一ファイル。同じprotocolと同じ検査を実装し、**何も保存せず、外部へ接続しない** |
+| `algoloom_v12_review_fixture.py` | **helperの代用部品（review fixture）。** CWS reviewerがhelperなしで拡張機能を確認するための単一ファイルで、同じprotocolと同じ検査を実装する。**本物のhelperと違い、何も保存せず、外部へ接続しない。** 審査期間だけのもので、製品では使わない |
 | `prepare.mjs` | リポジトリ外へ拡張ZIP、実行時compile不要のhelper、reviewer受渡し用の再現可能な`.tar.gz`を排他的に生成する |
 | `prepare-store-assets.mjs` | clean buildに対応する実同意UIのscreenshot、small promo、iconをリポジトリ外へ生成する |
 
@@ -88,7 +88,18 @@ CWS reviewerへは2経路を用意します。どちらもGatekeeperの警告を
 
 **`tar`はアーカイブのquarantine属性を展開したfileへ伝播します。** したがって経路1は取得方法に依存し、経路2だけが取得方法に依存しません。
 
-fixtureは受け取ったCookieを検査した後に破棄します。秘密情報保管庫、file、logのいずれへも書きません。AtCoderを含む外部hostへ接続しません。製品相当helperが行う本人照合とKeychain保存は、拡張機能の審査範囲外のため実装していません。
+### なぜ「フィクスチャ」と呼ぶか
+
+`fixture`は、テストや検証のために用意する、**内容または振る舞いが固定されたもの**を指します。このリポジトリでは架空の問題データのような**固定データ**にも使いますが、ここでは**本物の代わりに置く代用部品**の意味です。
+
+- **「スクリプト」は実装形式**を指します。Pythonで書いてあり、compileせずに実行できるという意味です
+- **「フィクスチャ」は役割**を指します。本物のhelperの代わりに置く代用品だという意味です
+
+同じファイルが両方に当てはまります。矛盾しません。
+
+確かめたいのは**拡張機能**であり、fixtureはそのために必要な相手役です。拡張機能から見ると、同じprotocolで同じ応答を返すため本物と区別がつきません。
+
+fixtureは受け取ったCookieを検査した後に破棄します。秘密情報保管庫、file、logのいずれへも書きません。AtCoderを含む外部hostへ接続しません。製品相当helperが行う本人照合とKeychain保存は、拡張機能の審査範囲外のため実装していません。**審査期間だけのものであり、製品のhelperをPythonで配るという意味ではありません。**
 
 ## helperの公開command
 
