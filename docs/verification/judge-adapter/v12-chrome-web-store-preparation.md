@@ -1,8 +1,8 @@
 # V-12 Chrome Web Store配布準備
 
-> 確認日: 2026年8月26日
+> 確認日: 2026年9月18日
 >
-> 状態: `TD-37`のローカル準備は完了。`TD-39`はreviewer用helperの受渡し方式を確定できず一度停止したが、2026年8月26日の再調査で停止理由が誤りであることを確認し、費用を伴わない方式を確定して再開した（[§4.1](#41-macos側の配布要件の再調査結果)、[§4.2](#42-採用するreviewer用helperの受渡し方式)）。CWSではdeveloper登録、新規itemへの`0.1.0` upload、Store listing・Privacy・Distributionの保存まで完了した。Distribution設定は料金なし・`Unlisted`・日本のみで、item自体はdraftのままである。test instructionsは未入力・未保存で、審査提出、公開、CWS署名済みbuild取得、`0.1.1` uploadは未実施。account名、実address、developer dashboard URLは記録していない
+> 状態: `TD-37`のローカル準備は完了。`TD-39`は受渡し方式の実装（段階1）と審査提出（段階2）を終え、**`0.1.0`が審査に合格した**（[§8.1.2](#812-2026年9月18日の審査通過記録)）。deferred publishingを選んでいるため合格だけでは公開されず、itemは未公開のままである。Distribution設定は料金なし・`Unlisted`・日本のみ。明示承認を得て2026年9月18日に限定公開まで実行した（[§8.1.3](#813-2026年9月18日の限定公開記録)）。listing URLの取得と標準追加できる事前状態の確認は未了。 CWS署名済みbuildの取得と`0.1.1` uploadは未実施。account名、実address、developer dashboard URLは記録していない
 >
 > 対象: `TD-39`のCWS審査用helperと限定公開版。製品の正式公開手順ではない
 
@@ -38,8 +38,8 @@
 
 1. publisher用Google accountのdeveloper登録と登録費用の支払い（2026年8月26日完了）
 2. 新しいCWS itemの作成とZIP upload（2026年8月26日完了）
-3. 審査への提出
-4. 審査通過後の`Unlisted`公開
+3. 審査への提出（2026年8月27日完了。合格の確認は2026年9月18日）
+4. 審査通過後の`Unlisted`公開（**未実施。別の明示承認が必要**）
 5. 更新test用`0.1.1`のupload・審査提出・反映
 6. campaign終了後にitemを非公開化する操作
 
@@ -302,28 +302,24 @@ local CookieまたはKeychain項目の削除を、CWS配布停止やAtCoder側�
 
 ## 7. 現在地
 
-2026年8月26日時点で、次まで完了しています。
+2026年9月18日時点で、次まで完了しています。
 
 - 契約同意、一回限り5米ドルの支払い、developer登録
 - 非取引業者の自己申告、Publisher nameの保存、contact emailの検証
 - 対象版`0.1.0`（SHA-256 `b0a8d07812abd8661630689e57c8c241aaeb223312bafbbc58877a4fa4dbbe78`）による新規item作成とupload、固定IDのowner-only記録
 - privacy policyとsupport pageの公開URL、実UIのscreenshot、small promo tileの準備と到達確認
 - Store listing、個人を特定できる情報・認証情報・website contentを開示したPrivacy、料金なし・`Unlisted`・日本のみのDistribution設定の保存
+- 経路1の`.tar.gz`生成とSHA-256のbuild indexへの記録、経路2のreview用フィクスチャと固定入力testの追加、サポートページへのhelper取得手順の追記と到達確認（2026年8月27日）
+- test instructionsの確定・保存、pre-submission testと最終入力の確認、deferred publishingによる審査提出（2026年8月27日）
+- **審査への合格**（2026年9月18日にownerが確認。[§8.1.2](#812-2026年9月18日の審査通過記録)）
+- **明示承認に基づく`Unlisted`公開**（2026年9月18日にownerが実行。[§8.1.3](#813-2026年9月18日の限定公開記録)）
 
 reviewer用helperの受渡し方式は[§4.2](#42-採用するreviewer用helperの受渡し方式)で確定しました。次は未実施です。
 
-- 経路1の`.tar.gz`生成とSHA-256のbuild indexへの記録
-- 経路2のreview用フィクスチャの作成と固定入力testへの追加
-- サポートページへのhelper取得手順の追記と公開URLでの到達確認
-- test instructionsの確定・保存
-- pre-submission testと最終入力の確認
-- deferred publishingによる審査提出と審査通過
-- 審査とは別の明示承認に基づく`Unlisted`公開
-- CWS配信済み`0.1.0` bytesの取得、hash固定、最終campaign manifestへの反映
-- 標準Chromeの標準追加画面でdeveloper modeなしに追加できることの確認
+- `TD-11`手順3での最終campaign manifest fileの生成（Chrome・OSの版が実行時に確定するため）
 - `TD-11`の`V-12C`で使う`0.1.1`のupload・審査
 
-この分離により、ローカル成果物を完了条件とする`TD-37`は完了です。上記の作業とcampaign manifestの`signed_builds`が未完了であるため、`TD-39`は未着手、`TD-11`と`V-12`は未完了です。
+この分離により、ローカル成果物を完了条件とする`TD-37`は完了です。**`TD-39`は2026年9月18日に完了条件をすべて満たしました**（[§8.1.4](#814-2026年9月18日の配信bytes取得記録)）。`signed_builds`へ入れる値は固定済みで、manifest fileの生成と`V-12A`〜`V-12E`の実行が残るため、`TD-11`と`V-12`は未完了です。
 
 ## 8. 判断記録と次の作業
 
@@ -382,7 +378,198 @@ https://github.com/mgmaru/algo-loom-design/blob/main/docs/verification/judge-ada
 
 test instructionsが指すフィクスチャの取得URLはcommit SHAで固定しているため、`main`への通常のコミットでは変わりません。**固定されているのはフィクスチャだけで、サポートページとprivacy policyは固定されていない**という非対称があります。
 
-現在は審査結果待ちです。結果が出るまでCWSの状態を変更しません。
+審査結果は2026年9月18日に合格を確認しました（[§8.1.2](#812-2026年9月18日の審査通過記録)）。**この2ファイルの凍結は、合格をもって解除します。** ただし解除後も次の2点は守ります。
+
+- 配信中の版の手順・開示内容と食い違う編集は行いません。サポートページとprivacy policy URLは公開後も利用者が見るページです
+- `0.1.1`を審査へ出す期間は、同じ理由で同じ凍結を再適用します
+
+### 8.1.2. 2026年9月18日の審査通過記録
+
+**`0.1.0`は審査に合格しました。** 段階2の手順11の記録です。
+
+| 項目 | 内容 |
+|---|---|
+| 結果 | 合格。不承認ではない |
+| 情報源 | ownerからの報告と、dashboardのステータス画面の表示 |
+| 確認日 | 2026年9月18日 |
+| dashboardの表示 | 「このドラフトは許可され、2026/09/27 日までに公開できます。」 |
+| 公開期限 | **2026年9月27日。** 画面表示のため推定ではない |
+| 合格日 | **2026年8月28日ごろ。** 期限表示から30日を逆算した値で、合格日欄そのものは読み取っていない。提出の翌日にあたる |
+| 対象 | 固定IDのitem、version `0.1.0`、ZIP SHA-256 `b0a8d078…4dbbe78` |
+| 公開状態 | **未公開。** deferred publishingを選んだため、合格だけでは公開されない |
+| reviewerからの要望 | 報告なし。経路1（GitHubリリース）の作成要望は発生していない |
+
+これにより、共有AtCoder credential、Gatekeeper回避、実行時compile、developer modeのいずれも要求しない受渡し方式（[§4.2](#42-採用するreviewer用helperの受渡し方式)）で審査が成立することを確認しました。2026年8月26日に停止理由として記録した4項目（[§8.1](#81-2026年8月26日の判断)）は、いずれも迂回せずに解消できたことになります。
+
+**ただし合格は、reviewerが実際にフィクスチャを起動した証拠ではありません。** 起動の有無はdashboardからは分からないため、`V-12`の前提にはしません。審査が成立したという事実だけを使います。
+
+不承認ではないため、CWS supportへの問い合わせ（手順11の後段）は発生しません。
+
+#### 公開期限
+
+deferred publishingの有効期限は**2026年9月27日**です。2026年9月18日にdashboardのステータス画面が「このドラフトは許可され、2026/09/27 日までに公開できます。」と表示していました。2026年8月27日の確認dialogが示した「合格から30日」と整合し、逆算すると合格は2026年8月28日ごろ、すなわち提出の翌日です。
+
+**期限まで残り9日です（2026年9月18日時点）。** 期限を過ぎるとdeferred publishingが失効し、再提出が必要になります。再提出は審査待ち時間が再び発生し、`V-12`全体が遅れます。
+
+この期限を`TD-11`の実行期間と混同しません。**公開そのものは短時間で終わるため、`V-12`の実行完了を9月27日までに収める必要はありません。** 期限内に行う必要があるのは公開操作だけです。
+
+#### 公開の明示承認で提示する内容
+
+公開は審査提出とは別の外部操作です。**「`TD-39`を進めてよい」「審査は通った」という連絡を、公開の承認へ読み替えません**（[§0](#0-結論)）。承認を求めるときは次を提示します。**2026年9月18日、この内容でownerの明示承認を得ました。** 承認記録そのものはリポジトリ外のowner専用領域にあります。
+
+| 提示項目 | 内容 |
+|---|---|
+| 操作 | CWS dashboardでdeferred publishingの公開を実行する。1回限り |
+| 対象 | 固定IDのitem、version `0.1.0`、ZIP SHA-256 `b0a8d078…4dbbe78` |
+| 公開範囲 | 料金なし・`Unlisted`・日本のみ。**listing URLを知る日本の利用者が、通常のChromeで標準追加できる状態になる。** 検索結果には出ないが、指定accountだけに制限する`Private`ではない |
+| 費用 | 発生しない |
+| 期限 | **2026年9月27日**（dashboard表示）。超過するとdeferred publishingが失効し、再提出が必要になる |
+| 停止方法 | 承認済みownerがdashboardからunpublishする。追加済みcopy、Keychain項目、AtCoder側sessionは別に扱う（[§6](#6-停止とcampaign終了)） |
+| 公開後に行うこと | developer modeなしに標準追加できる事前状態の確認だけ。`TD-11`の基準templateは作らない |
+| 記録先 | リポジトリ外のowner専用領域の承認記録（[§5](#5-外部操作の承認記録)） |
+
+#### 実行者と手順（2026年9月18日時点で実行待ち）
+
+**公開操作はownerが行います。** publisher用Google accountの認証情報はリポジトリにも作業環境にも置かないため（[作業ガイド §5](../../../CLAUDE.md#5-リポジトリへ書かないもの)）、AIはdashboardへ到達できません。AIが担うのは、実行前の提示、実行後の記録、`TD-11`への引き渡しです。
+
+実行前に、表示が承認内容と一致することを確かめます。**一つでも違えば公開せず停止します**（[§5](#5-外部操作の承認記録)）。
+
+| 確認項目 | 期待する表示 |
+|---|---|
+| item | 固定IDのitem。ほかのitemではない |
+| version | `0.1.0` |
+| 状態 | 「このドラフトは許可され、2026/09/27 日までに公開できます。」 |
+| Distribution | 料金なし・`Unlisted`・日本のみ |
+| 費用 | 表示されない |
+
+確認後、公開を1回だけ実行します。実行後、次を読み取って記録します。**listing URLと固定IDはowner専用領域へ記録し、リポジトリへは書きません。**
+
+| 読み取る項目 | 用途 |
+|---|---|
+| 実行時刻（UTC） | 承認記録の`approved at`と実行記録 |
+| 公開後のitem状態 | 「公開済み」等の表示。反映待ちの有無 |
+| listing URL | 標準追加の確認と、`TD-11`の最終campaign manifest |
+| visibility | `Unlisted`のまま変わっていないこと |
+| current version | `0.1.0`のまま。`0.1.1`へ置き換わっていないこと |
+
+その後、通常のChromeでlisting URLを開き、**developer modeなしに標準追加できる事前状態**であることだけを確認します。追加そのものと基準templateの作成は`TD-11`の範囲です。
+
+### 8.1.3. 2026年9月18日の限定公開記録
+
+**`0.1.0`を限定公開しました。** 段階3の手順12の記録です。dashboard操作はownerが実行し、AIは提示と記録だけを行いました。
+
+| 項目 | 確認結果 |
+|---|---|
+| 実行者 | owner |
+| 実行日 | 2026年9月18日。**分単位の時刻は未記録。** dashboardに実行時刻の表示がなく、記録の目的（いつ誰が何を承認して実行したかを後から辿ること）には日付で足りる |
+| item状態 | 「公開済み」 |
+| version | `0.1.0`。`0.1.1`へ置き換わっていない |
+| 費用 | 料金なし |
+| visibility | 限定公開（`Unlisted`） |
+| 対象地域 | **日本のみ。** 2026年9月18日に公開後の表示で再読取りした |
+| listing URL | **2026年9月18日に取得。** 値はリポジトリ外のowner専用領域にある |
+| 標準追加できる事前状態 | **確認済み。** publisher以外のprofileで「Chromeに追加」ボタンが活性だった（下記） |
+
+期限の2026年9月27日より前に公開したため、deferred publishingは失効していません。**この期限の制約はここで消化しました。**
+
+#### listing URLの書式（2026年9月18日の実測）
+
+公式docsの`cws-dashboard-distribution`、`update`、`publish`の3ページには、公開後のlisting URLの書式も所在も記載がありませんでした。**記載のない書式を推測で組み立てず、dashboardの画面から読み取った実際の値を使いました。** 読み取った値の形は次のとおりです。
+
+```text
+https://chromewebstore.google.com/detail/<name-slug>/<32文字の固定ID>
+```
+
+| 部分 | 観測した内容 |
+|---|---|
+| `<name-slug>` | item名`AlgoLoom Authentication Verification BETA`を小文字化しハイフンで連結し、**先頭25文字で切った形**と一致した。このURLが対象itemを指すことの裏付けになる。ただし一意に決めるのは固定IDであり、slugではない |
+| `<32文字の固定ID>` | 2026年8月26日にupload時へ取得した固定IDと同じもの。owner専用領域にある |
+| `?authuser=`、`?hl=` | **URLの一部ではない。** 閲覧時のquery parameterであり、最終campaign manifestへはpath部分だけを記録する |
+
+`<name-slug>`の25文字という切り方は1件の観測であり、CWSの一般規則として扱いません。**固定IDと実際のURLはリポジトリへ書きません。** owner専用領域の記録と最終campaign manifestで対応付けます。
+
+この形は、`TD-37`で用意したcampaign manifestの例（`campaign-manifest.example.json`の`listing_url`と`extension.id`）が置いているplaceholderの形と一致します。**`TD-11`へ渡すschemaを変える必要はありません。** 実際の値を差し替えるだけです。
+
+#### 標準追加できる事前状態の確認（2026年9月18日）
+
+**確認できました。** publisher accountにsign inしていない別profileの通常modeでlisting URLを開いたところ、**「Chromeに追加」ボタンが活性（青色）で押せる状態**でした。developer modeの要求も警告も出ていません。**ボタンは押していません。** 標準追加そのものは`TD-11`の`V-12B`で行います。
+
+これは`V-12`の前提そのものの確認です。**`Unlisted`で公開した`0.1.0`が、URLを知る日本の利用者に対して、developer modeも手動読込も要求せずChromeの標準画面から追加できる状態にある**ことを意味します。
+
+**publisher accountでdashboardから遷移したままのprofileでは確認しませんでした。** 2026年9月18日に読み取ったURLには`authuser=0`が付いており、publisher accountでsign inした状態で開いた可能性が高いためです。`Unlisted`はURLを知る利用者が追加できる設定であり、確認したかったのは**publisher以外の利用者から見た状態**です。確認に使った準備確認profileは、確認後に破棄します（[§5](#5-外部操作の承認記録)）。
+
+#### シークレットモードとゲストを使わない理由（2026年9月18日確認）
+
+sign inを避ける手段としてシークレットモードとゲストは使えません。公式ヘルプが次のとおり明記しています。
+
+> You can't add extensions when you browse in Incognito mode or as a guest.
+>
+> — [Install and manage extensions](https://support.google.com/chrome_webstore/answer/2664769)（2026年9月18日確認）
+
+確認したいのは「developer modeなしに**標準追加できる事前状態**か」です。シークレットモードでは追加操作そのものが禁止されているため、追加できない表示を見ても、**itemの状態が原因なのかモードが原因なのかを区別できません。** 偽の不合格を招くだけで、判断材料になりません。
+
+したがって、**publisher accountにsign inしていない通常modeのprofile**を新しく作って確認しました。Google accountへのsign in自体が不要です。この制約は`TD-11`の`V-12B`で行う実際の標準追加にも同じく当てはまります。
+
+**2026年9月18日の実測:** ゲストモードでlisting URLを開いたところ、次のメッセージが表示されました。上記の公式記載と一致します。
+
+```text
+シークレット モードまたはゲストモードでアイテムを追加、削除することはできません
+```
+
+このとき、**listing page自体にはsign inなしで到達できました。** `Unlisted`が意図どおり「URLを知る利用者が到達できる」状態であることの裏付けになります。到達と追加可否は別の観測で、追加可否は別profileの通常modeで確認しました（前節）。
+
+### 8.1.4. 2026年9月18日の配信bytes取得記録
+
+**CWSが配信する`0.1.0`のbytesを取得し、リポジトリのsourceと照合できました。** 段階3の手順13の記録です。明示承認を得たうえで、日本の端末から1回だけ接続しました。
+
+| 項目 | 結果 |
+|---|---|
+| 方法 | Chromeが更新に使うendpoint `clients2.google.com/service/update2/crx`へ、固定IDと`prodversion`を付けて1回requestした |
+| 応答 | HTTP 200、`Content-Type: application/x-chrome-extension` |
+| 形式 | 先頭4byteが`Cr24`。CRXである |
+| **SHA-256** | **`54142d2583110f8453448437c6f431c933063fa04c7b24e9d8b13867abc43c40`** |
+| **bytes** | **8429** |
+| 収録内容 | `manifest.json`、`atcoder.js`、`bootstrap.js`、`service_worker.js`、`icon128.png`、`_metadata/verified_contents.json` |
+
+このSHA-256は、uploadした`0.1.0` ZIPの`b0a8d078…4dbbe78`とは**一致しません。** CWSが再署名し、後述の2点を加えるためです。`signed_builds`をlocal buildと別枠で持つ理由がこれです。
+
+#### sourceとの照合
+
+同じ日にリポジトリのsourceから`prepare.mjs`で再buildし、配信物と1 fileずつ比較しました。
+
+| file | 結果 |
+|---|---|
+| `atcoder.js` | **byte単位で一致** |
+| `bootstrap.js` | **byte単位で一致** |
+| `service_worker.js` | **byte単位で一致** |
+| `icon128.png` | **byte単位で一致** |
+| `manifest.json` | CWSが`"update_url": "https://clients2.google.com/service/update2/crx"`の1行を挿入した差分のみ |
+| `_metadata/verified_contents.json` | **CWS側で追加されたもの。** 署名検証用のmetadataで、sourceには存在しない |
+
+再buildした`0.1.0` ZIPのSHA-256は`b0a8d078…4dbbe78`で、2026年8月26日にuploadした値と一致しました。**`TD-37`が記録したbuildの再現性が、別のpathでの再実行でも成り立つことを確認できました。**
+
+**結論として、CWSが利用者へ配信するのは、リポジトリのsourceから再現できるbytesに、CWSが付けるupdate_url行と署名metadataを加えたものだけです。** 配信物に第三者のコードや追加の権限は入っていません。配信された`manifest.json`の権限は`cookies`、`storage`とhost 2件のみで、content scriptの対象も`127.0.0.1`と`https://atcoder.jp/settings*`のままでした。申告・審査した範囲と一致します。
+
+#### 方法の位置づけと、`TD-11`での再確認
+
+この取得方法は**公式docsに記載のないquery parameterを使っています。** endpointのhost自体は「CWS掲載拡張の`update_url`」として[公式docs](https://developer.chrome.com/docs/extensions/how-to/distribute/install-extensions)に記載がありますが、直接downloadの書式は記載がありません。**2026年9月18日に成功したという事実の記録であり、将来も同じ方法で取得できる保証はありません。**
+
+あわせて、**CWSが同じversionを再packageすればhashが変わる可能性があります。** `TD-11`の`V-12A`では、この記録との一致を検査するのではなく、**そのとき配信されているbytesを取り直してcampaign manifestへ固定し、本記録との異同を記録します。** 異なっていた場合は、sourceとの照合を同じ手順でやり直します。
+
+#### `TD-11`へ引き渡す値
+
+`TD-39`はここまでを固定します。campaign manifest fileそのものは、Chrome・OSの版が実行時に確定するため、`TD-11`手順3で隔離環境へ作ります。
+
+| manifestのfield | 引き渡す値 | 置き場所 |
+|---|---|---|
+| `extension.id` | 32文字の固定ID | owner専用領域 |
+| `extension.listing_url` | 限定公開のlisting URL | owner専用領域 |
+| `extension.target_version` | `0.1.0` | 本書 |
+| `extension.signed_builds[].sha256` | `54142d25…abc43c40` | 本書 |
+| `extension.signed_builds[].bytes` | `8429` | 本書 |
+| local buildの`0.1.0` ZIP | `b0a8d078…4dbbe78` | 本書・`build-index.json` |
+| helper、protocol、同意版、template schema | `TD-37`の`build-index.json`と`campaign-manifest.example.json`の形式 | リポジトリ |
+| Chrome・OSの版 | **実行時に確定** | `TD-11` |
 
 ### 8.2. 次に行う作業
 
@@ -406,12 +593,12 @@ test instructionsが指すフィクスチャの取得URLはcommit SHAで固定�
 6. [§4.3](#43-test-instructionsの方針)に従いtest instructionsの文面を確定し、入力内容とhelper受渡し先を提示して**明示承認**を得てから保存する。
 7. dashboardのpre-submission test、要求権限、data disclosure、listing、Privacy、Distribution、version、ZIPハッシュを再確認する。不合格、差分、helper再現不能があれば審査へ送信しない。
 8. 対象item、version、ZIPハッシュ、料金なし、`Unlisted`・日本のみ、test instructions、審査通過だけでは自動公開しないことを提示して**明示承認**を得る。承認後、deferred publishingを選んで審査へ送信する。
-9. 審査結果を記録する。不承認なら理由を記録して停止し、credential共有、Gatekeeper回避、別配布元、手動読込で迂回しない。helperを再現できないことが理由の場合にだけ、文面と送信先を提示して**明示承認**を得たうえでCWS supportへ問い合わせる。
+9. 審査結果を記録する。不承認なら理由を記録して停止し、credential共有、Gatekeeper回避、別配布元、手動読込で迂回しない。helperを再現できないことが理由の場合にだけ、文面と送信先を提示して**明示承認**を得たうえでCWS supportへ問い合わせる。**2026年9月18日完了。** 合格したため問い合わせは発生しない（[§8.1.2](#812-2026年9月18日の審査通過記録)）
 
 #### 段階3: 限定公開と`TD-11`への引き渡し（別の明示承認が必要）
 
-10. 対象item、version、限定公開URL、停止方法を再提示し、公開の**明示承認**を別に得る。公開後、通常Chromeの標準追加画面でdeveloper modeなしに追加できる事前状態だけを確認し、`TD-11`の基準templateはまだ作らない。
-11. CWS配信済み`0.1.0`の正確なbytesを取得できた場合だけハッシュを固定し、固定ID、listing URL、helper、protocol、source、build、Chrome・OS、template schema、同意版とともに最終campaign manifestへ記録する。取得できない場合は`TD-11`へ進まない。
+10. 対象item、version、限定公開URL、停止方法を再提示し、公開の**明示承認**を別に得る。公開後、通常Chromeの標準追加画面でdeveloper modeなしに追加できる事前状態だけを確認し、`TD-11`の基準templateはまだ作らない。**2026年9月18日に明示承認を取得し、同日ownerが実行した（[§8.1.3](#813-2026年9月18日の限定公開記録)）。** listing URLの取得、対象地域の再読取り、標準追加できる事前状態の確認が残っている
+11. CWS配信済み`0.1.0`の正確なbytesを取得できた場合だけハッシュを固定し、固定ID、listing URL、helper、protocol、source、build、Chrome・OS、template schema、同意版とともに最終campaign manifestへ記録する。取得できない場合は`TD-11`へ進まない。**2026年9月18日に取得とsourceとの照合まで完了（[§8.1.4](#814-2026年9月18日の配信bytes取得記録)）。** manifest fileの生成は、Chrome・OSの版が実行時に確定するため`TD-11`手順3で行う
 12. `0.1.1`は`TD-11`の`V-12C`で明示承認を得るまでuploadしない。`0.1.0`の初回標準追加を確認する前にcurrent versionを置き換えない。
 
-**この後に人が判断する必要があるのは、段階2の#6・#8・#9と段階3の#10だけです。** 段階1に外部影響はありません。
+**段階3の#10は2026年9月18日に完了しました。** 残るのは#11（配信bytesの取得とmanifestへの固定）と#12（`0.1.1`を`TD-11`まで上げない）で、#11の前に[§8.1.3](#813-2026年9月18日の限定公開記録)の読取り3件が要ります。 段階2の#6・#8は完了し、#9は合格の記録で消化しました。段階1に外部影響はありません。

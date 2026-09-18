@@ -163,18 +163,16 @@ flowchart TD
 
 ### 外部の応答を待っている作業
 
-AlgoLoomの側では進められず、外部の応答を待っている作業をここに集約します。**再開時に最初に確認してください。**
+AlgoLoomの側では進められず、外部の応答または人の承認を待っている作業をここに集約します。**再開時に最初に確認してください。**
 
-| 作業 | 待っているもの | 開始日 | 期限 | 確認場所 |
-|---|---|---|---|---|
-| [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) 手順11 | Chrome Web Storeの審査結果 | 2026年8月27日 | 審査自体に期限はない。**通過後は30日以内に公開**しないとdeferred publishingが期限切れになる | CWS developer dashboardのホームページ |
+**外部の応答待ちと期限付きの作業はありません。** Chrome Web Storeの審査は2026年9月18日に合格し、同日に明示承認を得て`0.1.0`を限定公開しました。deferred publishingの30日期限は消化済みです。listing URLの取得、対象地域の再読取り、標準追加できる事前状態の確認も同日に終わりました。**待っている作業はありません。**
 
-審査結果が出るまでCWSの状態を変更しません。待っている間は、依存を持たない作業（`TD-14`、`TD-17`、`TD-21`、`TD-25`、`TD-31`）を並行して進められます。
+**`TD-39`は2026年9月18日に完了しました。** 手順13の配信bytes取得も同日に明示承認を得て実行し、SHA-256とbytesを固定したうえで、リポジトリのsourceと照合しています（[CWS配布準備 §8.1.4](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#814-2026年9月18日の配信bytes取得記録)）。次に着手できるのは[`TD-11`](#td-11-方式a製品形態を実サービスで検証する)です。手順は[CWS配布準備 §8.1.3](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#813-2026年9月18日の限定公開記録)にあります。待っている間は、依存を持たない作業（`TD-14`、`TD-17`、`TD-21`、`TD-25`、`TD-31`）を並行して進められます。
 
-**⚠️ 審査中は次の2ファイルを変更しません。** listingのサポートURLとprivacy policy URLがGitHubの`main`を指しているため、コミットすると審査担当者が見るページが即座に変わります。
+**審査中の2ファイルの凍結は、合格をもって解除しました。** [`v12-extension-support.md`](docs/verification/judge-adapter/v12-extension-support.md)と[`v12-extension-privacy-policy.md`](docs/verification/judge-adapter/v12-extension-privacy-policy.md)は、listingのサポートURL・privacy policy URLがGitHubの`main`を指すため、コミットすると利用者と審査担当者が見るページが即座に変わります。解除後も次を守ります。
 
-- [`docs/verification/judge-adapter/v12-extension-support.md`](docs/verification/judge-adapter/v12-extension-support.md)
-- [`docs/verification/judge-adapter/v12-extension-privacy-policy.md`](docs/verification/judge-adapter/v12-extension-privacy-policy.md)
+- 配信中の版の手順・開示内容と食い違う編集を行わない
+- `0.1.1`を審査へ出す期間は同じ凍結を再適用する
 
 詳細は[CWS配布準備 §8.1.1](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#審査中に変更してはいけないもの)を参照します。
 
@@ -191,7 +189,7 @@ AlgoLoomの側では進められず、外部の応答を待っている作業を
 | [`TD-09`](#td-09-方式aの製品形態候補を机上比較する) | 設計判断 | 方式Aの製品形態候補を机上比較する | `TD-01`, `TD-08` | 完了 |
 | [`TD-10`](#td-10-方式a製品形態の検証項目を追加する) | 技術検証 | 方式A製品形態の検証項目を追加する | `TD-09` | 完了 |
 | [`TD-37`](#td-37-v-12検証用のローカル配布候補を準備する) | 技術検証 | `V-12`検証用のローカル配布候補を準備する | `TD-10` | 完了 |
-| [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 進行中 |
+| [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 完了 |
 | [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39` | 未着手 |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 |
 | [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 |
@@ -607,6 +605,10 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 
 **段階1: 受渡し方式の実装（外部操作なし）**
 
+**2026年9月18日の実施記録（手順12）:** **`0.1.0`を限定公開しました。** 明示承認を得たうえでownerがdashboardで実行し、「公開済み」・料金なし・限定公開・version `0.1.0`を確認しています。**期限の9月27日より前に実行したため、deferred publishingは失効していません。** publisher用Google accountの認証情報はリポジトリにも作業環境にも置かないため、AIはdashboardへ到達できず、実行はownerが行いました。承認記録そのものはリポジトリ外のowner専用領域にあります。listing URLは同日に取得して値をリポジトリ外のowner専用領域へ置き、対象地域が日本のみであることも再読取りしました。対象地域が日本のみであること、**publisher以外のprofileで「Chromeに追加」ボタンが活性である**ことも同日に確認しました。ボタンは押していません。手順13の前提はすべて満たしています（[CWS配布準備 §8.1.3](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#813-2026年9月18日の限定公開記録)）。
+
+**2026年9月18日の実施記録（手順11）:** **`0.1.0`は審査に合格しました。** deferred publishingを選んでいるため、合格だけでは公開されず未公開のままです。不承認ではないため、CWS supportへの問い合わせは発生しません。dashboardのステータス画面は「このドラフトは許可され、2026/09/27 日までに公開できます。」と表示しており、**公開期限は2026年9月27日**です。逆算すると合格は提出翌日の2026年8月28日ごろです。残るのは手順12〜14で、**公開には審査提出とは別の明示承認が必要**です。提示内容、期限の確定手順、審査中の凍結解除の条件は[CWS配布準備 §8.1.2](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#812-2026年9月18日の審査通過記録)を参照します。
+
 **2026年8月27日の実施記録（段階2）:** 手順7〜10を実施し、**version `0.1.0`を審査へ提出しました。** deferred publishingを選び、審査通過だけでは自動公開されない状態です。提出前の確認では上部バナー・tab警告がなく、Category `Developer Tools`、Language English、料金なし・限定公開・日本のみ、test instructions 486文字を確認しています。**確認dialogで「後で公開するアイテムの有効期限は、審査の合格後30日」と表示されたため、手順12を通過後30日以内に行う制約が加わりました。** 現在は審査結果待ちです。詳細は[CWS配布準備 §8.1.1](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#811-2026年8月27日の審査提出記録)を参照します。
 
 **2026年8月27日の実施記録（段階1）:** 手順1〜4を完了しました。[`algoloom_v12_review_fixture.py`](scripts/verification/atcoder_v12/algoloom_v12_review_fixture.py)がhelperと同じprotocolと検査を実装し、受け取った値を破棄して保存も外部接続も行いません。`prepare.mjs`が再現可能な`.tar.gz`を生成し、固定入力testはNode 12件・Goすべて・fixtureの`--self-test` 16 caseが合格しています。macOS 26.5・Apple siliconの実測で、**`tar`はアーカイブのquarantine属性を展開先へ伝播し、ブラウザ取得ではhelperが`SIGKILL`で停止する**ことを確認したため、主経路をフィクスチャ（経路2）としました。手順5は原稿を完了し、GitHubリリースへのuploadだけが明示承認待ちです。
@@ -624,35 +626,34 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 8. AtCoder username、password、Cookieを共有せず、reviewer自身が利用を許可されたaccountと、hash固定済みhelperまたはフィクスチャだけで再現できる500文字以内のtest instructionsを確定する。入力内容とhelper受渡し先を提示し、明示承認後に保存する。
 9. dashboardのpre-submission test、要求権限、data disclosure、listing、Privacy、Distribution、version、ZIP hashを再確認する。不合格、差分、helper再現不能があれば審査へ送信しない。
 10. 対象item、version、ZIP hash、料金なし、限定公開・日本のみ、test instructions、審査後の自動公開を無効にすることを提示して明示承認を得る。承認後、deferred publishingを選んで審査へ送信する。
-11. 審査結果を記録する。不承認なら理由を記録して停止し、credential共有、Gatekeeper回避、別配布元、手動読込で迂回しない。helperを再現できないことが理由の場合にだけ、文面と送信先を提示して明示承認を得たうえでCWS supportへ問い合わせる。
+11. 審査結果を記録する。不承認なら理由を記録して停止し、credential共有、Gatekeeper回避、別配布元、手動読込で迂回しない。helperを再現できないことが理由の場合にだけ、文面と送信先を提示して明示承認を得たうえでCWS supportへ問い合わせる。**2026年9月18日完了。合格したため問い合わせは行いません。**
 
 **次回の再開時に最初に行うこと**
 
-1. CWS developer dashboardのホームページで審査ステータスを確認する。CWSの状態は変更しない。
-2. 結果に応じて分岐する。
-   - **通過** → 手順12へ。**通過日から30日以内**に公開の明示承認と実行を行う。期限を過ぎるとdeferred publishingが失効し、再提出が必要になる
-   - **不承認** → 手順11に従い理由を記録して停止する。credential共有、Gatekeeper回避、別配布元、手動読込で迂回しない。helper再現不能が理由の場合だけ、文面を提示して明示承認を得たうえでCWS supportへ問い合わせる
-   - **審査中** → 何もしない。依存を持たない他の作業を進める
-3. 提出済みの内容は[CWS配布準備 §8.1.1](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#811-2026年8月27日の審査提出記録)にあり、拡張機能の固定IDはリポジトリ外のowner専用記録にあります。
+**`TD-39`は完了しました。** 期限のある作業も待ちの作業もありません。
+
+1. 次に着手するのは[`TD-11`](#td-11-方式a製品形態を実サービスで検証する)です。**AtCoderへ接続する検証を含むため、開始前に当日の外部条件の確認と明示承認が要ります。**
+2. `TD-11`手順3で最終campaign manifestを作るとき、`TD-39`が固定した値を使います。引き渡す値の一覧は[CWS配布準備 §8.1.4](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#814-2026年9月18日の配信bytes取得記録)にあります。**`V-12A`では配信bytesを取り直し、同節の記録との異同を記録します。** CWSが再packageすればhashが変わるためです。
+3. 経緯は、提出が[§8.1.1](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#811-2026年8月27日の審査提出記録)、合格が[§8.1.2](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#812-2026年9月18日の審査通過記録)、公開と公開後の確認が[§8.1.3](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#813-2026年9月18日の限定公開記録)にあります。拡張機能の固定IDとlisting URLはリポジトリ外のowner専用記録にあります。
 
 **段階3: 限定公開と`TD-11`への引き渡し（別の明示承認）**
 
-12. 審査通過後、対象item、version、限定公開URLを知る日本の利用者が追加できること、停止方法を再提示し、公開の明示承認を別に得る。**deferred publishingの有効期限は審査合格後30日**（2026年8月27日の確認dialogで観測）であるため、通過の連絡を受けてから30日以内に実施する。公開後、通常Chromeの標準画面で追加可能な状態だけを確認し、`TD-11`の基準templateはまだ作らない。
-13. CWS配信済み`0.1.0`の正確なbytesを取得できた場合だけhashを固定し、固定ID、listing URL、helper、protocol、source、build、Chrome・OS、template schema、同意版とともに最終campaign manifestへ記録する。取得不能なら`TD-11`へ進まない。
+12. 審査通過後、対象item、version、限定公開URLを知る日本の利用者が追加できること、停止方法を再提示し、公開の明示承認を別に得る。**deferred publishingの有効期限は審査合格後30日**（2026年8月27日の確認dialogで観測）であるため、通過の連絡を受けてから30日以内に実施する。公開後、通常Chromeの標準画面で追加可能な状態だけを確認し、`TD-11`の基準templateはまだ作らない。**2026年9月18日時点で承認待ち。** 提示内容は[CWS配布準備 §8.1.2](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#812-2026年9月18日の審査通過記録)にある。
+13. CWS配信済み`0.1.0`の正確なbytesを取得できた場合だけhashを固定し、固定ID、listing URL、helper、protocol、source、build、Chrome・OS、template schema、同意版とともに最終campaign manifestへ記録する。取得不能なら`TD-11`へ進まない。**2026年9月18日完了。** 取得とsourceとの照合の結果は[CWS配布準備 §8.1.4](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#814-2026年9月18日の配信bytes取得記録)にある。
 14. 更新用`0.1.1` ZIPは`TD-11`の`V-12C`で明示承認後に使うまでuploadしない。`0.1.0`の初回標準追加を確認する前にcurrent versionを置き換えない。
 
 **完了条件:**
 
-- [ ] reviewer用helperの配布方法が確定し、共有credential、Gatekeeper回避、実行時compile、developer modeを要求せず再現できる
+- [x] reviewer用helperの配布方法が確定し、共有credential、Gatekeeper回避、実行時compile、developer modeを要求せず再現できる（方式は2026年8月27日に確定、審査合格で成立を確認。ただし合格はreviewerがフィクスチャを起動した証拠ではない）
 - [x] 経路1の`.tar.gz`が隔離buildから再現でき、SHA-256とbytesが`build-index.json`へ固定されている
 - [x] 経路2のreview用フィクスチャが、拡張機能のsourceを変更せずに同意画面から本人照合まで到達し、外部接続なしの固定入力testが合格している
-- [ ] test instructionsが秘密情報を含まず、承認済み内容で保存されている
-- [ ] CWSのpre-submission testと人による最終確認が合格し、差分がない
-- [ ] 明示承認後にdeferred publishingで審査へ提出し、審査に合格している
-- [ ] 別の明示承認後に`0.1.0`が料金なし・限定公開・日本のみで公開され、標準追加できる事前状態である
-- [ ] CWS配信済み`0.1.0`のbytesとhashを取得し、最終campaign manifestで拡張機能、helper、protocol、template schema、同意版を一意に対応付けている
-- [ ] publisher credential、署名・notarization用秘密値、AtCoder credential、実account名がrepository、公開成果物、通常logへ含まれていない
-- [ ] `0.1.1`が未uploadのまま保持され、`TD-11`の更新test前に対象版`0.1.0`を置き換えていない
+- [x] test instructionsが秘密情報を含まず、承認済み内容で保存されている（2026年8月27日。username・password欄は空欄、追加手順486文字）
+- [x] CWSのpre-submission testと人による最終確認が合格し、差分がない（2026年8月27日）
+- [x] 明示承認後にdeferred publishingで審査へ提出し、審査に合格している（提出2026年8月27日、合格の確認2026年9月18日）
+- [x] 別の明示承認後に`0.1.0`が料金なし・限定公開・日本のみで公開され、標準追加できる事前状態である（2026年9月18日。料金なし・限定公開・日本のみ・`0.1.0`・listing URLを確認し、publisher以外のprofileで「Chromeに追加」ボタンが活性であることを確認。ボタンは押していない）
+- [x] CWS配信済み`0.1.0`のbytesとhashを取得し、最終campaign manifestで拡張機能、helper、protocol、template schema、同意版を一意に対応付けている（2026年9月18日にbytesを取得してSHA-256 `54142d25…abc43c40`・8429 bytesを固定し、リポジトリのsourceと照合。**manifest fileの生成はChrome・OSの版が実行時に確定するため`TD-11`手順3で行い、`TD-39`は値を固定して引き渡す**）
+- [x] publisher credential、署名・notarization用秘密値、AtCoder credential、実account名がrepository、公開成果物、通常logへ含まれていない（2026年9月18日にrepositoryを走査。固定ID・秘密鍵・token・端末pathは0件。CLI例の`--user`へ端末の利用者名と同じ値が1件あったため、同じfileの他の例と同じ`USER`へ置換した。公開成果物は`TD-37`の隔離buildの非混入検査で確認済み）
+- [x] `0.1.1`が未uploadのまま保持され、`TD-11`の更新test前に対象版`0.1.0`を置き換えていない（2026年9月18日の公開後の確認でcurrent versionは`0.1.0`）
 
 ---
 
@@ -670,7 +671,7 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 2. リポジトリ外の一時ディレクトリへ隔離したcampaign実行環境を用意する。
 3. `TD-37`で準備し、`TD-39`でCWS配信物まで固定した検証物からcampaign IDとmanifestを一つ作り、`V-12A`〜`V-12E`の各開始時に一致を検査する。製品挙動へ影響する項目が変わった場合は同じcampaignの続きとして扱わず、`TD-10`の結果無効化規則に従って新しいcampaignで必要なsub検証からやり直す。
 4. AtCoderへ接続する前に`V-12A`を実行し、`TD-37`の固定入力・ローカル観測と`TD-39`の署名済み配布物へ対応付けて結果を記録する。不合格なら後続へ進まない。
-5. `aloom auth login`相当から`V-12B → V-12D`を一連の初回導線として実行する。通常Chromeでの標準追加、導入完了の自動検出、Chrome完全終了、基準templateの確定から、そのtemplateを使ったAtCoderログイン、本人確認、秘密情報保管庫への保存、新しいprocessでの再照合、CLIへの結果表示まで続ける。`V-12B`の結果記録のためにCLIへ戻ったり、browser、helper、templateを作り直したりせず、copy-and-pasteや手動ページ移動も行わない。
+5. `aloom auth login`相当から`V-12B → V-12D`を一連の初回導線として実行する。通常Chromeでの標準追加（**シークレットモードとゲストでは拡張機能を追加できないため使わない**。[CWS配布準備 §8.1.3](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#シークレットモードとゲストを使わない理由2026年9月18日確認)）、導入完了の自動検出、Chrome完全終了、基準templateの確定から、そのtemplateを使ったAtCoderログイン、本人確認、秘密情報保管庫への保存、新しいprocessでの再照合、CLIへの結果表示まで続ける。`V-12B`の結果記録のためにCLIへ戻ったり、browser、helper、templateを作り直したりせず、copy-and-pasteや手動ページ移動も行わない。
 6. `V-12D`の観測後、実行用profile、未確認session、待受処理を回収する。AtCoderのCookie、履歴、入力情報を含まない基準templateは`V-12E`まで保持し、確認済みの保存sessionは`V-12C`から隔離する。
 7. `V-12C`を、取消・故障・更新条件ごとの独立caseとして実行する。基準templateが不要なcaseには新しい使い捨てprofileを、必要なcaseには基準templateの使い捨て複製を使い、secret namespaceもcaseごとに隔離する。Chrome本体等の環境全体を変更するcaseは隔離した環境snapshotで行う。AtCoderへは接続せず、基準template、通常系のChrome環境、`V-12D`の保存sessionを変更しない。各caseの終了時にprocess、待受、file lock、一時profile、未確認sessionの残存がないことを確認する。
 8. `V-12E`の直前に、AtCoder側のsessionを意図的に失効させず、製品の削除契約に従って保存済みlocal sessionだけを除去する。別のCLI実行から`submit`相当の入口を開始し、失効理由と中止方法、browser自動起動、利用者によるAtCoderログイン、同じbrowserでの提出確認画面への遷移までを確認する。別の認証commandや追加のYes/No確認を挟まず、最後の提出操作は行わない。
