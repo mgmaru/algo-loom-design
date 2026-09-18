@@ -18,6 +18,7 @@ node scripts/todo-status.mjs
 | 場所 | 役割 |
 |---|---|
 | [`docs/`](docs/) | 設計判断の**正本**。製品思想、設計理由、判断経緯、調査記録 |
+| [`docs/decisions/`](docs/decisions/README.md) | 判断した時点の記録（ADR）。**書き換えません。** 現在の仕様の正本ではありません |
 | [`spec/`](spec/) | `docs/`から作る規範的な**投影**。独立した正本ではない |
 | [`scripts/verification/`](scripts/verification/) | 技術検証の支援物。**製品コードではなく、製品へ流用しない** |
 
@@ -26,7 +27,7 @@ node scripts/todo-status.mjs
 ## 3. 変更したら必ず実行する
 
 ```console
-node scripts/check-docs.mjs                          # 相対リンクとアンカー
+node scripts/check-docs.mjs                          # 相対リンクとアンカー、決定記録とTODOの相互リンク
 node --test scripts/verification/test_atcoder_v12.mjs # 検証物の固定入力test
 python3 scripts/verification/atcoder_v12/algoloom_v12_review_fixture.py --self-test
 cd scripts/verification/atcoder_v12/helper && go test ./...
@@ -79,5 +80,13 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 
 - **製品の契約が変わる判断は人間が関与します。** 保存する内容、利用者へ示す約束、外部作用の範囲が変わるものは、決める前に提示して確認を得ます
 - 実装方法、内部構成、文書の構成は、契約を変えない範囲で進めて構いません
+
+判断を行ったら、**同じ変更で[決定記録](docs/decisions/README.md)を書きます。** 採用しなかった選択肢があるもの、前提が変われば覆りうるものが対象です。書き方は次の3点です。
+
+- **本文を書き換えません。** 判断が変わったら新しいADRを書き、旧ADRには状態と行き先のリンクだけを足します
+- **背景と前提を必ず書きます。** 後から「その前提が誤りだったか」を評価できるようにするためです
+- 関連する作業があれば、ADRの「関連TODO」と[`TODO.md`](TODO.md)一覧表の「決定」列の**両方**へ書きます。片側だけなら`check-docs.mjs`が落とします
+
+2026年9月18日より前の決定へは遡及しません（[ADR-0001](docs/decisions/0001-adopt-decision-records.md)）。
 
 判断に迷ったら、[製品契約と実装判断の境界](docs/project/product-contract-and-implementation-boundary.md)を参照します。

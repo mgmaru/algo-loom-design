@@ -110,6 +110,7 @@ node scripts/check-docs.mjs    # 相対リンクとアンカーの検査
 | [AtCoder認証・認可の境界整理](docs/project/atcoder-authentication-authorization-boundary.md) | ブラウザ認証、利用委譲、セッション受け渡し、CLI側の本人確認、操作ごとの認可 | 認証と認可の概念境界 |
 | [AtCoder認証UX設計](docs/project/atcoder-authentication-manual-operation-automation.md) | `auth login`、初回設定、`submit`からの再認証、一往復のCLI・ブラウザ導線、取消 | 採用するUX契約。実現手段は検証中 |
 | [契約の考え方](docs/project/contract-concepts.md) | 製品契約、Core契約、保存契約、境界の契約、契約テストの平易な説明 | 用語・概念ガイド |
+| [決定記録](docs/decisions/README.md) | 判断した時点の背景、前提、決定、理由、影響 | **判断の履歴。書き換えない。** 現在の仕様の正本ではない |
 | [製品契約と実装判断の境界](docs/project/product-contract-and-implementation-boundary.md) | 「製品の意味」が変わる判断と、実装ADRへ委ねる判断の区別 | 設計・実装判断のガイド |
 | [ライブラリ選定記録](docs/project/library-selection.md) | MVP実装で使うライブラリと外部ツールの採否、根拠、再評価条件 | 工程4の選定判断。`online-judge-tools`は決定済み、その他は進行中 |
 | [未決事項一覧](docs/project/unresolved-decisions.md) | 未決、一部決定済み、条件付き決定の集約 | 判断状況の一覧。各設計の正本は置き換えない |

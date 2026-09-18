@@ -8,18 +8,19 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const ROW = /^\|\s*\[?`(TD-\d+)`\]?[^|]*\|([^|]*)\|([^|]*)\|([^|]*)\|\s*(\S+)\s*\|$/gm;
+const ROW = /^\|\s*\[?`(TD-\d+)`\]?[^|]*\|([^|]*)\|([^|]*)\|([^|]*)\|\s*(\S+)\s*\|([^|]*)\|$/gm;
 
 const text = fs.readFileSync(path.join(ROOT, "TODO.md"), "utf8");
 const tasks = new Map();
 for (const match of text.matchAll(ROW)) {
-  const [, id, category, work, dependsOn, status] = match;
+  const [, id, category, work, dependsOn, status, decisions] = match;
   tasks.set(id, {
     id,
     category: category.trim(),
     work: work.trim(),
     dependsOn: [...dependsOn.matchAll(/`(TD-\d+)`/g)].map((m) => m[1]),
     status: status.trim(),
+    decisions: [...decisions.matchAll(/ADR-\d+/g)].map((m) => m[0]),
   });
 }
 if (tasks.size === 0) {
@@ -54,7 +55,8 @@ const ready = open
 process.stdout.write(`完了 ${done.size} / 全 ${tasks.size}\n\n着手可能な作業（下流を多く解放する順）\n`);
 for (const task of ready) {
   const state = task.status === "完了" ? "" : `[${task.status}] `;
-  process.stdout.write(`  ${task.id.padEnd(6)} 下流${String(task.blocks).padStart(2)}件  ${state}${task.work}\n`);
+  const adr = task.decisions.length > 0 ? `  → ${task.decisions.join("、")}` : "";
+  process.stdout.write(`  ${task.id.padEnd(6)} 下流${String(task.blocks).padStart(2)}件  ${state}${task.work}${adr}\n`);
 }
 const waiting = open.filter((t) => t.status === "進行中" || t.status === "保留");
 if (waiting.length > 0) {

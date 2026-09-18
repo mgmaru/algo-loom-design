@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-// リポジトリ内のMarkdownの相対リンクとアンカーを検査する。
+// リポジトリ内のMarkdownの相対リンクとアンカー、および決定記録とTODOの相互リンクを検査する。
 // 使い方: node scripts/check-docs.mjs
-// 壊れたリンクが1件でもあれば終了コード1で終わる。
+// 壊れたリンクまたは片側だけの相互リンクが1件でもあれば終了コード1で終わる。
 
 import fs from "node:fs";
 import path from "node:path";
@@ -80,8 +80,64 @@ for (const file of files) {
   }
 }
 
+// 決定記録（ADR）とTODOの相互リンクを検査する。どちらか片側だけの記載を落とす。
+const DECISIONS = path.join(ROOT, "docs", "decisions");
+const TODO_ROW = /^\|\s*\[?`(TD-\d+)`\]?[^|]*\|[^|]*\|[^|]*\|[^|]*\|[^|]*\|([^|]*)\|$/gm;
+const RELATED_TODO_ROW = /^\|\s*関連TODO\s*\|([^|]*)\|/m;
+const ADR_ID = /ADR-\d+/g;
+
+function decisionIndex() {
+  const byAdr = new Map();
+  if (!fs.existsSync(DECISIONS)) return byAdr;
+  for (const name of fs.readdirSync(DECISIONS).sort()) {
+    const found = /^(\d{4})-.+\.md$/.exec(name);
+    if (!found) continue;
+    const text = fs.readFileSync(path.join(DECISIONS, name), "utf8");
+    const related = RELATED_TODO_ROW.exec(text);
+    byAdr.set(`ADR-${found[1]}`, {
+      file: path.join("docs", "decisions", name),
+      todos: new Set(related ? [...related[1].matchAll(/TD-\d+/g)].map((m) => m[0]) : []),
+    });
+  }
+  return byAdr;
+}
+
+const adrs = decisionIndex();
+const todoText = fs.existsSync(path.join(ROOT, "TODO.md"))
+  ? fs.readFileSync(path.join(ROOT, "TODO.md"), "utf8")
+  : "";
+const todoRows = new Map(
+  [...todoText.matchAll(TODO_ROW)].map((m) => [m[1], new Set([...m[2].matchAll(ADR_ID)].map((a) => a[0]))]),
+);
+const crossProblems = [];
+
+for (const [adr, entry] of adrs) {
+  for (const todo of entry.todos) {
+    const listed = todoRows.get(todo);
+    if (!listed) {
+      crossProblems.push(`${entry.file} -> ${todo} (TODO.mdの一覧表にその作業がない)`);
+    } else if (!listed.has(adr)) {
+      crossProblems.push(`${entry.file} -> ${todo} (TODO.mdの「決定」列に${adr}がない)`);
+    }
+  }
+}
+for (const [todo, listed] of todoRows) {
+  for (const adr of listed) {
+    const entry = adrs.get(adr);
+    if (!entry) {
+      crossProblems.push(`TODO.md -> ${adr} (${todo}の「決定」列が指す決定記録がない)`);
+    } else if (!entry.todos.has(todo)) {
+      crossProblems.push(`TODO.md -> ${adr} (${entry.file}の「関連TODO」に${todo}がない)`);
+    }
+  }
+}
+
 for (const problem of problems) process.stdout.write(`NG ${problem}\n`);
+for (const problem of crossProblems) process.stdout.write(`NG ${problem}\n`);
 process.stdout.write(
   `${problems.length === 0 ? "OK" : "NG"} Markdown ${files.length}件を検査し、壊れたリンクは${problems.length}件でした\n`,
 );
-process.exit(problems.length === 0 ? 0 : 1);
+process.stdout.write(
+  `${crossProblems.length === 0 ? "OK" : "NG"} 決定記録 ${adrs.size}件とTODOの相互リンクを検査し、片側だけの記載は${crossProblems.length}件でした\n`,
+);
+process.exit(problems.length === 0 && crossProblems.length === 0 ? 0 : 1);
