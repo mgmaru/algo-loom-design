@@ -307,7 +307,7 @@ aloom browse
 AtCoderユーザー名が設定されている場合:
 
 ```bash
-aloom browse --user hiroaki
+aloom browse --user USER
 ```
 
 `browse`はAtCoder Problemsの一覧画面をデフォルトブラウザで開く。基本的な一覧の閲覧に、AtCoder ProblemsのログイントークンをAlgoLoomが扱う必要はない。
