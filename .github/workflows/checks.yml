@@ -1,0 +1,77 @@
+# 設計文書と検証物の検査。外部サービスへは接続しない。
+# 接続を伴う検証（V-12等）は人の明示承認が要るため、CIでは実行しない（CLAUDE.md §4）。
+name: checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  documents:
+    name: 文書と検証物
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: scripts/verification/atcoder_v12/helper/go.mod
+          # helperは標準ライブラリだけを使い、go.sumを持たないためcacheを無効にする
+          cache: false
+
+      - name: 相対リンクとアンカー、決定記録との相互リンク
+        run: node scripts/check-docs.mjs
+
+      - name: 禁止事項の走査
+        run: node scripts/check-forbidden.mjs
+
+      - name: 固定入力test
+        run: node --test scripts/verification/test_atcoder_v12.mjs
+
+      - name: review用フィクスチャ
+        run: python3 scripts/verification/atcoder_v12/algoloom_v12_review_fixture.py --self-test
+
+      - name: helper
+        working-directory: scripts/verification/atcoder_v12/helper
+        run: go test ./...
+
+  decision:
+    name: 判断の確認
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 変更されたfileを取得する
+        run: |
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          git diff --name-only "origin/${{ github.base_ref }}...HEAD" > changed.txt
+          cat changed.txt
+
+      - name: 判断を含むPRなら確認項目を検査する
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: CHANGED_FILES="$(cat changed.txt)" node scripts/check-decision-pr.mjs

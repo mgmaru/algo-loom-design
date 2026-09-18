@@ -28,12 +28,17 @@ node scripts/todo-status.mjs
 
 ```console
 node scripts/check-docs.mjs                          # 相対リンクとアンカー、決定記録とTODOの相互リンク
+node scripts/check-forbidden.mjs                     # リポジトリへ書いてはいけない値の走査
 node --test scripts/verification/test_atcoder_v12.mjs # 検証物の固定入力test
 python3 scripts/verification/atcoder_v12/algoloom_v12_review_fixture.py --self-test
 cd scripts/verification/atcoder_v12/helper && go test ./...
 ```
 
 `check-docs.mjs`は壊れたリンクがあれば終了コード1で終わります。**見出しを変えたらリンクも同じ変更で直します。**
+
+この5つは[CI](.github/workflows/checks.yml)でも実行します（[ADR-0002](docs/decisions/0002-ci-and-branch-policy.md)）。手元で通してからPRを出すほうが速く直せますが、最終的な判定はCIです。**CIは外部サービスへ接続しません。** 接続を伴う検証は§4のとおり人の明示承認が要るため、CIでは実行しません。
+
+`check-forbidden.mjs`が検出できるのは**形式で判別できるもの**だけです。実名そのものは検出できません。検知パターンへ実名を書けば、そのパターン自体が§5の違反になるためです。CLI例のplaceholderは大文字にします（`--user USER`）。
 
 ## 4. 外部操作には明示承認が必要
 
@@ -48,6 +53,15 @@ cd scripts/verification/atcoder_v12/helper && go test ./...
 「TD-xxを進めてよい」という一般的な依頼を、これらの承認へ読み替えません。承認記録はリポジトリ外のowner専用領域で管理します。
 
 コミットとpushは、利用者が求めたときだけ行います。
+
+## 4.1. ブランチとPR
+
+`main`へ直接pushしません。すべての変更を短命なブランチとPRで通します（[ADR-0002](docs/decisions/0002-ci-and-branch-policy.md)）。
+
+- ブランチ名は`docs/`、`chore/`、`fix/`、`feat/`のいずれかを接頭辞にします
+- PRはCIの5項目が通れば mergeできます。**Approveは不要です**（PRの作成者は自分のPRを承認できないため）
+- `docs/decisions/`を変更するPRでは、[PRテンプレート](.github/pull_request_template.md)の「判断の確認」を埋めるまでCIが通りません
+- 履歴は直線に保ちます。mergeは`rebase`を使います
 
 ## 5. リポジトリへ書かないもの
 
