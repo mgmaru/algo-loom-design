@@ -23,7 +23,8 @@
 | ADR | 決定 | 状態 | 日付 | 関連TODO |
 |---|---|---|---|---|
 | [ADR-0001](0001-adopt-decision-records.md) | 決定記録を導入し、判断の時点記録を残す | 採用 | 2026年9月18日 | ― |
-| [ADR-0002](0002-ci-and-branch-policy.md) | CIで検査を自動化し、`main`をPR経由に限定する | 採用 | 2026年9月18日 | ― |
+| [ADR-0002](0002-ci-and-branch-policy.md) | CIで検査を自動化し、`main`をPR経由に限定する | 採用（bypassの運用はADR-0003が置き換え） | 2026年9月18日 | ― |
+| [ADR-0003](0003-protect-main-with-ruleset.md) | `main`の保護をRulesetで行い、bypassを設定しない | 採用 | 2026年9月19日 | ― |
 
 ## 何をADRにするか
 
