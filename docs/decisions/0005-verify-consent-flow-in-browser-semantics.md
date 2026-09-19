@@ -4,7 +4,7 @@
 |---|---|
 | 状態 | 採用 |
 | 日付 | 2026年9月19日 |
-| 関連TODO | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する) |
+| 関連TODO | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-42`](../../TODO.md#td-42-修正版011を公開しv-12の再実行条件を整える)、[`TD-43`](../../TODO.md#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) |
 | 正本 | [`JudgeAdapter`技術検証計画 §3.1.1](../project/judge-adapter-verification.md#311-v-12-方式a製品形態の検証)、[V-12検証物](../../scripts/verification/atcoder_v12/README.md) |
 
 ## 背景と前提
@@ -65,6 +65,7 @@ if (location.origin !== "http://127.0.0.1" || location.pathname !== "/bootstrap"
 - CWSへの`0.1.1` uploadと審査提出は**外部操作**であり、[作業ガイド §4](../../CLAUDE.md#4-外部操作には明示承認が必要)により別の明示承認が要ります。本ADRはその承認を含みません
 - [サポートページ](../verification/judge-adapter/v12-extension-support.md)と[privacy policy](../verification/judge-adapter/v12-extension-privacy-policy.md)が固定しているreviewer用フィクスチャのSHA-256は、フィクスチャを変更していないため有効なままです。ただし`0.1.1`を審査へ出す期間は、この2ファイルへ再び凍結を適用します
 - `V-12B`のうち、標準追加、固定IDによる自動検出、Chrome完全終了、基準templateの一度だけの確定は**実機で成立することを観測しました。** この観測は新campaignの合格判定には使いませんが、方式Aの成立性に不利な事実は得られていません
+- **`TD-11`の1回目の実行記録は残し、やり直しに必要な作業を別のTODOとして起票しました。** 修正版の公開は[`TD-42`](../../TODO.md#td-42-修正版011を公開しv-12の再実行条件を整える)、testの適用範囲の決定は[`TD-43`](../../TODO.md#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める)です。失敗した実行の記録を消すと、同じ失敗を繰り返す余地が残るためです。`TD-11`は`TD-42`の完了まで保留とします
 
 次のいずれかが起きたら見直します。
 
