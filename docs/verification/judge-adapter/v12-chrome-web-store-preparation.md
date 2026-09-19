@@ -627,7 +627,7 @@ sign inを避ける手段としてシークレットモードとゲストは使�
 | version | `0.1.1` |
 | upload ZIPのSHA-256 | `d283ee36850baa14cf313d5228ecc11908a86aac7f7b4e380741a28621eae5ca` |
 | bytes | 5516 |
-| source commit | `32e05d4` |
+| source commit | 提出時点は`32e05d4`。**`main`では`dde885e`**（後述） |
 | `0.1.0`からの差分 | `bootstrap.js`のloopback判定1行のみ |
 | 権限・host権限・content script対象 | **変更なし。** Privacy、データ使用、Store listing、Distributionの申告も変更していない |
 | Distribution | 料金なし・`Unlisted`・日本のみ（変更なし） |
@@ -635,6 +635,20 @@ sign inを避ける手段としてシークレットモードとゲストは使�
 | 自動公開 | **無効**（deferred publishing）。「審査の合格後に自動的に公開する」のチェックを外して送信した |
 | dashboardの応答 | 「この拡張機能は審査のために送信されました。デベロッパー ダッシュボードのホームページでステータスを確認できます。」 |
 | 公開期限 | **審査の合格後30日**（確認ダイアログの表示） |
+
+#### 提出後のrebase mergeによるcommitの読み替え
+
+提出に使ったbuildは、当時のbranch上の`32e05d4`から作りました。その後PR #5を**rebase merge**したため、`main`上では同じ変更が`dde885e`という別のcommit IDになっています。Rulesetがmerge方式を`rebase`のみに制限しているためで（[ADR-0003](../../decisions/0003-protect-main-with-ruleset.md)）、内容は変わっていません。
+
+| 確認 | 結果 |
+|---|---|
+| `32e05d4`と`dde885e`のtree | **同一**（`302bbaa4…`） |
+| 拡張機能sourceのtree（`32e05d4`と`main`のHEAD `9d7d27d`） | **同一**（`8b9f85ec…`） |
+| `main`の`9d7d27d`から再buildした`0.1.1` ZIP | **`d283ee36…`・5516 bytes。CWSへ提出したものと一致** |
+
+**提出物は`main`から再現できます。** `32e05d4`はbranch `fix/v12-bootstrap-loopback-guard`を残しているため引き続き辿れますが、**照合の基準は`main`側のcommitを使います。**
+
+なお[検証物README](../../../scripts/verification/atcoder_v12/README.md)に記したとおり、**helperの実行ファイルはcommitが変わるとbytesが変わります**（Goが`vcs.revision`を埋め込むため）。拡張機能ZIPはsource treeだけから作るため、commitが変わっても同じbytesになります。今回一致したのはそのためです。
 
 upload前にZIPのSHA-256を照合しました。**Chrome Web Storeのdashboardは配布物のSHA-256を表示しません。** hashの照合はupload前のローカルと、公開後の配信物取得の2か所で行います。この点は`0.1.0`のときと同じです。
 
