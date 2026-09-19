@@ -26,6 +26,7 @@
 | [ADR-0002](0002-ci-and-branch-policy.md) | CIで検査を自動化し、`main`をPR経由に限定する | 採用（bypassの運用はADR-0003が置き換え） | 2026年9月18日 | ― |
 | [ADR-0003](0003-protect-main-with-ruleset.md) | `main`の保護をRulesetで行い、bypassを設定しない | 採用（status checkの名札はADR-0004が置き換え） | 2026年9月19日 | ― |
 | [ADR-0004](0004-ascii-names-for-machine-references.md) | 機械が参照する名前を英語にし、CIのjob名を改める | 採用 | 2026年9月19日 | ― |
+| [ADR-0005](0005-verify-consent-flow-in-browser-semantics.md) | 同意画面のcontent scriptをbrowser相当で検証し、修正版を`0.1.1`として配信し直す | 採用 | 2026年9月19日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する) |
 
 ## 何をADRにするか
 

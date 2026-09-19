@@ -17,7 +17,7 @@
 | `prepare.mjs` | リポジトリ外へ拡張ZIP、実行時compile不要のhelper、reviewer受渡し用の再現可能な`.tar.gz`を排他的に生成する |
 | `prepare-store-assets.mjs` | clean buildに対応する実同意UIのscreenshot、small promo、iconをリポジトリ外へ生成する |
 
-拡張機能の版は、対象版兼更新元`0.1.0`と更新先`0.1.1`です。helper版は`0.1.0`、protocol版は`1`、template schema版と同意版は`1.0`です。Chrome Web Storeが割り当てる固定IDは、最初の外部操作が承認され、実際のitemを作るまでsourceへ仮置きしません。
+拡張機能の版は、対象版兼更新元`0.1.1`と更新先`0.1.2`です。**`0.1.0`は2026年9月19日に同意画面のcontent scriptの不具合が見つかったため対象版から外しました**（[ADR-0005](../../../docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)）。helper版は`0.1.0`、protocol版は`1`、template schema版と同意版は`1.0`です。Chrome Web Storeが割り当てる固定IDは、最初の外部操作が承認され、実際のitemを作るまでsourceへ仮置きしません。
 
 ## 外部接続なしの事前test
 
@@ -29,7 +29,7 @@ node --test scripts/verification/test_atcoder_v12.mjs
 python3 scripts/verification/atcoder_v12/algoloom_v12_review_fixture.py --self-test
 ```
 
-Go testは、protocolの状態順序、版・同意不一致、`Host`、接続元、拡張機能origin、Bearer token、JSON本文上限・余剰data、Cookieの一意性、redaction、取消、timeout、browser process終了、profile file lock、template完全性、campaign manifestと結果無効化を固定入力で確認します。Node testは、拡張機能の権限、Cookie取得範囲、ログイン・Turnstile・提出の非自動化、秘密値の非出力、build入力にpublisher credentialがないこと、review fixtureがhelperと同じ検査を満たすこと、quarantine属性が付いた複製でも動くことを確認します。
+Go testは、protocolの状態順序、版・同意不一致、`Host`、接続元、拡張機能origin、Bearer token、JSON本文上限・余剰data、Cookieの一意性、redaction、取消、timeout、browser process終了、profile file lock、template完全性、campaign manifestと結果無効化を固定入力で確認します。Node testは、拡張機能の権限、Cookie取得範囲、ログイン・Turnstile・提出の非自動化、秘密値の非出力、build入力にpublisher credentialがないこと、review fixtureがhelperと同じ検査を満たすこと、quarantine属性が付いた複製でも動くことを確認します。あわせて、同意画面のcontent scriptを**実際に評価**し、動的な待受番号が付くURLでhandlerが登録されて`initialize`が送られること、loopback以外のページでは何も起きないことを確認します。**ソースの文字列検査だけを成立証拠にしません**（[ADR-0005](../../../docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)）。
 
 review fixtureの`--self-test`は、socketを一つも開かず固定入力だけでprotocolを確認します。16のcaseで、`Host`、接続元、拡張機能origin、Bearer token、`Content-Type`、32 KiB上限、状態順序、余剰key、版不一致、自動操作識別値、Cookieの範囲と属性、本人不一致、そして**受け取った値がどこにも残らないこと**を検査します。
 

@@ -6,6 +6,7 @@ import path from "node:path";
 import test from "node:test";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import vm from "node:vm";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "atcoder_v12");
 const EXTENSION = path.join(ROOT, "extension");
@@ -28,6 +29,47 @@ function fixtureSelfTest(scriptPath) {
     encoding: "utf8", env: {}, stdio: ["ignore", "pipe", "pipe"],
   });
   return JSON.parse(output);
+}
+
+
+// 同意画面のcontent scriptを実際に評価する。helperは動的な待受番号を使うため、
+// bootstrap URLには必ずポートが付く。文字列検査ではこの条件を確認できない。
+function runBootstrapAt(url) {
+  const target = new URL(url);
+  class HTMLButtonElement {
+    constructor() { this.disabled = false; this.textContent = "同意してAtCoderへ進む"; this.onClick = null; }
+    addEventListener(type, handler) { if (type === "click") this.onClick = handler; }
+  }
+  const button = new HTMLButtonElement();
+  const meta = {
+    'meta[name="algoloom-loopback-token"]': { content: "t".repeat(64), remove() {} },
+    'meta[name="algoloom-consent-version"]': { content: "1.0", remove() {} },
+  };
+  const navigated = [];
+  const sent = [];
+  const sandbox = {
+    HTMLButtonElement,
+    location: {
+      protocol: target.protocol, hostname: target.hostname, origin: target.origin,
+      pathname: target.pathname, port: target.port,
+      replace: (to) => navigated.push(to),
+    },
+    document: {
+      body: {},
+      querySelector: (selector) => meta[selector] ?? null,
+      getElementById: (id) => (id === "algoloom-consent" ? button : null),
+    },
+    navigator: { webdriver: false },
+    chrome: {
+      runtime: {
+        sendMessage: async (message) => { sent.push(message); return { ok: true }; },
+        getManifest: () => ({ version: "0.1.0" }),
+      },
+    },
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(BOOTSTRAP, sandbox);
+  return { button, navigated, sent };
 }
 
 test("V-12 extension has one purpose and the exact minimal permission set", () => {
@@ -169,4 +211,35 @@ test("build preparation ships both reviewer routes from one reproducible bundle"
   assert.match(PREPARATION, /review_fixture: sha256\(fs\.readFileSync\(REVIEW_FIXTURE_SOURCE\)\)/);
   assert.match(PREPARATION, /FIXED_UNIX_TIME/);
   assert.doesNotMatch(PREPARATION, /xattr|spctl|codesign|--deep/);
+});
+
+test("V-12 consent page reacts on the dynamic loopback port, not only on the default port", async () => {
+  for (const url of [
+    "http://127.0.0.1:53673/bootstrap",
+    "http://127.0.0.1:1024/bootstrap",
+    "http://127.0.0.1/bootstrap",
+  ]) {
+    const { button, navigated, sent } = runBootstrapAt(url);
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.notEqual(button.onClick, null, `handlerが付かない: ${url}`);
+    await button.onClick();
+    assert.deepEqual(navigated, ["https://atcoder.jp/settings"], `遷移しない: ${url}`);
+    assert.equal(sent.length, 1);
+    assert.equal(sent[0].type, "initialize");
+    assert.equal(sent[0].port, Number(new URL(url).port));
+  }
+});
+
+test("V-12 consent page stays inert outside the loopback bootstrap page", async () => {
+  for (const url of [
+    "https://atcoder.jp/bootstrap",
+    "http://127.0.0.2:53673/bootstrap",
+    "http://127.0.0.1:53673/settings",
+  ]) {
+    const { button, navigated, sent } = runBootstrapAt(url);
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(button.onClick, null, `handlerが付いてしまう: ${url}`);
+    assert.deepEqual(navigated, []);
+    assert.deepEqual(sent, []);
+  }
 });
