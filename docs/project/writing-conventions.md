@@ -36,6 +36,11 @@
 | 固有名詞 | 英語のまま | AlgoLoom、AtCoder、Turso、SQLite、Python、C++、Go、Rust、macOS、Linux、Windows、WSL、GitHub、PyPI、Git、Neovim |
 | 定着した略語 | 英語のまま | MVP、Core、DB、ID、OS、CLI、API、URL、AC、WA、UX、LLM、SDK、HTTP、SQL、JSON、PDF、TTY、UTC、CI、IDE、CPU、E2E、SLO、ADR、PR |
 | 技術上の固有表記 | 英語のまま。必要なら日本語を併記 | `argv`、`stdout`、`stderr`、`shell=False`、`unified diff`、`monotonic clock`、`peak RSS` |
+| **機械が参照する名前** | **英語のまま。表示用の名前に見えても、他の設定から文字列で参照されるなら英語にする** | CIのjob名（Rulesetのstatus checkの名札になる）、test名、関数名 |
+
+機械が参照する名前とは、**人が読むための表示ではなく、別の場所から文字列で突き合わせられる名前**です。日本語にすると、表記の揺れで一致しなくなったときの影響が大きく、救済もありません。判断の経緯は[ADR-0004](../decisions/0004-ascii-names-for-machine-references.md)を参照します。
+
+一方、**人が読むだけの表示は日本語で書きます。** CIのstep名、スクリプトの出力メッセージ、log文言が該当します。
 
 論理モデル名を初出で併記する例を次に示します。
 

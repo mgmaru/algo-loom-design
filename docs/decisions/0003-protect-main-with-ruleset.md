@@ -2,7 +2,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 状態 | 採用 |
+| 状態 | 採用。**status checkの名札は[ADR-0004](0004-ascii-names-for-machine-references.md)が置き換えた** |
 | 日付 | 2026年9月19日 |
 | 関連TODO | ―（TODOに属さない判断） |
 | 正本 | GitHubのRuleset設定（リポジトリのRules画面）、[作業ガイド §4.1](../../CLAUDE.md) |
