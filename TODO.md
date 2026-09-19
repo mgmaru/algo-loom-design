@@ -167,7 +167,11 @@ flowchart TD
 
 AlgoLoomの側では進められず、外部の応答または人の承認を待っている作業をここに集約します。**再開時に最初に確認してください。**
 
-**`TD-11`は、修正版`0.1.1`をCWSへuploadして審査を通すまで進められません。** 2026年9月19日の1回目の実行で、同意画面のcontent scriptが動的な待受番号を持つURLで停止する不具合を実機で発見しました（[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)）。標準追加はCWSの配信物からしか行わない設計のため、修正をローカルbuildで代用できません。**uploadと審査提出には別の明示承認が要ります。** 承認をいただくまで、AlgoLoom側で進められる作業はありません。
+**`TD-11`はChrome Web Storeの審査結果を待っています。** 2026年9月19日の1回目の実行で、同意画面のcontent scriptが動的な待受番号を持つURLで停止する不具合を実機で発見し（[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)）、同日に修正版`0.1.1`を明示承認のうえ審査へ提出しました（[CWS配布準備 §8.1.6](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#816-2026年9月19日の011審査提出記録)）。deferred publishingを選んでいるため、合格しても自動公開はされません。
+
+標準追加はCWSの配信物からしか行わない設計のため、**修正をローカルbuildで代用できません。** 合格して公開するまで`TD-11`を再開できません。**公開には審査提出とは別の明示承認が要り、合格から30日以内に行う必要があります。**
+
+**審査中は次の2ファイルを変更しません。** [`v12-extension-support.md`](docs/verification/judge-adapter/v12-extension-support.md)と[`v12-extension-privacy-policy.md`](docs/verification/judge-adapter/v12-extension-privacy-policy.md)は、listingのサポートURL・privacy policy URLがGitHubの`main`を指すため、コミットすると審査担当者が見るページが即座に変わります。
 
 `0.1.0`の審査は2026年9月18日に合格し、同日に明示承認を得て限定公開しました。deferred publishingの30日期限は消化済みです。
 
