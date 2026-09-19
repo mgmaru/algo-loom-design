@@ -53,7 +53,11 @@ node scripts/verification/atcoder_v12/prepare.mjs \
 - 単体で配れるreview fixture
 - source revision、source tree hash、各配布物のSHA-256とbytesを持つ`build-index.json`
 
-`.tar.gz`はuid・gid・modeとmtimeを固定したustar形式で組み立て、同じsourceからbyte単位で再現します。`prepare.mjs`は生成のたびに再生成して一致を確認し、一致しなければ`review_bundle_not_reproducible`で停止します。
+`.tar.gz`はuid・gid・modeとmtimeを固定したustar形式で組み立てます。`prepare.mjs`は生成のたびに再生成して一致を確認し、一致しなければ`review_bundle_not_reproducible`で停止します。
+
+**再現の単位はsource treeではなくcommitです。** Goは`vcs.revision`、`vcs.time`、`vcs.modified`をbinaryへ埋め込むため、helper sourceが1 byteも変わらなくても、**commitが変われば実行ファイルのbytesが変わります。** 2026年9月19日に実測したところ、同じhelper source treeでも`b03ab6b`と`32e05d4`のbuildで288 byteが異なり、差は`buildinfo`のVCS欄でした。作業treeがdirtyなら`vcs.modified=true`となり、これも別のbytesになります。
+
+影響を受けるのはGoで作るhelperと、それを含む`.tar.gz`です。拡張機能ZIP、Keychain adapter、review fixtureはcommitが変わっても同じbytesになります。**[サポートページ](../../../docs/verification/judge-adapter/v12-extension-support.md)が固定しているのはreview fixtureのSHA-256だけ**であるため、commitを進めてもその記載は有効なままです。経路1の`.tar.gz`のSHA-256を外部へ示す場合は、**どのcommitのbuildかを添えます。**
 
 拡張ZIPとindexは`0600`、実行ファイルは`0700`です。GoとSwiftはこの準備時にだけcompileし、`V-12B`〜`V-12E`の実行時にはcompileしません。作業treeがdirtyならindexの`campaign_ready`は`false`になり、そのbuildをCWS uploadまたはcampaign manifestへ使いません。
 
