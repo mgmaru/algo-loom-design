@@ -167,9 +167,13 @@ flowchart TD
 
 AlgoLoomの側では進められず、外部の応答または人の承認を待っている作業をここに集約します。**再開時に最初に確認してください。**
 
-**外部の応答待ちと期限付きの作業はありません。** Chrome Web Storeの審査は2026年9月18日に合格し、同日に明示承認を得て`0.1.0`を限定公開しました。deferred publishingの30日期限は消化済みです。listing URLの取得、対象地域の再読取り、標準追加できる事前状態の確認も同日に終わりました。**待っている作業はありません。**
+**`TD-11`は、修正版`0.1.1`をCWSへuploadして審査を通すまで進められません。** 2026年9月19日の1回目の実行で、同意画面のcontent scriptが動的な待受番号を持つURLで停止する不具合を実機で発見しました（[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)）。標準追加はCWSの配信物からしか行わない設計のため、修正をローカルbuildで代用できません。**uploadと審査提出には別の明示承認が要ります。** 承認をいただくまで、AlgoLoom側で進められる作業はありません。
 
-**`TD-39`は2026年9月18日に完了しました。** 手順13の配信bytes取得も同日に明示承認を得て実行し、SHA-256とbytesを固定したうえで、リポジトリのsourceと照合しています（[CWS配布準備 §8.1.4](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#814-2026年9月18日の配信bytes取得記録)）。次に着手できるのは[`TD-11`](#td-11-方式a製品形態を実サービスで検証する)です。手順は[CWS配布準備 §8.1.3](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#813-2026年9月18日の限定公開記録)にあります。待っている間は、依存を持たない作業（`TD-14`、`TD-17`、`TD-21`、`TD-25`、`TD-31`）を並行して進められます。
+`0.1.0`の審査は2026年9月18日に合格し、同日に明示承認を得て限定公開しました。deferred publishingの30日期限は消化済みです。
+
+**`TD-39`は2026年9月18日に完了しました。** ただし完了条件のうち「`0.1.1`が未uploadのまま保持され」という項目は、[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)で前提が変わりました。`0.1.1`を修正版へ充て、更新testに使う版は`0.1.2`へ繰り下げています。`TD-39`の本文と完了条件は書き換えません。
+
+待っている間は、依存を持たない作業（`TD-14`、`TD-17`、`TD-21`、`TD-25`、`TD-31`）を並行して進められます。
 
 **審査中の2ファイルの凍結は、合格をもって解除しました。** [`v12-extension-support.md`](docs/verification/judge-adapter/v12-extension-support.md)と[`v12-extension-privacy-policy.md`](docs/verification/judge-adapter/v12-extension-privacy-policy.md)は、listingのサポートURL・privacy policy URLがGitHubの`main`を指すため、コミットすると利用者と審査担当者が見るページが即座に変わります。解除後も次を守ります。
 
@@ -192,7 +196,7 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-10`](#td-10-方式a製品形態の検証項目を追加する) | 技術検証 | 方式A製品形態の検証項目を追加する | `TD-09` | 完了 | ― |
 | [`TD-37`](#td-37-v-12検証用のローカル配布候補を準備する) | 技術検証 | `V-12`検証用のローカル配布候補を準備する | `TD-10` | 完了 | ― |
 | [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 完了 | ― |
-| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39` | 未着手 | ― |
+| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39` | 進行中 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 | ― |
 | [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 | ― |
 | [`TD-38`](#td-38-認証配布物とテンプレートのライフサイクル契約を確定する) | 機能設計 | 認証配布物とテンプレートのライフサイクル契約を確定する | `TD-11`, `TD-12` | 未着手 | ― |
@@ -666,6 +670,18 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 | カテゴリ | 技術検証 |
 | 対象ファイル | `docs/verification/judge-adapter/results/`配下の新しい実行記録 |
 | 依存 | `TD-39` |
+
+**2026年9月19日の実施記録（1回目、campaign `v12-2026-09-19-01`）:** 手順1〜5を実行し、**検証物の不具合により`V-12D`の手前で停止しました。** `TD-11`は不合格ではなく、方式Aの成立性はまだ判定できていません。
+
+当日の外部条件は手順1のとおり確認し、開始しない条件への該当はありませんでした。利用規約は2026年6月29日改定のままで、`V-01`〜`V-11`の実行時と同じ版です。**Cloudflareの対応環境の文書が2026年8月18日に更新され、browser拡張機能がchallengeを妨げうることが明記されました。** `V-12D`でTurnstileが通らない場合に備え、拡張機能なしの通常profileでのloginを対照として確認する手順を切り分けに加えます。
+
+手順2〜4は成立しました。隔離buildで`0.1.0` ZIPが`b0a8d078…4dbbe78`として再現し、8月26日のupload、9月18日の照合に続く3つ目の独立したpathでの再現になりました。CWS配信bytesを取り直した結果は**SHA-256・bytesとも9月18日の記録と一致**し、CWSは`0.1.0`を再packageしていませんでした。配信物の権限は`cookies`・`storage`とhost 2件のみで、`debugger`、`webRequest`、`tabs`、`scripting`、`nativeMessaging`の要求はありません。`V-12A`は外部通信0件で合格しました（canonical manifest hash `8bfba715…`）。
+
+手順5では、**限定公開listingからdeveloper modeなしに標準追加でき、CLIが固定IDと版`0.1.0`で導入完了を自動検出し、Chrome完全終了後に基準templateを一度だけ確定できました**（完全性ID `ab5f4c4d…`）。標準追加の前にChromeのsign in勧誘が表示されましたが、閉じれば追加でき、Google accountの追加・同期は不要でした。停止したのはその後の同意画面で、`bootstrap.js`が`location.origin`でloopbackを判定していたため、動的な待受番号が付くURLでは常に`return`し、ボタンにclick handlerが付いていませんでした。原因、修正、採らなかった案は[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)にあります。
+
+**このcampaignは無効です。** 拡張機能のsourceを修正したため、無効化規則により`V-12A`の合格も取り消し、修正版の配信後に新しいcampaign IDでやり直します。後始末は当日中に完了し、実行用profile、基準template、検証用Keychain項目、待受、processの残存は0件です。追加提出とAtCoderへの接続はいずれも0件でした。
+
+**次に行うのは、修正版`0.1.1`のCWSへのuploadと審査提出です。これには別の明示承認が要ります。** 更新testに使う版は`0.1.2`へ繰り下げました。
 
 **手順:**
 

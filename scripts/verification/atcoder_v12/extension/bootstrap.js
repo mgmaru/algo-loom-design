@@ -1,7 +1,8 @@
 "use strict";
 
 (async () => {
-  if (location.origin !== "http://127.0.0.1" || location.pathname !== "/bootstrap") return;
+  if (location.protocol !== "http:" || location.hostname !== "127.0.0.1" ||
+      location.pathname !== "/bootstrap") return;
 
   const tokenNode = document.querySelector('meta[name="algoloom-loopback-token"]');
   const consentNode = document.querySelector('meta[name="algoloom-consent-version"]');
