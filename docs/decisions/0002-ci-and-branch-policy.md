@@ -2,7 +2,7 @@
 
 | 項目 | 内容 |
 |---|---|
-| 状態 | 採用 |
+| 状態 | 採用。**bypassの運用は[ADR-0003](0003-protect-main-with-ruleset.md)が置き換えた** |
 | 日付 | 2026年9月18日 |
 | 関連TODO | ―（TODOに属さない判断） |
 | 正本 | [`.github/workflows/checks.yml`](../../.github/workflows/checks.yml)、[作業ガイド](../../CLAUDE.md) |

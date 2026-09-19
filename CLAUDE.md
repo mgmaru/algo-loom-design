@@ -61,7 +61,11 @@ cd scripts/verification/atcoder_v12/helper && go test ./...
 - ブランチ名は`docs/`、`chore/`、`fix/`、`feat/`のいずれかを接頭辞にします
 - PRはCIの5項目が通れば mergeできます。**Approveは不要です**（PRの作成者は自分のPRを承認できないため）
 - `docs/decisions/`を変更するPRでは、[PRテンプレート](.github/pull_request_template.md)の「判断の確認」を埋めるまでCIが通りません
-- 履歴は直線に保ちます。mergeは`rebase`を使います
+- 履歴は直線に保ちます。mergeは`rebase`だけを許可しています
+
+保護はGitHubのRulesetで行い、bypassは設定していません（[ADR-0003](docs/decisions/0003-protect-main-with-ruleset.md)）。**緊急時もbypassを使わず、Enforcementを`Disabled`へ切り替えて作業し、`Active`へ戻します。**
+
+**[workflow](.github/workflows/checks.yml)のjob名を変えるときは、同じ変更でRulesetの`contexts`も直します。** Rulesetは報告されないcheckを待ち続けるため、job名がずれるとPRが永久にmergeできなくなります。jobへ`paths`フィルタを足す場合も同じです。
 
 ## 5. リポジトリへ書かないもの
 
