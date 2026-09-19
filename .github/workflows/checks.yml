@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   documents:
-    name: 文書と検証物
+    name: documents-and-verification
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -53,7 +53,7 @@ jobs:
         run: go test ./...
 
   decision:
-    name: 判断の確認
+    name: decision-record
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
