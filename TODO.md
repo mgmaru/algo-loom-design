@@ -167,7 +167,7 @@ flowchart TD
 
 AlgoLoomの側では進められず、外部の応答または人の承認を待っている作業をここに集約します。**再開時に最初に確認してください。**
 
-**`TD-11`はChrome Web Storeの審査結果を待っています。** 2026年9月19日の1回目の実行で、同意画面のcontent scriptが動的な待受番号を持つURLで停止する不具合を実機で発見し（[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)）、同日に修正版`0.1.1`を明示承認のうえ審査へ提出しました（[CWS配布準備 §8.1.6](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#816-2026年9月19日の011審査提出記録)）。deferred publishingを選んでいるため、合格しても自動公開はされません。
+**[`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える)がChrome Web Storeの審査結果を待っています。`TD-11`はその完了まで保留です。** 2026年9月19日の1回目の実行で、同意画面のcontent scriptが動的な待受番号を持つURLで停止する不具合を実機で発見し（[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)）、同日に修正版`0.1.1`を明示承認のうえ審査へ提出しました（[CWS配布準備 §8.1.6](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#816-2026年9月19日の011審査提出記録)）。deferred publishingを選んでいるため、合格しても自動公開はされません。
 
 標準追加はCWSの配信物からしか行わない設計のため、**修正をローカルbuildで代用できません。** 合格して公開するまで`TD-11`を再開できません。**公開には審査提出とは別の明示承認が要り、合格から30日以内に行う必要があります。**
 
@@ -200,7 +200,9 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-10`](#td-10-方式a製品形態の検証項目を追加する) | 技術検証 | 方式A製品形態の検証項目を追加する | `TD-09` | 完了 | ― |
 | [`TD-37`](#td-37-v-12検証用のローカル配布候補を準備する) | 技術検証 | `V-12`検証用のローカル配布候補を準備する | `TD-10` | 完了 | ― |
 | [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 完了 | ― |
-| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39` | 進行中 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
+| [`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える) | 技術検証 | 修正版`0.1.1`を公開し、`V-12`の再実行条件を整える | `TD-39` | 進行中 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
+| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42` | 保留 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
+| [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) | 設計判断 | 検証支援物の実行経路をbrowser相当で確認する範囲を決める | ― | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 | ― |
 | [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 | ― |
 | [`TD-38`](#td-38-認証配布物とテンプレートのライフサイクル契約を確定する) | 機能設計 | 認証配布物とテンプレートのライフサイクル契約を確定する | `TD-11`, `TD-12` | 未着手 | ― |
@@ -664,6 +666,72 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 - [x] CWS配信済み`0.1.0`のbytesとhashを取得し、最終campaign manifestで拡張機能、helper、protocol、template schema、同意版を一意に対応付けている（2026年9月18日にbytesを取得してSHA-256 `54142d25…abc43c40`・8429 bytesを固定し、リポジトリのsourceと照合。**manifest fileの生成はChrome・OSの版が実行時に確定するため`TD-11`手順3で行い、`TD-39`は値を固定して引き渡す**）
 - [x] publisher credential、署名・notarization用秘密値、AtCoder credential、実account名がrepository、公開成果物、通常logへ含まれていない（2026年9月18日にrepositoryを走査。固定ID・秘密鍵・token・端末pathは0件。CLI例の`--user`へ端末の利用者名と同じ値が1件あったため、同じfileの他の例と同じ`USER`へ置換した。公開成果物は`TD-37`の隔離buildの非混入検査で確認済み）
 - [x] `0.1.1`が未uploadのまま保持され、`TD-11`の更新test前に対象版`0.1.0`を置き換えていない（2026年9月18日の公開後の確認でcurrent versionは`0.1.0`）
+
+---
+
+#### `TD-42` 修正版`0.1.1`を公開し、`V-12`の再実行条件を整える
+
+| 項目 | 内容 |
+|---|---|
+| カテゴリ | 技術検証 |
+| 対象ファイル | [`docs/verification/judge-adapter/v12-chrome-web-store-preparation.md`](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)、リポジトリ外のowner-only CWS状態記録、Chrome Web Store dashboard |
+| 依存 | `TD-39` |
+| 決定 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
+
+**なぜこの作業が要るか:** [`TD-11`](#td-11-方式a製品形態を実サービスで検証する)の1回目の実行が、配信中の`0.1.0`に含まれる不具合で停止しました。標準追加はCWSの配信物からしか行わないため、修正をローカルbuildで代用できません。**`TD-11`はこの作業が終わるまで再開できません。** `TD-39`と分ける理由は、`TD-39`が「審査を通せる状態を作る」作業であり完了済みだからです。**完了した作業の記録を書き換えず、新しい作業として起票します。**
+
+**2026年9月19日の実施記録:** 修正版`0.1.1`を明示承認のうえ審査へ提出しました。deferred publishingを選んでおり、合格しても自動公開されません。公開期限は審査の合格後30日です。提出物と確認内容は[CWS配布準備 §8.1.6](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#816-2026年9月19日の011審査提出記録)にあります。**審査結果待ちです。**
+
+**手順:**
+
+1. 審査結果を記録する。不承認なら理由を記録して停止し、credential共有、Gatekeeper回避、別配布元、手動読込で迂回しない。
+2. 合格後、対象item、version、限定公開URL、停止方法を再提示し、**公開の明示承認を別に得る。** 審査提出の承認は公開の承認を兼ねない。
+3. **合格から30日以内に公開する。** deferred publishingの有効期限のためで、`V-12`の実行期間とは無関係である。
+4. 公開後、通常Chromeの標準画面で追加できる事前状態だけを確認する。`TD-11`の基準templateはまだ作らない。
+5. CWS配信済み`0.1.1`の正確なbytesを取得し、リポジトリのsourceと1ファイルずつ照合する。取得不能なら`TD-11`へ進まない。
+6. 審査中に適用した[サポートページ](docs/verification/judge-adapter/v12-extension-support.md)と[privacy policy](docs/verification/judge-adapter/v12-extension-privacy-policy.md)の凍結を解除する。
+7. 更新test用の`0.1.2`は、`TD-11`の`V-12C`で明示承認を得るまでuploadしない。`0.1.1`の初回標準追加を確認する前にcurrent versionを置き換えない。
+
+**完了条件:**
+
+- [ ] 審査結果が記録されている
+- [ ] 合格した場合、別の明示承認を得たうえで`0.1.1`が料金なし・限定公開・日本のみで公開され、標準追加できる事前状態である
+- [ ] CWS配信済み`0.1.1`のbytesとhashを取得し、リポジトリのsourceと照合できている
+- [ ] 配信物の権限が`cookies`、`storage`、host 2件のみで、`0.1.0`から増えていない
+- [ ] 不承認の場合、回避策ではなく理由と次の判断が記録されている
+- [ ] `0.1.2`が未uploadのまま保持されている
+
+---
+
+#### `TD-43` 検証支援物の実行経路をbrowser相当で確認する範囲を決める
+
+| 項目 | 内容 |
+|---|---|
+| カテゴリ | 設計判断 |
+| 対象ファイル | [`scripts/verification/test_atcoder_v12.mjs`](scripts/verification/test_atcoder_v12.mjs)、[`scripts/verification/atcoder_v12/README.md`](scripts/verification/atcoder_v12/README.md) |
+| 依存 | ― |
+| 決定 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
+
+**なぜこの作業が要るか:** 2026年9月19日、`bootstrap.js`が実browserで一度も動いていなかったにもかかわらず、固定入力testが合格し続けていました。testが検査していたのは「ソースに特定の文字列が現れないこと」で、確かめたかったのは「同意画面から認証へ進めること」でした。**この差が、審査を通過して配信された成果物の中に3週間以上残りました。**
+
+[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)は`bootstrap.js`について評価するtestを入れましたが、**どこまで広げるかは決めていません。** 同じ穴が他のentry pointに残っている可能性を、不具合が出てから気づく形にしないために切り出します。
+
+**手順:**
+
+1. 検証支援物のentry pointを列挙する。content script（`bootstrap.js`、`atcoder.js`）、service worker、helperのHTTP handler、review fixtureが対象になる。
+2. 各entry pointについて、**現在のtestが「ソースの文字列」を見ているのか「実行した結果」を見ているのか**を分類する。
+3. 文字列検査だけのものについて、browser相当の評価へ移す価値と費用を比べる。`bootstrap.js`と同種の環境依存（URL、ポート、origin、message passing）を持つものを優先する。
+4. 移す範囲を決め、決定記録へ残す。移さないものは、**なぜ文字列検査で足りるのか**を書く。
+5. 決めた範囲を実装し、**修正前のコードで落ちること**を各testについて確認する。落ちないtestは、その不具合を検出できていない。
+6. 得られた方針を[`TD-32`](#td-32-テスト方針の骨格を決める)へ引き渡す。製品実装でも同じ取り違えが起こりうるため。
+
+**完了条件:**
+
+- [ ] 検証支援物のentry pointが列挙され、各testが文字列検査か実行結果検査かに分類されている
+- [ ] browser相当の評価へ移す範囲と、移さないものの理由が決定記録に残っている
+- [ ] 移した各testが、修正前のコードで落ちることを確認できている
+- [ ] `TD-32`への引き渡し内容が記載されている
+- [ ] CDP、WebDriver、headless、Bot対策の自動操作を新たに導入していない（`V-12`の停止条件のため）
 
 ---
 
