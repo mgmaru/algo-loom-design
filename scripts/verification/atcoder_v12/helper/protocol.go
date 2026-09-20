@@ -31,6 +31,19 @@ var (
 	extensionIDPattern = regexp.MustCompile(`^[a-p]{32}$`)
 )
 
+// 提出確認画面の`Referrer-Policy`。ページ由来のform POSTで`Origin`が
+// 保たれる値だけを選ぶ。`no-referrer`は`Origin: null`になるため使えない。
+// 値の根拠は実測で、`browser-request-probe.mjs`で取り直せる。
+const submissionReferrerPolicy = "same-origin"
+
+// 上と同じ実測で、`Origin`が保たれることを確認した値。`same-origin`以外は
+// 別originへ`Referer`を送るため採らないが、`Origin`だけを見れば同値である。
+var referrerPoliciesPreservingOrigin = map[string]bool{
+	"same-origin":                     true,
+	"strict-origin-when-cross-origin": true,
+	"origin":                          true,
+}
+
 type protocolStage string
 
 const (
@@ -396,7 +409,12 @@ func (h *loopbackHandler) serveSubmission(response http.ResponseWriter, request 
 		response.Header().Set("Content-Type", "text/html; charset=utf-8")
 		response.Header().Set("Content-Security-Policy",
 			"default-src 'none'; style-src 'unsafe-inline'; form-action "+h.origin()+"; frame-ancestors 'none'")
-		response.Header().Set("Referrer-Policy", "no-referrer")
+		// この値は見た目の設定ではなく、下のOrigin検査と対になっている。
+		// `no-referrer`にすると、この画面からのform POSTでbrowserが
+		// `Origin: null`を送り、自分が出した画面からの操作を拒否してしまう。
+		// `same-origin`は同一originへは正しいoriginを送り、AtCoderへは
+		// `Referer`を送らない。実測はADR-0012にある。
+		response.Header().Set("Referrer-Policy", submissionReferrerPolicy)
 		response.Header().Set("X-Frame-Options", "DENY")
 		response.WriteHeader(http.StatusOK)
 		_, _ = io.WriteString(response, h.submissionPage)

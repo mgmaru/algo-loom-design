@@ -795,6 +795,14 @@ func TestSubmissionConfirmationRedirectsOnlyAfterItIsPressed(t *testing.T) {
 			t.Fatalf("confirmation screen does not show %q", needed)
 		}
 	}
+	// この画面はJavaScriptを持たず、押されたことを自分のoriginへのform POSTで
+	// 伝える。`Referrer-Policy`がbrowserの送る`Origin`を変えるため、
+	// `Origin`が保たれる値だけを許す。実測はADR-0012、取り直しは
+	// `browser-request-probe.mjs`。
+	servedPolicy := page.Header().Get("Referrer-Policy")
+	if !referrerPoliciesPreservingOrigin[servedPolicy] {
+		t.Fatalf("confirmation screen was served with a Referrer-Policy that drops Origin: %q", servedPolicy)
+	}
 	if !handler.submissionWasShown() {
 		t.Fatal("confirmation screen was not recorded as shown")
 	}
@@ -809,6 +817,12 @@ func TestSubmissionConfirmationRedirectsOnlyAfterItIsPressed(t *testing.T) {
 
 	if got := post("chrome-extension://"+testExtensionID, "application/x-www-form-urlencoded", "proceed_token="+proceedToken); got.Code != http.StatusForbidden {
 		t.Fatalf("proceed accepted from another origin: %d", got.Code)
+	}
+	// 2026年9月20日、`Referrer-Policy: no-referrer`のページからのform POSTで
+	// Chromeが`Origin: null`を送り、`V-12E`が最後の受け渡しで停止した
+	// （ADR-0012）。`null`は複数の出所から来るため受け付けない。
+	if got := post("null", "application/x-www-form-urlencoded", "proceed_token="+proceedToken); got.Code != http.StatusForbidden {
+		t.Fatalf("proceed accepted Origin: null: %d", got.Code)
 	}
 	if got := post(origin, "application/json", `{"proceed_token":"`+proceedToken+`"}`); got.Code != http.StatusUnsupportedMediaType {
 		t.Fatalf("proceed accepted a foreign content type: %d", got.Code)
