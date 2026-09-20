@@ -202,10 +202,10 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-37`](#td-37-v-12検証用のローカル配布候補を準備する) | 技術検証 | `V-12`検証用のローカル配布候補を準備する | `TD-10` | 完了 | ― |
 | [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 完了 | ― |
 | [`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える) | 技術検証 | 修正版`0.1.1`を公開し、`V-12`の再実行条件を整える | `TD-39` | 完了 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
-| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42` | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md) |
+| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42` | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
 | [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) | 設計判断 | 検証支援物の実行経路をbrowser相当で確認する範囲を決める | ― | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 | [`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す) | 技術検証 | helperのエラーが原因を一意に指せない箇所を洗い出して直す | ― | 未着手 | ― |
-| [`TD-45`](#td-45-campaign-manifestの確定遷移が自分を無効化する不整合を直す) | 技術検証 | campaign manifestの確定遷移が自分を無効化する不整合を直す | ― | 進行中 | [ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md) |
+| [`TD-45`](#td-45-campaign-manifestの確定遷移が自分を無効化する不整合を直す) | 技術検証 | campaign manifestの確定遷移が自分を無効化する不整合を直す | ― | 進行中 | [ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 | ― |
 | [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 | ― |
 | [`TD-38`](#td-38-認証配布物とテンプレートのライフサイクル契約を確定する) | 機能設計 | 認証配布物とテンプレートのライフサイクル契約を確定する | `TD-11`, `TD-12` | 未着手 | ― |
@@ -794,7 +794,7 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 | カテゴリ | 技術検証 |
 | 対象ファイル | [`scripts/verification/atcoder_v12/helper/`](scripts/verification/atcoder_v12/helper/) |
 | 依存 | ― |
-| 決定 | [ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md) |
+| 決定 | [ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
 
 **なぜこの作業が要るか:** 2026年9月20日、`V-12A`・`V-12B`・`V-12D`の合格後に`V-12C`へ進もうとして、**`V-12`が原理的に完了できない**ことが分かりました。`first-login`は`profile.status`が`pending_v12b`のmanifestを要求し、`validate --subtest`は`V-12A`以外で`fixed`を要求します。`V-12B`が作った完全性IDをmanifestへ記録すると、`manifest compare`が`profile_contract_changed`として**たった今合格した`V-12B`と`V-12D`を無効化**しました。`V-12B`の入力projectionは完全性IDに依存するため、検証計画が用意する「入力projectionのhash一致による再承認」も使えません。5つが同じrevisionで揃う状態に到達できません。
 
@@ -804,14 +804,15 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 
 1. [ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)の決定に従い、`pending_v12b`から`fixed`への一度きりの遷移を`profile_contract_established`として扱い、無効化する結果を0件にする。**2026年9月20日に実装済み。**
 2. 確定の遷移、完全性IDの差し替え、`fixed`からの逆行、schema版の変更の4caseをtestで固定する。**修正前のコードで落ちることを各caseで確認する。2026年9月20日に確認済み。**
-3. **出力が入力を兼ねる他のfieldを洗い出す。** `environment_changed`と`extension_update_pair_changed`に同じ型の不整合がないかを確認し、なければその根拠を書く。
+3. **判定に使う値が代理になっていないかを洗い出す。** 「出力が入力を兼ねる」だけでなく、「確かめたいものの代理で、代理が本体からずれている」場合を含める。**2026年9月20日完了**（[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md)）。`environments[]`と`extension.signed_builds`は入力専用で同じ型なし。`helper.artifacts[].sha256`が代理になっていたため、`-buildvcs=false`でbuildをsource treeから再現できるようにした。
 4. [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める)と[`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す)を同じ変更にまとめてから、`V-12`をやり直す。**別々に直すと、そのたびにhelperのbuild hashが変わり、`V-12B`・`V-12D`の手作業をやり直すことになる。**
 
 **完了条件:**
 
 - [x] 確定の遷移が無効化の対象外になり、それ以外の`profile`の差は従来どおり`V-12B`〜`V-12E`を無効にする（2026年9月20日）
 - [x] 4caseのtestがあり、修正前のコードで落ちることを確認できている（2026年9月20日）
-- [ ] 出力が入力を兼ねる他のfieldを洗い出し、同じ型の不整合の有無と根拠が記録されている
+- [x] 判定に使う値が代理になっていないかを洗い出し、有無と根拠が記録されている（2026年9月20日。[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md)）
+- [x] helperのbuildがsource treeから再現でき、buildidに依存しないことを固定入力testが確認している（修正前の条件で落ちることも確認済み）
 - [ ] `TD-43`・`TD-44`とまとめて直したうえで、新しいcampaign IDで`V-12`をやり直す準備が整っている
 
 ---

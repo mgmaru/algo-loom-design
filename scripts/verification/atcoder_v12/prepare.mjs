@@ -8,6 +8,7 @@ import process from "node:process";
 import zlib from "node:zlib";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { HELPER_BUILD_ENV, HELPER_BUILD_FLAGS } from "./helper-build.mjs";
 
 const SCRIPT_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const REPOSITORY_ROOT = path.resolve(SCRIPT_ROOT, "../../..");
@@ -176,11 +177,12 @@ function buildExtension(outputRoot, version) {
 function buildHelper(outputRoot) {
   const output = path.join(outputRoot, "artifacts", "algoloom-v12-helper-darwin-arm64");
   execFileSync("go", [
-    "build", "-trimpath", "-ldflags", `-s -w -X main.helperVersion=${HELPER_VERSION}`,
+    "build", ...HELPER_BUILD_FLAGS,
+    "-ldflags", `-s -w -X main.helperVersion=${HELPER_VERSION}`,
     "-o", output, ".",
   ], {
     cwd: HELPER_SOURCE,
-    env: { ...process.env, CGO_ENABLED: "0", GOOS: "darwin", GOARCH: "arm64" },
+    env: { ...process.env, ...HELPER_BUILD_ENV },
     stdio: "pipe",
   });
   fs.chmodSync(output, 0o700);
