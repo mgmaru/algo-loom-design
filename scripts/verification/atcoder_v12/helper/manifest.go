@@ -361,7 +361,11 @@ func compareManifests(before, after campaignManifest) invalidationDecision {
 		add("environment_changed", false, "V-12B", "V-12C", "V-12D", "V-12E")
 	}
 	if !equalJSON(before.Profile, after.Profile) {
-		add("profile_contract_changed", false, "V-12B", "V-12C", "V-12D", "V-12E")
+		if profileContractEstablished(before.Profile, after.Profile) {
+			reasons = append(reasons, "profile_contract_established")
+		} else {
+			add("profile_contract_changed", false, "V-12B", "V-12C", "V-12D", "V-12E")
+		}
 	}
 	result := make([]string, 0, len(invalidated))
 	for subtest := range invalidated {
@@ -370,6 +374,24 @@ func compareManifests(before, after campaignManifest) invalidationDecision {
 	sort.Strings(result)
 	sort.Strings(reasons)
 	return invalidationDecision{NewCampaignRequired: newCampaign, Invalidated: result, Reasons: reasons}
+}
+
+// profileContractEstablished reports the one-time transition that V-12B itself
+// produces: the base template goes from undetermined to fixed and gains its
+// integrity ID. V-12B and V-12D created that value, so recording it does not
+// invalidate them. Any other difference - a replaced integrity ID, a schema
+// change, a return to pending - stays a contract change.
+func profileContractEstablished(before, after profileInput) bool {
+	if before.SchemaVersion != after.SchemaVersion {
+		return false
+	}
+	if before.Status != "pending_v12b" || before.IntegrityID != nil {
+		return false
+	}
+	if after.Status != "fixed" || after.IntegrityID == nil {
+		return false
+	}
+	return hashPattern.MatchString(*after.IntegrityID)
 }
 
 func equalJSON(left, right any) bool {

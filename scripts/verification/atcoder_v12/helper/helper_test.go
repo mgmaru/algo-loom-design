@@ -448,3 +448,43 @@ func validManifest() campaignManifest {
 		Profile: profileInput{SchemaVersion: "1.0", Status: "fixed", IntegrityID: &integrity},
 	}
 }
+
+func TestProfileContractEstablishmentKeepsV12BAndV12D(t *testing.T) {
+	t.Parallel()
+	fixed := validManifest()
+	pending := fixed
+	pending.Profile = profileInput{SchemaVersion: "1.0", Status: "pending_v12b", IntegrityID: nil}
+
+	// V-12Bが基準templateを一度だけ確定して完全性IDを作る遷移。
+	// V-12B自身が生んだ値なので、V-12BとV-12Dの結果を無効にしない。
+	decision := compareManifests(pending, fixed)
+	if decision.NewCampaignRequired || len(decision.Invalidated) != 0 {
+		t.Fatalf("establishment invalidation=%+v", decision)
+	}
+	if strings.Join(decision.Reasons, ",") != "profile_contract_established" {
+		t.Fatalf("establishment reasons=%+v", decision.Reasons)
+	}
+
+	// 確定後に完全性IDが変わるのは別の話で、従来どおり依存する結果を無効にする。
+	replaced := fixed
+	other := hashOf("template-replaced")
+	replaced.Profile = profileInput{SchemaVersion: "1.0", Status: "fixed", IntegrityID: &other}
+	decision = compareManifests(fixed, replaced)
+	if decision.NewCampaignRequired || strings.Join(decision.Invalidated, ",") != "V-12B,V-12C,V-12D,V-12E" {
+		t.Fatalf("replacement invalidation=%+v", decision)
+	}
+
+	// 確定後にpendingへ戻すのも契約の変更として扱う。
+	decision = compareManifests(fixed, pending)
+	if strings.Join(decision.Invalidated, ",") != "V-12B,V-12C,V-12D,V-12E" {
+		t.Fatalf("regression invalidation=%+v", decision)
+	}
+
+	// schema版が同時に変わるなら、確定の遷移として扱わない。
+	schemaChanged := fixed
+	schemaChanged.Profile = profileInput{SchemaVersion: "2.0", Status: "fixed", IntegrityID: fixed.Profile.IntegrityID}
+	decision = compareManifests(pending, schemaChanged)
+	if strings.Join(decision.Invalidated, ",") != "V-12B,V-12C,V-12D,V-12E" {
+		t.Fatalf("schema change invalidation=%+v", decision)
+	}
+}
