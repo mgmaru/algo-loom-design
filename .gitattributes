@@ -1,0 +1,3 @@
+# 改行をLFへ統一する。Windowsでcloneしても、commit時にCRLFが混ざらないようにするため。
+# Git for Windowsの既定は`core.autocrlf=true`で、設定が端末ごとに違っても本fileが優先される。
+* text=auto eol=lf
