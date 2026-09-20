@@ -167,19 +167,18 @@ flowchart TD
 
 AlgoLoomの側では進められず、外部の応答または人の承認を待っている作業をここに集約します。**再開時に最初に確認してください。**
 
-**[`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える)が`0.1.1`の公開操作の実行を待っています。`TD-11`はその完了まで保留です。** 2026年9月19日の1回目の実行で、同意画面のcontent scriptが動的な待受番号を持つURLで停止する不具合を実機で発見し（[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)）、同日に修正版`0.1.1`を明示承認のうえ審査へ提出しました（[CWS配布準備 §8.1.6](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#816-2026年9月19日の011審査提出記録)）。**`0.1.1`は2026年9月20日に審査へ合格しました**（[CWS配布準備 §8.1.7](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#817-2026年9月20日の011審査通過記録)）。deferred publishingを選んでいるため、合格だけでは公開されません。
+**外部の返答待ちで止まっている作業はありません。** 2026年9月20日に[`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える)が完了し、[`TD-11`](#td-11-方式a製品形態を実サービスで検証する)の保留が解けました。
 
-**公開の明示承認は2026年9月20日に取得しました。** 待っているのはownerによるdashboard操作です。publisher用の認証情報はリポジトリにも作業環境にも置かないため、AIはdashboardへ到達できません。**承認は公開操作1回だけを対象とし、実行前に画面表示が承認内容と一致することを照合します。一つでも違えば公開せず停止します。** 照合項目と、実行後に読み取る項目は[CWS配布準備 §8.1.7](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#817-2026年9月20日の011審査通過記録)にあります。
+修正版`0.1.1`はCWSの審査に合格し、明示承認を得て限定公開し、配信bytesをリポジトリのsourceと照合するところまで済んでいます（[CWS配布準備 §8.1.9](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#819-2026年9月20日の011配信bytes取得記録)）。**[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)の修正が、CWSが実際に配信するbytesの中にあることも確認しました。** ただし確認したのは配信物の中身であり、**実browserで同意画面から先へ進めることはまだ観測していません。** `V-12D`の成立は`TD-11`のやり直しで判定します。
 
-**公開期限は2026年10月19日です。** dashboardが「このドラフトは許可され、2026/10/19 日までに公開できます。」と表示しています。超過するとdeferred publishingが失効し、再提出からやり直しになります。この期限を`TD-11`の実行期間と混同しません。**期限内に行う必要があるのは公開操作だけです。**
+**`TD-11`の実行には人の明示承認が要ります。** AtCoderへの接続を伴うためで（[作業ガイド §4](CLAUDE.md#4-外部操作には明示承認が必要)）、「`TD-11`を進めてよい」という一般的な依頼を接続の承認へ読み替えません。やり直しは[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)のとおり**新しいcampaign IDで`V-12A`から**行います。1回目のcampaign `v12-2026-09-19-01`は無効で、`V-12A`の合格も取り消しています。
 
-標準追加はCWSの配信物からしか行わない設計のため、**修正をローカルbuildで代用できません。** 公開するまで`TD-11`を再開できません。
+次の外部操作も、それぞれ別の明示承認が要ります。
 
-`0.1.0`の審査は2026年9月18日に合格し、同日に明示承認を得て限定公開しました。deferred publishingの30日期限は消化済みです。
+- `TD-11`の`V-12C`で使う更新test用`0.1.2`のupload・審査提出（現在は未upload）
+- campaign終了後にCWS itemを非公開化する操作
 
 **`TD-39`は2026年9月18日に完了しました。** ただし完了条件のうち「`0.1.1`が未uploadのまま保持され」という項目は、[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)で前提が変わりました。`0.1.1`を修正版へ充て、更新testに使う版は`0.1.2`へ繰り下げています。`TD-39`の本文と完了条件は書き換えません。
-
-待っている間は、依存を持たない作業（`TD-14`、`TD-17`、`TD-21`、`TD-25`、`TD-31`、`TD-43`）を並行して進められます。
 
 **現在、変更してはいけないファイルはありません。** [`v12-extension-support.md`](docs/verification/judge-adapter/v12-extension-support.md)と[`v12-extension-privacy-policy.md`](docs/verification/judge-adapter/v12-extension-privacy-policy.md)は、listingのサポートURL・privacy policy URLがGitHubの`main`を指すため、コミットすると利用者と審査担当者が見るページが即座に変わります。`0.1.0`の審査中と`0.1.1`の審査中に適用した凍結は、いずれも合格をもって解除しました。解除後も次を守ります。
 
@@ -202,8 +201,8 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-10`](#td-10-方式a製品形態の検証項目を追加する) | 技術検証 | 方式A製品形態の検証項目を追加する | `TD-09` | 完了 | ― |
 | [`TD-37`](#td-37-v-12検証用のローカル配布候補を準備する) | 技術検証 | `V-12`検証用のローカル配布候補を準備する | `TD-10` | 完了 | ― |
 | [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 完了 | ― |
-| [`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える) | 技術検証 | 修正版`0.1.1`を公開し、`V-12`の再実行条件を整える | `TD-39` | 進行中 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
-| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42` | 保留 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
+| [`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える) | 技術検証 | 修正版`0.1.1`を公開し、`V-12`の再実行条件を整える | `TD-39` | 完了 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
+| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42` | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 | [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) | 設計判断 | 検証支援物の実行経路をbrowser相当で確認する範囲を決める | ― | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 | ― |
 | [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 | ― |
@@ -682,6 +681,10 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 
 **なぜこの作業が要るか:** [`TD-11`](#td-11-方式a製品形態を実サービスで検証する)の1回目の実行が、配信中の`0.1.0`に含まれる不具合で停止しました。標準追加はCWSの配信物からしか行わないため、修正をローカルbuildで代用できません。**`TD-11`はこの作業が終わるまで再開できません。** `TD-39`と分ける理由は、`TD-39`が「審査を通せる状態を作る」作業であり完了済みだからです。**完了した作業の記録を書き換えず、新しい作業として起票します。**
 
+**2026年9月20日の実施記録（手順5。この作業はこれで完了）:** **CWS配信済み`0.1.1`のbytesを取得し、リポジトリのsourceと照合できました。** 配信物はSHA-256 `d7e48e64…83a170`・8439 byteで、`atcoder.js`・`bootstrap.js`・`service_worker.js`・`icon128.png`が**byte単位で一致**、`manifest.json`はCWSが`update_url`の1行を挿入した差分のみ、`_metadata/verified_contents.json`はCWS側の追加でした。配信物の権限は`cookies`・`storage`とhost 2件のみで、`0.1.0`から増えていません。**[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)の修正が配信物の`bootstrap.js`に入っていること**も確認しました（`location.origin`による判定は0件）。ただし確認したのは配信物の中身で、**実browserでの導線の成立は`TD-11`のやり直しで判定します。** 記録と`TD-11`への引渡し値は[CWS配布準備 §8.1.9](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#819-2026年9月20日の011配信bytes取得記録)にあります。
+
+**2026年9月20日の実施記録（手順3）:** **`0.1.1`を限定公開しました。** ownerがdashboardで実行し、実行前の照合5項目（item、version、状態、Distribution、費用）はすべて一致しました。item状態は「公開済み」、**current versionは`0.1.1`**で、`0.1.0`から置き換わっています。deferred publishingの2026年10月19日期限は消化しました。**公開後のvisibility、対象地域、listing URLも読み取り、いずれも`0.1.0`のときから変わっていません。** 公開後のvisibility・対象地域・listing URLの読取りと、手順4の標準追加できる事前状態の確認も同日に済ませました。**残るのは手順5（配信bytesの取得と照合）だけです。** 記録は[CWS配布準備 §8.1.8](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#818-2026年9月20日の011限定公開記録)にあります。
+
 **2026年9月20日の実施記録（手順2）:** 手順1の記録を提示したうえで、**`0.1.1`の公開について別の明示承認を取得しました。** 対象は固定IDのitem、version `0.1.1`、ZIP SHA-256 `d283ee36…1eae5ca`で、公開範囲は料金なし・限定公開・日本のみ、費用なし、停止方法はownerによるunpublishです。**承認は公開操作1回だけを対象とし、有効期限は公開期限と同じ2026年10月19日です。** dashboard操作はownerが行うため、手順3の実行と手順4・5の確認はまだ済んでいません。提示内容の全体は[CWS配布準備 §8.1.7](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#817-2026年9月20日の011審査通過記録)にあります。
 
 **2026年9月20日の実施記録（手順1・6）:** **`0.1.1`は審査に合格しました。** dashboardのステータス画面は「このドラフトは許可され、2026/10/19 日までに公開できます。」と表示しており、**公開期限は2026年10月19日**です。逆算すると合格は提出と同日の2026年9月19日ごろです。不承認ではないため、手順1の停止条件には当たらず、CWS supportへの問い合わせも発生しません。合格をもって、手順6のサポートページとprivacy policyの凍結も解除しました。deferred publishingのため`0.1.1`は未公開で、current versionは`0.1.0`のままです。**残るのは手順2〜5と手順7で、公開には審査提出とは別の明示承認が必要です。** 提示内容と実行前の照合項目は[CWS配布準備 §8.1.7](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#817-2026年9月20日の011審査通過記録)を参照します。
@@ -701,11 +704,11 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 **完了条件:**
 
 - [x] 審査結果が記録されている（2026年9月20日に合格を確認。[CWS配布準備 §8.1.7](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#817-2026年9月20日の011審査通過記録)）
-- [ ] 合格した場合、別の明示承認を得たうえで`0.1.1`が料金なし・限定公開・日本のみで公開され、標準追加できる事前状態である（**2026年9月20日に明示承認を取得。ownerの実行待ち。** 期限は2026年10月19日）
-- [ ] CWS配信済み`0.1.1`のbytesとhashを取得し、リポジトリのsourceと照合できている（公開後に行う。upload前のZIPは`d283ee36…1eae5ca`・5516 bytesで照合済み）
-- [ ] 配信物の権限が`cookies`、`storage`、host 2件のみで、`0.1.0`から増えていない（公開後に配信物で確認する。提出したsourceの`manifest.json`では`0.1.0`から変わっていない）
+- [x] 合格した場合、別の明示承認を得たうえで`0.1.1`が料金なし・限定公開・日本のみで公開され、標準追加できる事前状態である（2026年9月20日。明示承認を得て公開し、`Unlisted`・日本のみ・`0.1.1`と、publisher以外のprofileで「Chromeに追加」ボタンが活性であることを確認。ボタンは押していない）
+- [x] CWS配信済み`0.1.1`のbytesとhashを取得し、リポジトリのsourceと照合できている（2026年9月20日。SHA-256 `d7e48e64…83a170`・8439 byte。`update_url`の1行と署名metadata以外はbyte単位で一致）
+- [x] 配信物の権限が`cookies`、`storage`、host 2件のみで、`0.1.0`から増えていない（2026年9月20日に配信物の`manifest.json`で確認）
 - [x] 不承認の場合、回避策ではなく理由と次の判断が記録されている（**該当しない。** 2026年9月20日に合格を確認したため、不承認の記録は発生しない）
-- [ ] `0.1.2`が未uploadのまま保持されている（2026年9月20日時点で未upload。`V-12C`で明示承認を得るまで保持する）
+- [x] `0.1.2`が未uploadのまま保持されている（2026年9月20日時点で未upload。`V-12C`で明示承認を得るまで保持する）
 
 ---
 
@@ -747,7 +750,10 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 |---|---|
 | カテゴリ | 技術検証 |
 | 対象ファイル | `docs/verification/judge-adapter/results/`配下の新しい実行記録 |
-| 依存 | `TD-39` |
+| 依存 | `TD-39`、`TD-42` |
+| 決定 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
+
+**2026年9月20日:** [`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える)が完了し、**この作業の保留が解けました。** 修正版`0.1.1`が配信され、配信bytesとsourceの照合まで済んでいます（[CWS配布準備 §8.1.9](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#819-2026年9月20日の011配信bytes取得記録)）。やり直しは**新しいcampaign IDで`V-12A`から**行います。**実行にはAtCoderへの接続を伴うため、人の明示承認が要ります。**
 
 **2026年9月19日の実施記録（1回目、campaign `v12-2026-09-19-01`）:** 手順1〜5を実行し、**検証物の不具合により`V-12D`の手前で停止しました。** `TD-11`は不合格ではなく、方式Aの成立性はまだ判定できていません。
 
