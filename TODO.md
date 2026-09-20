@@ -188,12 +188,16 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | 実行して評価する範囲（`TD-43`） | [ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md) |
 | `V-12C`の必須caseの範囲 | [ADR-0009](docs/decisions/0009-required-cases-for-v12c.md) |
 
+**片付けたあと、検証物は一度も変わっていません。** [`scripts/verification/atcoder_v12/`](scripts/verification/atcoder_v12/)へ最後に触れたコミットは`f6caf3d`（`TD-44`のhelperのエラー名の修正）で、それ以降に`main`へ入ったのは文書と、`atcoder_v12/`の外にあるscriptだけです（2026年9月20日時点）。同じ日に`.gitattributes`を足しましたが、**追跡している全ファイルがもともとLFだったため、内容は1バイトも変わっていません。**
+
+これは手順2で効きます。2回目のcampaignを無効にした原因がhelperのbuild hashの変化だったため、**再開した人はまず「その後の作業でハッシュが動いたのではないか」を疑います。** [ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md)によりハッシュはsource treeへ追従するので、`f6caf3d`時点と同じ値が出るはずです。**違う値が出たら、それ自体が先に調べるべき事実です。** 3回目をそのまま続けてはいけません。
+
 **`TD-11`の実行には人の明示承認が要ります。** AtCoderへの接続を伴うためで（[作業ガイド §4](CLAUDE.md#4-外部操作には明示承認が必要)）、「`TD-11`を進めてよい」という一般的な依頼を接続の承認へ読み替えません。**ただしCWSの審査・提出・公開は発生しません。** 配信中の`0.1.1`をそのまま使い、公開済みのlistingから標準追加するだけです。
 
 再開するときの順序です。外部接続を伴わない1〜3はAIが進められます。
 
 1. リポジトリ外のowner専用領域に残る2回目のcampaignの資源（基準template、検証用secret store項目、campaign manifest、実行scriptと`build/`）を**破棄する。** 古い基準templateを3回目へ流用しない
-2. `prepare.mjs`で成果物を作り直す。**helperのハッシュが`-buildvcs=false`で変わっている**
+2. `prepare.mjs`で成果物を作り直す。**helperのハッシュが`-buildvcs=false`で2回目から変わっている。** ただし`f6caf3d`以降は動いていないため、そこと同じ値になることを確かめる（上の段落）
 3. 新しいcampaign IDとmanifestを作り、`V-12A`を外部通信0件で実行する
 4. ownerが`V-12B → V-12D`を分断せず通す（15分程度）。listingから標準追加 → Chrome完全終了 → AtCoderログイン
 5. `V-12C`の必須case5件、続けて`V-12E`（対象問題`abc300_a`。**最後の提出操作は行わない**）
