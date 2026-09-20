@@ -858,8 +858,11 @@ func TestSecretDeleteReportsOnlyConfirmedRemoval(t *testing.T) {
 	absentAfterDelete := adapter("absent-after-delete", `case "$1" in exists) exit 44 ;; *) exit 0 ;; esac`)
 	unreadable := adapter("unreadable", `case "$1" in exists) exit 7 ;; *) exit 0 ;; esac`)
 
-	deleteWith := func(adapter string) error {
-		verifier, err := newLiveVerifier(testAccount, adapter, service, "/bin/echo")
+	// selfExecutableもsymlinkを含まないpathである必要がある。Linuxの/binは
+	// /usr/binへのsymlinkなので、解決済みの一時ディレクトリに置いたものを使う。
+	stand := adapter("stand-in-self", `exit 0`)
+	deleteWith := func(adapterPath string) error {
+		verifier, err := newLiveVerifier(testAccount, adapterPath, service, stand)
 		if err != nil {
 			t.Fatal(err)
 		}
