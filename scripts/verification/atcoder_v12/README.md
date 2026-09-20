@@ -34,6 +34,50 @@ Go testは、protocolの状態順序、版・同意不一致、`Host`、接続�
 
 review fixtureの`--self-test`は、socketを一つも開かず固定入力だけでprotocolを確認します。16のcaseで、`Host`、接続元、拡張機能origin、Bearer token、`Content-Type`、32 KiB上限、状態順序、余剰key、版不一致、自動操作識別値、Cookieの範囲と属性、本人不一致、そして**受け取った値がどこにも残らないこと**を検査します。
 
+## browserが送る値を、手で組み立てたrequestで代用しない
+
+**これは2度失敗した箇所です。3度目を起こさないための規則です。**
+
+| いつ | 何が起きたか | 決定 |
+|---|---|---|
+| 2026年9月19日 | 同意画面のcontent scriptが、sourceの検査では正しく見えるのに**実browserで動かなかった。** `location.origin`でloopbackを判定していたため、動的な待受番号が付くURLで常に`return`していた | [ADR-0005](../../../docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
+| 2026年9月20日 | 提出確認画面のform POSTを**helper自身が拒否した。** 契約testが`Origin`ヘッダーを手で立てていたため、`Referrer-Policy: no-referrer`のページからのPOSTでChromeが`Origin: null`を送ることを一度も通していなかった | [ADR-0012](../../../docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md) |
+
+どちらも、**確かめたい相手はbrowserなのに、browserの代わりに自分の思い込みを置いていた**ために起きました。テストは通り、実機で止まりました。
+
+規則は3つです。
+
+1. **requestのヘッダーを手で立てる前に、その値をbrowserが決めるのかを判定します。** helperが生成する値（`Authorization`のtoken）や、拡張機能が明示的に付ける値（`Content-Type: application/json`）は手で立ててかまいません。**browserが決める値は代用しません**
+2. **browserが決める値は、実挙動を測ってから固定します。** 測り直せる形で残し、「前に確かめた」で済ませません
+3. **測る仕組みには必ずnegative controlを入れます。** 壊れた条件を検出できることを先に見せない限り、成功は成立証拠になりません
+
+### 手で組み立てているrequestの分類
+
+2026年9月20日に洗い出した結果です。
+
+| 箇所 | ヘッダー | browserが決めるか | 扱い |
+|---|---|---|---|
+| `/event`・`/capture`のbody検査 | `Content-Type: application/json` | **決めない。** `service_worker.js`が明示的に付ける | 手で立ててよい |
+| loopback handlerの認可検査 | `Authorization: Bearer <token>` | **決めない。** tokenはhelperが生成し、拡張機能が付ける | 手で立ててよい |
+| loopback handlerの認可検査 | `Origin: chrome-extension://<固定ID>` | **決める。** service workerの`fetch`に付く | `V-12D`が3回の実campaignで合格しており、実挙動で裏づけ済み |
+| loopback handlerの接続検査 | `Host`、接続元 | **決める** | 同上 |
+| 提出確認画面の`proceed`検査 | `Origin: http://127.0.0.1:<待受番号>` | **決める** | **ここが2度目の失敗。** `browser-request-probe.mjs`で測る |
+| 提出確認画面の`proceed`検査 | `Content-Type: application/x-www-form-urlencoded` | **決める。** form POSTでbrowserが付ける | 同じprobeで測り、一致を確認した |
+
+### 実挙動を測る
+
+```console
+node scripts/verification/atcoder_v12/browser-request-probe.mjs
+```
+
+ローカルだけで完結します。**AtCoder、Chrome Web Store、Cloudflareへ接続しません。** 使い捨てChrome profileをリポジトリ外に作り、終了時に破棄します。
+
+probeはhelperの`submissionReferrerPolicy`を**sourceから読みます。** 実装とprobeが別々に動いて食い違うことを防ぐためです。あわせて`no-referrer`をnegative controlとして必ず測り、**`Origin`が落ちる条件を検出できることを示してから**、helperが使う値の結果を成立とします。
+
+**このprobeはCIで実行しません。** 通常Google Chromeを必要とし、CIの実行環境にないためです。CIが守るのは固定入力testのほうで、`Referrer-Policy`が`Origin`を保つ値から外れたらGo testが落ちます。**probeは「その許可listが実機で正しいか」を確かめるもので、campaignの開始前と、この経路へ触れたときに人が実行します。**
+
+`Referrer-Policy`は見た目の設定ではなく、`Origin`の検査と対になっています。提出確認画面は`same-origin`で配信します。同一originへは正しい`Origin`を送り、AtCoderへは`Referer`を送りません。**`no-referrer`へ戻すと固定入力testが落ちます。**
+
 テスト成功は、Chrome Web Storeの審査、標準追加、AtCoder実サービス、Keychainへの実session保存、`V-12`全体の合格証拠ではありません。
 
 ## 隔離build
