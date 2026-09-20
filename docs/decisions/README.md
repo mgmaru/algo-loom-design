@@ -30,6 +30,7 @@
 | [ADR-0006](0006-profile-contract-establishment-is-not-invalidation.md) | 基準templateの一度きりの確定を、結果の無効化として扱わない | 採用 | 2026年9月20日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-45`](../../TODO.md#td-45-campaign-manifestの確定遷移が自分を無効化する不整合を直す) |
 | [ADR-0007](0007-make-helper-build-hash-track-behaviour.md) | helperのbuild hashを、履歴ではなく挙動に追従させる | 採用 | 2026年9月20日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-45`](../../TODO.md#td-45-campaign-manifestの確定遷移が自分を無効化する不整合を直す) |
 | [ADR-0008](0008-scope-of-execution-based-checks-for-verification-artifacts.md) | 検証支援物のうち、実行して評価する範囲を拡張機能の3つのentry pointに定める | 採用 | 2026年9月20日 | [`TD-32`](../../TODO.md#td-32-テスト方針の骨格を決める)、[`TD-43`](../../TODO.md#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) |
+| [ADR-0009](0009-required-cases-for-v12c.md) | `V-12C`の必須caseを代表環境の契約testに定め、3 OSと更新導線を外す | 採用 | 2026年9月20日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-12`](../../TODO.md#td-12-3つのosの認証検証マトリクスを作る) |
 
 ## 何をADRにするか
 

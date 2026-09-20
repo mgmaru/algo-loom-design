@@ -202,11 +202,11 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-37`](#td-37-v-12検証用のローカル配布候補を準備する) | 技術検証 | `V-12`検証用のローカル配布候補を準備する | `TD-10` | 完了 | ― |
 | [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 完了 | ― |
 | [`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える) | 技術検証 | 修正版`0.1.1`を公開し、`V-12`の再実行条件を整える | `TD-39` | 完了 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
-| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42` | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
+| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42` | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md)、[ADR-0009](docs/decisions/0009-required-cases-for-v12c.md) |
 | [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) | 設計判断 | 検証支援物の実行経路をbrowser相当で確認する範囲を決める | ― | 進行中 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md) |
 | [`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す) | 技術検証 | helperのエラーが原因を一意に指せない箇所を洗い出して直す | ― | 進行中 | ― |
 | [`TD-45`](#td-45-campaign-manifestの確定遷移が自分を無効化する不整合を直す) | 技術検証 | campaign manifestの確定遷移が自分を無効化する不整合を直す | ― | 進行中 | [ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
-| [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 | ― |
+| [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 | [ADR-0009](docs/decisions/0009-required-cases-for-v12c.md) |
 | [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 | ― |
 | [`TD-38`](#td-38-認証配布物とテンプレートのライフサイクル契約を確定する) | 機能設計 | 認証配布物とテンプレートのライフサイクル契約を確定する | `TD-11`, `TD-12` | 未着手 | ― |
 | [`TD-41`](#td-41-製品形態の拡張機能の審査条件と確認gateを確定する) | 設計判断 | 製品形態の拡張機能の審査条件と確認gateを確定する | `TD-38`, `TD-40` | 未着手 | ― |
@@ -828,7 +828,7 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 | カテゴリ | 技術検証 |
 | 対象ファイル | `docs/verification/judge-adapter/results/`配下の新しい実行記録 |
 | 依存 | `TD-39`、`TD-42` |
-| 決定 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
+| 決定 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0009](docs/decisions/0009-required-cases-for-v12c.md) |
 
 **2026年9月20日の実施記録（2回目、campaign `v12-2026-09-20-01`）:** 手順1〜5を実行し、**`V-12A`・`V-12B`・`V-12D`が合格しました。** 9月19日に停止した同意画面を通過し、[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)の修正が実browserで機能することを初めて実行結果として観測しています。`V-12A`は外部通信0件、`V-12B`はdeveloper modeなしの標準追加から基準templateの一度だけの確定まで、`V-12D`は本人照合・secret store保存・新processからの再照合までが分断なく成立しました。`GET /settings`は**上限と同数の2回**、提出は0件、Bot対策の回避も0件です。後始末はsetup profileとruntime profileの削除まで完了し、基準template（完全性ID `738757a2…`）と検証用secret store項目を`V-12E`まで保持しています。**`V-12C`と`V-12E`は未実施で、`V-12`全体は判定不能のままです。** `V-12E`の対象問題は`abc300_a`で確定しました。2026年9月20日にABC300が2023年4月29日に**終了済み**であることを公式ページで確認し、開始条件を満たしています。**最後の提出操作は行いません。**記録は[`v12-01`](docs/verification/judge-adapter/results/2026-09-20-v12-01.md)にあります。
 
@@ -854,7 +854,7 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 4. AtCoderへ接続する前に`V-12A`を実行し、`TD-37`の固定入力・ローカル観測と`TD-39`の署名済み配布物へ対応付けて結果を記録する。不合格なら後続へ進まない。
 5. `aloom auth login`相当から`V-12B → V-12D`を一連の初回導線として実行する。通常Chromeでの標準追加（**シークレットモードとゲストでは拡張機能を追加できないため使わない**。[CWS配布準備 §8.1.3](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#シークレットモードとゲストを使わない理由2026年9月18日確認)）、導入完了の自動検出、Chrome完全終了、基準templateの確定から、そのtemplateを使ったAtCoderログイン、本人確認、秘密情報保管庫への保存、新しいprocessでの再照合、CLIへの結果表示まで続ける。`V-12B`の結果記録のためにCLIへ戻ったり、browser、helper、templateを作り直したりせず、copy-and-pasteや手動ページ移動も行わない。
 6. `V-12D`の観測後、実行用profile、未確認session、待受処理を回収する。AtCoderのCookie、履歴、入力情報を含まない基準templateは`V-12E`まで保持し、確認済みの保存sessionは`V-12C`から隔離する。
-7. `V-12C`を、取消・故障・更新条件ごとの独立caseとして実行する。基準templateが不要なcaseには新しい使い捨てprofileを、必要なcaseには基準templateの使い捨て複製を使い、secret namespaceもcaseごとに隔離する。Chrome本体等の環境全体を変更するcaseは隔離した環境snapshotで行う。AtCoderへは接続せず、基準template、通常系のChrome環境、`V-12D`の保存sessionを変更しない。各caseの終了時にprocess、待受、file lock、一時profile、未確認sessionの残存がないことを確認する。
+7. `V-12C`を、取消・故障・更新条件ごとの独立caseとして実行する。**必須caseの範囲は[検証計画 §3.1.1](docs/project/judge-adapter-verification.md#311-v-12-方式a製品形態の検証)を正本とする（[ADR-0009](docs/decisions/0009-required-cases-for-v12c.md)）。**基準templateが不要なcaseには新しい使い捨てprofileを、必要なcaseには基準templateの使い捨て複製を使い、secret namespaceもcaseごとに隔離する。Chrome本体等の環境全体を変更するcaseは隔離した環境snapshotで行う。AtCoderへは接続せず、基準template、通常系のChrome環境、`V-12D`の保存sessionを変更しない。各caseの終了時にprocess、待受、file lock、一時profile、未確認sessionの残存がないことを確認する。
 8. `V-12E`の直前に、AtCoder側のsessionを意図的に失効させず、製品の削除契約に従って保存済みlocal sessionだけを除去する。別のCLI実行から`submit`相当の入口を開始し、失効理由と中止方法、browser自動起動、利用者によるAtCoderログイン、同じbrowserでの提出確認画面への遷移までを確認する。別の認証commandや追加のYes/No確認を挟まず、最後の提出操作は行わない。
 9. [記録テンプレート](docs/verification/judge-adapter/results/run-record-template.md)を複製し、`V-12A`〜`V-12E`ごとに入力、観測元、証拠、manifest、合否を匿名化して記録する。`V-12`全体は5つすべてが同じcampaign manifestで合格した場合だけ合格とする。
 10. caseごとの一時資源を回収し、campaign終了時に基準template、store用一時情報、検証用秘密情報保管庫項目を破棄する。検証用の限定公開版を残す場合も、公開範囲、目的、停止方法とownerを記録する。
