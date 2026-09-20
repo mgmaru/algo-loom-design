@@ -2,8 +2,11 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -486,5 +489,176 @@ func TestProfileContractEstablishmentKeepsV12BAndV12D(t *testing.T) {
 	decision = compareManifests(pending, schemaChanged)
 	if strings.Join(decision.Invalidated, ",") != "V-12B,V-12C,V-12D,V-12E" {
 		t.Fatalf("schema change invalidation=%+v", decision)
+	}
+}
+
+// fileDigestAndSize returns what artifactFileMatches compares against.
+func fileDigestAndSize(t *testing.T, filePath string) (string, int64) {
+	t.Helper()
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	digest := sha256.Sum256(data)
+	return hex.EncodeToString(digest[:]), int64(len(data))
+}
+
+func writeExitStub(t *testing.T, filePath string, code int) {
+	t.Helper()
+	script := fmt.Sprintf("#!/bin/sh\nexit %d\n", code)
+	if err := os.WriteFile(filePath, []byte(script), 0o700); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestFirstLoginNamesEachStopCauseDistinctly checks that first-login says which
+// precondition stopped it. Before the split, a wrong keychain service name and a
+// leftover secret both surfaced as first_login_secret_namespace_not_empty, which
+// sent the reader to delete an item that was never there.
+func TestFirstLoginNamesEachStopCauseDistinctly(t *testing.T) {
+	// 通常のbuildはldflagsで版を埋める。test binaryには埋まらないため、
+	// manifestの版と突き合わせられるように差し替える。並行にしない前提。
+	originalHelperVersion := helperVersion
+	helperVersion = "0.1.0"
+	defer func() { helperVersion = originalHelperVersion }()
+
+	workspace, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	selfPath, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if selfPath, err = filepath.EvalSymlinks(selfPath); err != nil {
+		t.Fatal(err)
+	}
+	selfDigest, selfBytes := fileDigestAndSize(t, selfPath)
+
+	// newLiveVerifierは実行ファイルのpathがsymlinkを経由しないことを要求する。
+	// macOSのtest binaryは/var/folders（/private/varへのsymlink）に置かれるため、
+	// secret store側の3caseはそこまで到達できない。Linuxでは到達する。
+	rawSelf, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	secretStoreReachable := rawSelf == selfPath
+
+	stubs := map[string]string{"absent": "", "present": "", "broken": ""}
+	for name, code := range map[string]int{"absent": 44, "present": 0, "broken": 3} {
+		stubPath := filepath.Join(workspace, "keychain-"+name)
+		writeExitStub(t, stubPath, code)
+		stubs[name] = stubPath
+	}
+
+	// 期待accountはstdinから1行だけ渡す。差し替えるため並行にしない。
+	identityPath := filepath.Join(workspace, "identity")
+	if err := os.WriteFile(identityPath, []byte("verifieraccount\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	service := "io.algoloom.verification.v12." + strings.Repeat("a", 32) + ".session"
+
+	run := func(t *testing.T, keychainStub, keychainService string, mutate func(*campaignManifest)) string {
+		t.Helper()
+		manifest := validManifest()
+		manifest.Profile = profileInput{SchemaVersion: "1.0", Status: "pending_v12b", IntegrityID: nil}
+		stubDigest, stubBytes := fileDigestAndSize(t, keychainStub)
+		manifest.Helper.Artifacts = []artifactInput{
+			{Alias: "helper-darwin-arm64", OS: "darwin", Arch: "arm64", SHA256: selfDigest, Bytes: selfBytes},
+			{Alias: "keychain-darwin-arm64", OS: "darwin", Arch: "arm64", SHA256: stubDigest, Bytes: stubBytes},
+		}
+		// 引数は変異前の値から作る。変異後から作ると、不一致を作ったつもりの
+		// mutateが引数側にも反映されて打ち消し合う。
+		arguments := manifest
+		if mutate != nil {
+			mutate(&manifest)
+		}
+		encoded, err := json.Marshal(manifest)
+		if err != nil {
+			t.Fatal(err)
+		}
+		manifestPath := filepath.Join(workspace, fmt.Sprintf("manifest-%d.json", time.Now().UnixNano()))
+		if err := os.WriteFile(manifestPath, encoded, 0o600); err != nil {
+			t.Fatal(err)
+		}
+		decoded, err := decodeManifest(encoded)
+		if err != nil {
+			t.Fatal(err)
+		}
+		canonical, err := manifestHash(decoded)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		identity, err := os.Open(identityPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer identity.Close()
+		originalStdin := os.Stdin
+		os.Stdin = identity
+		defer func() { os.Stdin = originalStdin }()
+
+		err = runFirstLogin([]string{
+			"--manifest", manifestPath,
+			"--expected-manifest-sha256", canonical,
+			"--listing-url", arguments.Extension.ListingURL,
+			"--extension-id", arguments.Extension.ID,
+			"--extension-version", arguments.Extension.TargetVersion,
+			"--consent-version", arguments.Consent.Version,
+			"--template-schema-version", arguments.Profile.SchemaVersion,
+			"--keychain-helper", keychainStub,
+			"--keychain-service", keychainService,
+			"--chrome", filepath.Join(workspace, "absent-chrome"),
+			"--setup-profile", filepath.Join(workspace, "setup"),
+			"--template", filepath.Join(workspace, "template"),
+			"--runtime", filepath.Join(workspace, "runtime"),
+			"--repository-root", workspace,
+		})
+		if err == nil {
+			t.Fatal("first-login unexpectedly succeeded")
+		}
+		return err.Error()
+	}
+
+	// 分けたかった2件。どちらも「安全側で停止」だが、次に取る行動が違う。
+	if got := run(t, stubs["absent"], "io.algoloom.verification.v12.not-hex.session", nil); got != "first_login_verifier_configuration_invalid" {
+		t.Fatalf("bad service name: %s", got)
+	}
+	if secretStoreReachable {
+		if got := run(t, stubs["present"], service, nil); got != "first_login_secret_namespace_not_empty" {
+			t.Fatalf("leftover secret: %s", got)
+		}
+		// 「判定できなかった」を「残っていた」と報告しない。
+		if got := run(t, stubs["broken"], service, nil); got != "first_login_secret_store_unavailable" {
+			t.Fatalf("unusable secret store: %s", got)
+		}
+	} else {
+		t.Log("secret storeの3caseは、test binaryのpathがsymlinkを経由するため未実行")
+	}
+
+	// manifestの不一致も、どの組が合わないかで分かれる。
+	if got := run(t, stubs["absent"], service, func(m *campaignManifest) {
+		m.Profile.Status = "fixed"
+		fixed := hashOf("e")
+		m.Profile.IntegrityID = &fixed
+	}); got != "first_login_profile_not_pending" {
+		t.Fatalf("profile already fixed: %s", got)
+	}
+	if got := run(t, stubs["absent"], service, func(m *campaignManifest) {
+		m.Consent.Version = "9.9"
+	}); got != "first_login_consent_or_template_mismatch" {
+		t.Fatalf("consent mismatch: %s", got)
+	}
+	if got := run(t, stubs["absent"], service, func(m *campaignManifest) {
+		m.Helper.Artifacts[1].SHA256 = hashOf("f")
+	}); got != "first_login_keychain_helper_hash_mismatch" {
+		t.Fatalf("keychain helper hash: %s", got)
+	}
+	if got := run(t, stubs["absent"], service, func(m *campaignManifest) {
+		m.Helper.Artifacts[0].SHA256 = hashOf("f")
+	}); got != "first_login_self_hash_mismatch" {
+		t.Fatalf("self hash: %s", got)
 	}
 }

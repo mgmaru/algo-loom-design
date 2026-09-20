@@ -141,6 +141,34 @@ commandは、manifestの固定ID・対象版・listing・同意・template schem
 
 正常時は新process再照合とChrome完全終了を確認してruntime cloneを削除し、秘密でないtemplate完全性IDをJSONで返します。基準templateと確認済みKeychain項目だけを`V-12E`まで保持します。取消、timeout、標準追加なしのChrome終了、manifest・版・hash不一致、profile lockでは安全側に停止し、作成済みの専用marker付きprofileだけをcleanupします。
 
+### エラー名の方針
+
+**エラー名は「次に取るべき行動」で分けます。** 安全側で停止するという結果が同じでも、読んだ人が次にやることが違うなら別の名前にします。2026年9月20日に`first_login_secret_namespace_not_empty`が、secret storeに項目が残っている場合と設定が不正な場合の両方で返り、**残っていない項目を消そうとする**誤った対処へ誘導しました（[`TD-44`](../../../TODO.md#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す)）。
+
+分けたものです。
+
+| 停止の原因 | エラー名 | 次に取る行動 |
+|---|---|---|
+| campaign manifestを正規化できない | `manifest_hash_unavailable` | manifestを直す |
+| `--expected-manifest-sha256`が64桁の16進でない | `expected_manifest_hash_invalid` | 引数を直す |
+| hashが一致しない | `manifest_hash_mismatch` | 参照しているrevisionを確かめる |
+| `profile.status`が`pending_v12b`でない | `first_login_profile_not_pending` | 初回導線用のrevisionを使う |
+| 固定ID・対象版・listingが引数と違う | `first_login_extension_mismatch` | 対象itemを確かめる |
+| 同意版・template schemaが違う | `first_login_consent_or_template_mismatch` | 同意文面かschemaを合わせる |
+| helper版・protocol版が違う | `first_login_helper_contract_mismatch` | buildし直す |
+| 実行中のhelper自身のhashが違う | `first_login_self_hash_mismatch` | manifestのbuildで実行する |
+| Keychain adapterのhashが違う | `first_login_keychain_helper_hash_mismatch` | 渡したpathを確かめる |
+| service IDの書式、または実行ファイルのpathが不正 | `first_login_verifier_configuration_invalid` | **引数を直す。項目を消しに行かない** |
+| secret storeに項目が残っている | `first_login_secret_namespace_not_empty` | `secret delete`で消す |
+| secret storeを参照できず判定できない | `first_login_secret_store_unavailable` | Keychain adapterが動くかを確かめる |
+| 子processの出力が上限を超えた | `first_login_child_output_too_large` | **秘密値の混入を疑う** |
+| 子processの出力を読めない | `first_login_output_undecodable` | helperの不具合として扱う |
+| 認証が成立しなかった | `first_login_authentication_not_ok` | 子processの停止理由を見る |
+
+**分けなかったものもあります。** `*_arguments_invalid`（引数の解析失敗、余剰引数、timeoutの範囲外）、`manifest_size_invalid`（空、上限超過）、`manifest_identity_invalid`（schema版、revision、campaign ID）は、原因が違っても**次に取る行動が「渡した値を直す」で同じ**なので、一つの名前のままにしています。
+
+`keychainItemAbsent`は「項目なし」「項目あり」「判定できなかった」の3つを返します。**判定できなかったものを「項目あり」と報告しません。** 終了コード44が「なし」、0が「あり」、それ以外は判定できていない、という対応です。
+
 ### manifest
 
 ```console
