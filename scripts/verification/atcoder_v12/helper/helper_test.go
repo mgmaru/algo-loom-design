@@ -914,3 +914,115 @@ func TestExtensionDetectionSeparatesMissingVersionFromDuplicate(t *testing.T) {
 		t.Fatalf("duplicate installation: %v", err)
 	}
 }
+
+// 提出確認画面のCSPは、押下を受けるloopback originだけでなく、その後303で
+// 送る提出先originも`form-action`へ含めていなければならない。
+//
+// なぜ必要か: Chromeはform POSTの**後の遷移先**も`form-action`で検査する。
+// loopback originだけを許していた5回目のcampaignでは、303がChromeに止められ、
+// browserが提出pageへ着かなかった（ADR-0014）。この画面のCSPは見た目の設定
+// ではなく、受け渡しが成立するかどうかを決めている。
+func TestSubmissionPageAllowsTheRedirectTargetInFormAction(t *testing.T) {
+	t.Parallel()
+	machine, err := newProtocolMachine("0.1.0", "1.0", testAccount, func(captureInput) (publicVerify, error) {
+		return publicVerify{}, nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	handler, err := newLoopbackHandler(41240, testToken, testExtensionID, "1.0", machine)
+	if err != nil {
+		t.Fatal(err)
+	}
+	origin := "http://127.0.0.1:41240"
+	submitURL := "https://atcoder.jp/contests/abc300/submit?taskScreenName=abc300_a"
+	submitOrigin := "https://atcoder.jp"
+	proceedToken := strings.Repeat("d", 64)
+	plan := submissionPlan{
+		ProblemID: "abc300_a", ProblemURL: "https://atcoder.jp/contests/abc300/tasks/abc300_a",
+		SubmitURL: submitURL, Language: "Python (CPython 3.11.4)", SourceName: "source.py",
+		SourceBytes: 9, SourceLines: 1, SourceSHA256: strings.Repeat("c", 64), preview: "print(1)",
+	}
+	if err := handler.enableSubmissionConfirmation(renderSubmissionPage(plan, proceedToken), proceedToken, submitURL); err != nil {
+		t.Fatal(err)
+	}
+
+	page := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, origin+"/submission", nil)
+	request.RemoteAddr = "127.0.0.1:50000"
+	handler.ServeHTTP(page, request)
+	policy := page.Header().Get("Content-Security-Policy")
+
+	directive := ""
+	for _, part := range strings.Split(policy, ";") {
+		trimmed := strings.TrimSpace(part)
+		if strings.HasPrefix(trimmed, "form-action ") {
+			directive = trimmed
+		}
+	}
+	if directive == "" {
+		t.Fatalf("submission page has no form-action directive: %q", policy)
+	}
+	sources := strings.Fields(strings.TrimPrefix(directive, "form-action "))
+	has := func(want string) bool {
+		for _, source := range sources {
+			if source == want {
+				return true
+			}
+		}
+		return false
+	}
+	if !has(origin) {
+		t.Fatalf("form-action does not allow the loopback origin: %q", directive)
+	}
+	if !has(submitOrigin) {
+		t.Fatalf("form-action does not allow the redirect target, so Chrome stops the 303: %q", directive)
+	}
+	// 広げすぎていないことも見る。許すのはこの2つだけである。
+	if len(sources) != 2 || has("*") || has("'unsafe-inline'") {
+		t.Fatalf("form-action allows more than the two needed origins: %q", directive)
+	}
+	// CSPの他の部分を緩めていない。
+	for _, needed := range []string{"default-src 'none'", "frame-ancestors 'none'"} {
+		if !strings.Contains(policy, needed) {
+			t.Fatalf("submission page CSP lost %q: %q", needed, policy)
+		}
+	}
+	if strings.Contains(policy, "script-src") {
+		t.Fatalf("submission page CSP allows scripts: %q", policy)
+	}
+}
+
+// helperは、自分が観測できない範囲を成功として報告しない。提出pageへ着いた
+// かどうかはbrowserの結果であり、helperは303を書いたところまでしか見ていない。
+func TestSubmitEntryOutputDoesNotClaimTheBrowserArrived(t *testing.T) {
+	t.Parallel()
+	// 本番と同じ組み立てを通す。testの中で作り直すと、helperが実際に何を
+	// 報告するかを確かめたことにならない。
+	output := newSubmitEntryOutput("0.1.1", submissionPlan{ProblemID: "abc300_a"}, true, captureOutcome{})
+	encoded, err := json.Marshal(output)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var decoded map[string]any
+	if err := json.Unmarshal(encoded, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	if decoded["observed_scope"] != helperObservedScope {
+		t.Fatalf("output does not state how far the helper observed: %v", decoded["observed_scope"])
+	}
+	submission, ok := decoded["submission"].(map[string]any)
+	if !ok {
+		t.Fatal("output has no submission section")
+	}
+	arrival, ok := submission["submit_page_arrival"]
+	if !ok {
+		t.Fatal("output does not report the arrival field at all")
+	}
+	if arrival != submitPageArrivalUnobserved {
+		t.Fatalf("helper reported an arrival it cannot observe: %v", arrival)
+	}
+	if arrival == true || arrival == "true" {
+		t.Fatalf("helper claimed the browser arrived: %v", arrival)
+	}
+}
