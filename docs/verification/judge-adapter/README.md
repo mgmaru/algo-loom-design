@@ -2,7 +2,7 @@
 
 > 対象: [`JudgeAdapter`技術検証計画](../../project/judge-adapter-verification.md)を安全かつ再現可能に実施するための準備と運用
 >
-> 状態: `V-01`〜`V-11`はすべて合格し、2026年8月24日に成果物確定と後始末を完了。追加P0 `V-12`は、`TD-37`のローカル準備を完了し、CWS外部作業を`TD-39`へ分離している。**`TD-39`は2026年9月18日に完了した。** quarantine属性が付かないreviewer用helperの受渡し方式を確定し、2026年8月27日にdeferred publishingで審査へ提出、9月18日に`0.1.0`の審査合格を確認し、別の明示承認を得て限定公開し、CWS配信bytesを取得してsourceと照合した。`TD-11`は2026年9月19日に1回目を実行し、`V-12A`合格、標準追加・自動検出・基準template確定まで到達した後、同意画面のcontent scriptの不具合で停止した。**そのcampaignは無効とし、修正版`0.1.1`の配信後に新しいcampaignでやり直す**（[ADR-0005](../../decisions/0005-verify-consent-flow-in-browser-semantics.md)）。`V-12`は未合格
+> 状態: `V-01`〜`V-11`はすべて合格し、2026年8月24日に成果物確定と後始末を完了。追加P0 `V-12`は、`TD-37`のローカル準備を完了し、CWS外部作業を`TD-39`へ分離している。**`TD-39`は2026年9月18日に完了した。** quarantine属性が付かないreviewer用helperの受渡し方式を確定し、2026年8月27日にdeferred publishingで審査へ提出、9月18日に`0.1.0`の審査合格を確認し、別の明示承認を得て限定公開し、CWS配信bytesを取得してsourceと照合した。`TD-11`の3回目のcampaign `v12-2026-09-20-02`で、`V-12A`・`V-12B`・`V-12C`の必須case・`V-12D`が合格した（[`v12-02`](results/2026-09-20-v12-02.md)）。**`V-12E`は検証物に`submit`相当の入口が無いため実行できず、`V-12`全体は未合格である。** 入口を足し、あわせてhelperの報告のずれを直してから4回目のcampaignでやり直す（[ADR-0011](../../decisions/0011-add-submit-entry-before-rerunning-v12.md)）。 1回目は同意画面のcontent scriptの不具合で停止して無効とし（[ADR-0005](../../decisions/0005-verify-consent-flow-in-browser-semantics.md)）、2回目は`V-12A`・`V-12B`・`V-12D`の合格後に検証物の修正でhelperのbuild hashが変わったため無効とした（[ADR-0006](../../decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](../../decisions/0007-make-helper-build-hash-track-behaviour.md)）。`V-12`は未合格
 >
 > 作成日: 2026年8月11日
 >

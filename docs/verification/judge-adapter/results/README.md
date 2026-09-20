@@ -25,7 +25,7 @@
 | P1 | `V-11` | ✅ 合格 | [`p1-03`](2026-08-13-p1-03.md)で、実サービスのCookie更新・明示期限・再起動後の本人照合と、ローカル制御の失効・競合・秘密情報保管庫障害の提出前停止を確認 |
 | P2 | `V-08` | ✅ 合格 | [`p2-01`](2026-08-13-p2-01.md)で、`p0-22`の`submission-A`から実行時間11 msとメモリ9,172 KiBを取得して共通単位へ正規化し、欠損時も判定保存を継続できることを確認 |
 | P2 | `V-09` | ✅ 合格 | [`p0-22`](2026-08-12-p0-22.md)で判定ポーリング、分離した各上限、サーバー指定間隔と最小2秒待機を実サービス確認 |
-| P0 | `V-12` | ⬜ 未実施 | [`v12-01`](2026-09-20-v12-01.md)で2回目のcampaignを実行し、`V-12A`・`V-12B`・`V-12D`が合格したが、[ADR-0006](../../../decisions/0006-profile-contract-establishment-is-not-invalidation.md)のhelper修正で**campaignごと無効**になった。新しいcampaign IDで`V-12A`からやり直す |
+| P0 | `V-12` | ❌ 未合格 | [`v12-02`](2026-09-20-v12-02.md)の3回目のcampaignで`V-12A`・`V-12B`・`V-12C`の必須case・`V-12D`が合格した。**`V-12E`は検証物に`submit`相当の入口が無く実行できない。** 入口を足してから4回目のcampaignでやり直す（[ADR-0011](../../../decisions/0011-add-submit-entry-before-rerunning-v12.md)） |
 
 凡例: ✅ 合格 / 🟡 一部観測 / ⬜ 未実施 / ❌ 未合格
 
@@ -61,6 +61,7 @@
 | 2026年8月13日 | [`p1-03`](2026-08-13-p1-03.md) | `V-11`Cookie更新・失効 | 実サービスで`Set-Cookie`更新、`Max-Age`、Keychain置換、新規プロセス再照合を確認。固定入力と実Keychain制御で失効、期限切れ、競合、保管庫障害を提出前停止へ関連付けてV-11は合格 |
 | 2026年8月13日 | [`p2-01`](2026-08-13-p2-01.md) | `V-08`ジャッジ実行時間・メモリ | `p0-22`の`submission-A`から`FINAL` / `AC`、実行時間11 ms、メモリ9,172 KiBを取得し、11 msと9,392,128 byteへ正規化。固定入力の欠損時も判定を保持してV-08は合格 |
 | 2026年9月20日 | [`v12-01`](2026-09-20-v12-01.md) | `V-12`方式A製品形態（campaign `v12-2026-09-20-01`、**無効**） | 修正版`0.1.1`の配信後にやり直した2回目のcampaign。`V-12A`が外部通信0件で合格、`V-12B`が標準追加から基準template確定まで合格、`V-12D`が同意画面から新process再照合まで合格。`GET /settings`は上限と同数の2回、提出0件。`V-12C`は開始前に停止。manifestをrevision 2へ上げたところ、**確定の遷移が`V-12B`と`V-12D`を無効化し、`V-12`が原理的に完了できない**ことが分かった（[ADR-0006](../../../decisions/0006-profile-contract-establishment-is-not-invalidation.md)） |
+| 2026年9月20日 | [`v12-02`](2026-09-20-v12-02.md) | `V-12`方式A製品形態（campaign `v12-2026-09-20-02`） | 3回目のcampaign。`V-12A`が外部通信0件で合格、`V-12B`が標準追加から基準template確定まで合格、`V-12C`の必須case5件が隔離環境で合格、`V-12D`が同意画面から新process再照合まで合格。**基準templateの確定でmanifestをrevision 2へ上げても`invalidated`は空**で、[ADR-0006](../../../decisions/0006-profile-contract-establishment-is-not-invalidation.md)の修正が実campaignで機能した。`GET /settings`は上限と同数の2回、提出0件。**`V-12E`は検証物に`submit`相当の入口が無く実行できず、`V-12`全体は未合格**（[ADR-0011](../../../decisions/0011-add-submit-entry-before-rerunning-v12.md)） |
 
 ## `p0-02`後の設計変更
 
