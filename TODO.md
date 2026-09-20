@@ -228,8 +228,8 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 完了 | ― |
 | [`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える) | 技術検証 | 修正版`0.1.1`を公開し、`V-12`の再実行条件を整える | `TD-39` | 完了 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 | [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42` | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md)、[ADR-0009](docs/decisions/0009-required-cases-for-v12c.md) |
-| [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) | 設計判断 | 検証支援物の実行経路をbrowser相当で確認する範囲を決める | ― | 進行中 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md) |
-| [`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す) | 技術検証 | helperのエラーが原因を一意に指せない箇所を洗い出して直す | ― | 進行中 | ― |
+| [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) | 設計判断 | 検証支援物の実行経路をbrowser相当で確認する範囲を決める | ― | 完了 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md) |
+| [`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す) | 技術検証 | helperのエラーが原因を一意に指せない箇所を洗い出して直す | ― | 完了 | ― |
 | [`TD-45`](#td-45-campaign-manifestの確定遷移が自分を無効化する不整合を直す) | 技術検証 | campaign manifestの確定遷移が自分を無効化する不整合を直す | ― | 進行中 | [ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 進行中 | [ADR-0009](docs/decisions/0009-required-cases-for-v12c.md)、[ADR-0010](docs/decisions/0010-build-the-three-os-auth-matrix-before-v12-passes.md) |
 | [`TD-47`](#td-47-windowsの秘密情報保管庫が保証する範囲を観測する) | 技術検証 | Windowsの秘密情報保管庫が保証する範囲を観測する | ― | 未着手 | ― |
@@ -764,14 +764,14 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 5. 決めた範囲を実装し、**修正前のコードで落ちること**を各testについて確認する。落ちないtestは、その不具合を検出できていない。
 6. 得られた方針を[`TD-32`](#td-32-テスト方針の骨格を決める)へ引き渡す。製品実装でも同じ取り違えが起こりうるため。
 
-**2026年9月20日の実施記録:** 手順１〜５を実施しました。**拡張機能の3つのentry pointをすべて評価へ移しました。** `atcoder.js`と`service_worker.js`は`bootstrap.js`と同じ種類の判定（URLのどの部分を見るか）を持ち、同じ型の不具合を入れると新しいtestが3件落ちることを確認しました。**拡張機能のsourceは変えていません。** 変えればCWSへの再提出と審査が発生するためで、**testが落ちないことを確認したのであって、不具合が見つかったのではありません。** `prepare.mjs`系は文字列検査のままとしました。理由は[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md)にあります。残るのは手順6の`TD-32`への引き渡しです。
+**2026年9月20日の実施記録:** 手順１〜５を実施しました。**拡張機能の3つのentry pointをすべて評価へ移しました。** `atcoder.js`と`service_worker.js`は`bootstrap.js`と同じ種類の判定（URLのどの部分を見るか）を持ち、同じ型の不具合を入れると新しいtestが3件落ちることを確認しました。**拡張機能のsourceは変えていません。** 変えればCWSへの再提出と審査が発生するためで、**testが落ちないことを確認したのであって、不具合が見つかったのではありません。** `prepare.mjs`系は文字列検査のままとしました。理由は[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md)にあります。**手順6も実施しました。** 引き渡した内容は[`TD-32`](#td-32-テスト方針の骨格を決める)の「`TD-43`・`TD-44`から引き渡されたもの」にあります。写しを作らず、そこ1か所に置いています。
 
 **完了条件:**
 
 - [x] 検証支援物のentry pointが列挙され、各testが文字列検査か実行結果検査かに分類されている（2026年9月20日。[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md)の表）
 - [x] browser相当の評価へ移す範囲と、移さないものの理由が決定記録に残っている（[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md)）
 - [x] 移した各testが、修正前のコードで落ちることを確認できている（同じ型の不具合を入れると3件が落ちる）
-- [ ] `TD-32`への引き渡し内容が記載されている
+- [x] `TD-32`への引き渡し内容が記載されている（2026年9月20日。[`TD-32`](#td-32-テスト方針の骨格を決める)の「`TD-43`・`TD-44`から引き渡されたもの」）
 - [x] CDP、WebDriver、headless、Bot対策の自動操作を新たに導入していない（`vm`とmockだけ）
 
 ---
@@ -806,7 +806,7 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 4. 固定入力testを足し、**分離前のコードでは区別できないことを各caseで確認する。** 落ちないtestは、その取り違えを検出できていない。
 5. 得られた方針を[`TD-32`](#td-32-テスト方針の骨格を決める)へ引き渡す。製品実装のエラー分類でも同じ取り違えが起こりうるため。
 
-**2026年9月20日の実施記録:** 手順１〜４を実施しました。152箇所を走査し、12の停止原因を別の名前へ分けました。**`keychainItemAbsent`が「判定できなかった」を「項目がある」と報告していた点も同じ型だったため、終了コード44「なし」、0「あり」、それ以外「判定不能」の3つへ分けました。** 分けなかったもの（`*_arguments_invalid`等）は、原因が違っても次に取る行動が同じためです。一覧と理由は[検証物README §エラー名の方針](scripts/verification/atcoder_v12/README.md#エラー名の方針)にあります。testは`runFirstLogin`を実際に呼んで停止名を確かめます。**一つの名前へ戻すと落ちることを確認済みです。** 残るのは手順5の`TD-32`への引き渡しです。
+**2026年9月20日の実施記録:** 手順１〜４を実施しました。152箇所を走査し、12の停止原因を別の名前へ分けました。**`keychainItemAbsent`が「判定できなかった」を「項目がある」と報告していた点も同じ型だったため、終了コード44「なし」、0「あり」、それ以外「判定不能」の3つへ分けました。** 分けなかったもの（`*_arguments_invalid`等）は、原因が違っても次に取る行動が同じためです。一覧と理由は[検証物README §エラー名の方針](scripts/verification/atcoder_v12/README.md#エラー名の方針)にあります。testは`runFirstLogin`を実際に呼んで停止名を確かめます。**一つの名前へ戻すと落ちることを確認済みです。** **手順5も実施しました。** 引き渡した内容は[`TD-32`](#td-32-テスト方針の骨格を決める)の「`TD-43`・`TD-44`から引き渡されたもの」にあります。
 
 **完了条件:**
 
@@ -815,7 +815,7 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 - [x] `first_login_secret_namespace_not_empty`が、secret storeの残存と設定不正を区別して返す。**「判定できなかった」も別の名前にした**
 - [x] 追加した各testが、分離前のコードで落ちることを確認できている（2026年9月20日。1つの名前へ戻すと`bad service name: first_login_secret_namespace_not_empty`で落ちる）
 - [x] エラー名と出力に秘密値、実path、実account名が入っていない（名前は`^[a-z0-9_]{1,96}$`のまま）
-- [ ] `TD-32`への引き渡し内容が記載されている
+- [x] `TD-32`への引き渡し内容が記載されている（2026年9月20日。[`TD-32`](#td-32-テスト方針の骨格を決める)の「`TD-43`・`TD-44`から引き渡されたもの」）
 
 ---
 
@@ -1720,7 +1720,7 @@ macOSの観測では、§4.1が理由から導いていた「信頼される実�
 | カテゴリ | 機能設計 |
 | 対象ファイル | 新規`spec/test-strategy.md` |
 | 依存 | `TD-12`、`TD-15`、`TD-17`、`TD-18`、`TD-36` |
-| 参照 | [`spec/features.md`](spec/features.md) §13、§15、[MVPスコープ §5](docs/product/mvp.md#5-mvp完了条件)、[§7.2](#72-実行時に行ってはならないこと) |
+| 参照 | [`spec/features.md`](spec/features.md) §13、§15、[MVPスコープ §5](docs/product/mvp.md#5-mvp完了条件)、[§7.2](#72-実行時に行ってはならないこと)、[`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める)・[`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す)からの引き渡し |
 
 **目的:** `spec/features.md` §13 の品質要件`Q-01`〜`Q-15`と §15 の受け入れシナリオには、検証観点と合格条件はありますが、**どの手段で確認するか**がありません。`TD-15`では認証UXの受け入れシナリオが増えるため、固定の件数を前提にしません。`TD-17`は`LanguageProfile`と`HostPlatform`の契約テストだけ、`TD-18`は環境の確保だけを扱います。全項目の割り当てが無いまま実装へ渡すと、テストの範囲と外部作用の扱いを実装側が決めることになります。
 
@@ -1736,6 +1736,18 @@ macOSの観測では、§4.1が理由から導いていた「信頼される実�
 8. 実装が完了したと判定する時点を、[MVPスコープ §5](docs/product/mvp.md#5-mvp完了条件)の完了条件と対応付ける。
 9. テストランナー、ディレクトリ構成、CIの設定は決めない。`TD-26`と工程5で扱う。
 
+**`TD-43`・`TD-44`から引き渡されたもの:** 2026年9月20日に完了した2つの作業が、テストの割り当て方について先に決めておくべきことを2つ見つけました。どちらも検証支援物で起きましたが、**製品実装で同じ取り違えが起こりえます。** 手順2で確認手段を割り当てるとき、次の2点を満たします。
+
+1. **テストが「ソースの文字列」を見ているのか「実行した結果」を見ているのかを区別する**（[`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める)、[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md)）
+   - 根拠: `bootstrap.js`が`location.origin`でloopbackを判定していた不具合は、**文字列検査のテストを全件通過していました**（[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)）。実機で初めて止まり、campaignを1回無駄にしました
+   - URL、ポート、origin、メッセージ受け渡しのように**環境で値が変わる判定**を持つ箇所は、実行結果で評価する手段を割り当てる。文字列検査で足りる理由を書けない箇所を文字列検査にしない
+   - **各テストが、修正前のコードで落ちることを確認する。** 落ちないテストは、その不具合を検出していない
+2. **エラーの名前を「原因」ではなく「次に取る行動」で分ける**（[`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す)、[検証物README §エラー名の方針](scripts/verification/atcoder_v12/README.md#エラー名の方針)）
+   - 根拠: `keychainItemAbsent`が**「判定できなかった」を「項目がある」として報告していました。** 一つの名前が複数の原因を指すと、利用者も実装も次の行動を選べません
+   - 原因が違っても次に取る行動が同じなら、同じ名前でよい。**行動が違うなら分ける**
+   - **「判定できなかった」を、肯定と否定のどちらかへ寄せない。** 第三の結果として持つ
+   - 割り当て先は[認証設計 §5](docs/architecture/atcoder-authentication.md#5-認証状態とエラー分類)の分類と、[MVPスコープ §5.3](docs/product/mvp.md#53-利用者体験)の「部分失敗時に、何が完了済みで何を再実行すべきか判断できる」
+
 **完了条件:**
 
 - [ ] `Q-01`〜`Q-15`と、`TD-15`完了時点の全`E2E-*`に確認手段が割り当てられている
@@ -1744,6 +1756,7 @@ macOSの観測では、§4.1が理由から導いていた「信頼される実�
 - [ ] 自動テストがAtCoderへ接続しない原則と、その根拠が書かれている
 - [ ] 提出経路を実提出なしで検証する手段の要否が決まっている
 - [ ] 互換性確認の固定入力、利用時の確認、保守確認の境界が決まっている
+- [ ] `TD-43`・`TD-44`から引き渡された2点が、確認手段の割り当てへ反映されている
 - [ ] テストランナー、ディレクトリ構成、CIの設定を確定していない
 
 ---
