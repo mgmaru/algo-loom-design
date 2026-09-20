@@ -203,7 +203,7 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-39`](#td-39-cws審査用helperの配布方法と限定公開版を確定する) | 技術検証 | CWS審査用helperの配布方法と限定公開版を確定する | `TD-37` | 完了 | ― |
 | [`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える) | 技術検証 | 修正版`0.1.1`を公開し、`V-12`の再実行条件を整える | `TD-39` | 完了 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 | [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42` | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
-| [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) | 設計判断 | 検証支援物の実行経路をbrowser相当で確認する範囲を決める | ― | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
+| [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) | 設計判断 | 検証支援物の実行経路をbrowser相当で確認する範囲を決める | ― | 進行中 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md) |
 | [`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す) | 技術検証 | helperのエラーが原因を一意に指せない箇所を洗い出して直す | ― | 進行中 | ― |
 | [`TD-45`](#td-45-campaign-manifestの確定遷移が自分を無効化する不整合を直す) | 技術検証 | campaign manifestの確定遷移が自分を無効化する不整合を直す | ― | 進行中 | [ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 | ― |
@@ -224,7 +224,7 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-23`](#td-23-ローカル保存マイグレーションエクスポート形式を設計する) | 機能設計 | ローカル保存、マイグレーション、エクスポート形式を設計する | `TD-14` | 未着手 | ― |
 | [`TD-24`](#td-24-履歴のクエリと表示契約を設計する) | 機能設計 | 履歴のクエリと表示契約を設計する | `TD-14` | 未着手 | ― |
 | [`TD-31`](#td-31-実行環境の組み合わせを固定する) | 設計判断 | 実行環境の組み合わせを固定する | ― | 未着手 | ― |
-| [`TD-32`](#td-32-テスト方針の骨格を決める) | 機能設計 | テスト方針の骨格を決める | `TD-12`, `TD-15`, `TD-17`, `TD-18`, `TD-36` | 未着手 | ― |
+| [`TD-32`](#td-32-テスト方針の骨格を決める) | 機能設計 | テスト方針の骨格を決める | `TD-12`, `TD-15`, `TD-17`, `TD-18`, `TD-36` | 未着手 | [ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md) |
 | [`TD-33`](#td-33-テストフィクスチャと擬似ジャッジの境界を決める) | 設計判断 | テストフィクスチャと擬似ジャッジの境界を決める | `TD-32` | 未着手 | ― |
 | [`TD-25`](#td-25-ライブラリ選定基準を確定する) | 設計判断 | ライブラリ選定基準を確定する | `TD-05` | 未着手 | ― |
 | [`TD-26`](#td-26-各ライブラリを選定する) | 設計判断 | 各ライブラリを選定する | `TD-14`, `TD-25`, `TD-31`, `TD-32`, `TD-33` | 未着手 | ― |
@@ -721,7 +721,7 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 | カテゴリ | 設計判断 |
 | 対象ファイル | [`scripts/verification/test_atcoder_v12.mjs`](scripts/verification/test_atcoder_v12.mjs)、[`scripts/verification/atcoder_v12/README.md`](scripts/verification/atcoder_v12/README.md) |
 | 依存 | ― |
-| 決定 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
+| 決定 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md) |
 
 **なぜこの作業が要るか:** 2026年9月19日、`bootstrap.js`が実browserで一度も動いていなかったにもかかわらず、固定入力testが合格し続けていました。testが検査していたのは「ソースに特定の文字列が現れないこと」で、確かめたかったのは「同意画面から認証へ進めること」でした。**この差が、審査を通過して配信された成果物の中に3週間以上残りました。**
 
@@ -736,13 +736,15 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 5. 決めた範囲を実装し、**修正前のコードで落ちること**を各testについて確認する。落ちないtestは、その不具合を検出できていない。
 6. 得られた方針を[`TD-32`](#td-32-テスト方針の骨格を決める)へ引き渡す。製品実装でも同じ取り違えが起こりうるため。
 
+**2026年9月20日の実施記録:** 手順１〜５を実施しました。**拡張機能の3つのentry pointをすべて評価へ移しました。** `atcoder.js`と`service_worker.js`は`bootstrap.js`と同じ種類の判定（URLのどの部分を見るか）を持ち、同じ型の不具合を入れると新しいtestが3件落ちることを確認しました。**拡張機能のsourceは変えていません。** 変えればCWSへの再提出と審査が発生するためで、**testが落ちないことを確認したのであって、不具合が見つかったのではありません。** `prepare.mjs`系は文字列検査のままとしました。理由は[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md)にあります。残るのは手順6の`TD-32`への引き渡しです。
+
 **完了条件:**
 
-- [ ] 検証支援物のentry pointが列挙され、各testが文字列検査か実行結果検査かに分類されている
-- [ ] browser相当の評価へ移す範囲と、移さないものの理由が決定記録に残っている
-- [ ] 移した各testが、修正前のコードで落ちることを確認できている
+- [x] 検証支援物のentry pointが列挙され、各testが文字列検査か実行結果検査かに分類されている（2026年9月20日。[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md)の表）
+- [x] browser相当の評価へ移す範囲と、移さないものの理由が決定記録に残っている（[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md)）
+- [x] 移した各testが、修正前のコードで落ちることを確認できている（同じ型の不具合を入れると3件が落ちる）
 - [ ] `TD-32`への引き渡し内容が記載されている
-- [ ] CDP、WebDriver、headless、Bot対策の自動操作を新たに導入していない（`V-12`の停止条件のため）
+- [x] CDP、WebDriver、headless、Bot対策の自動操作を新たに導入していない（`vm`とmockだけ）
 
 ---
 
