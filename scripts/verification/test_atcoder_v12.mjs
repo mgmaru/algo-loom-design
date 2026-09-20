@@ -278,3 +278,145 @@ test("helper build embeds no commit id, so its hash tracks behaviour not history
     fs.rmSync(workspace, { recursive: true, force: true });
   }
 });
+
+// atcoder.jsを実際に評価する。ソースに文字列が現れるかではなく、
+// どのページで何を送るかを見る。bootstrap.jsと同じ環境依存（origin、pathname、
+// message passing）を持つため、同じ扱いにする。判断の経緯はADR-0008を参照する。
+function runAtCoderScriptAt(href, options = {}) {
+  const { identities = ["verifieraccount"], webdriver = false, identityOk = true, captureOk = true } = options;
+  const target = new URL(href);
+  const sent = [];
+  const nodes = new Map();
+  const makeNode = () => ({ id: "", style: { cssText: "" }, textContent: "" });
+  const sandbox = {
+    URL,
+    location: { origin: target.origin, pathname: target.pathname },
+    navigator: { webdriver },
+    document: {
+      scripts: identities.map((name) => ({ textContent: `var userScreenName = "${name}";` })),
+      createElement: () => makeNode(),
+      getElementById: (id) => nodes.get(id) ?? null,
+      body: { prepend: (node) => nodes.set(node.id, node) },
+    },
+    chrome: {
+      runtime: {
+        sendMessage: async (message) => {
+          sent.push(message);
+          if (message.type === "account_observed") return { ok: identityOk };
+          if (message.type === "capture_session") return { ok: captureOk };
+          return { ok: false };
+        },
+      },
+    },
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(ATCODER, sandbox);
+  return { sent, status: () => nodes.get("algoloom-v12-status") ?? null };
+}
+
+const settle = () => new Promise((resolve) => setImmediate(() => setImmediate(resolve)));
+
+test("V-12 settings script confirms the account and asks for the session, in that order", async () => {
+  const run = runAtCoderScriptAt("https://atcoder.jp/settings");
+  await settle();
+  assert.deepEqual(run.sent.map((message) => message.type), ["account_observed", "capture_session"]);
+  assert.equal(run.sent[0].identity, "verifieraccount");
+  assert.equal(run.sent[0].identity_count, 1);
+  assert.equal(run.sent[0].navigator_webdriver, false);
+  assert.equal(run.sent[1].observed_identity, "verifieraccount");
+  assert.match(run.status().textContent, /端末内で確認しました/);
+});
+
+test("V-12 settings script stays inert outside the settings page", async () => {
+  for (const url of [
+    "https://atcoder.jp/home",
+    "https://atcoder.jp/settings/extra",
+    "https://example.invalid/settings",
+    "http://atcoder.jp/settings",
+  ]) {
+    const run = runAtCoderScriptAt(url);
+    await settle();
+    assert.deepEqual(run.sent, [], `動いてしまう: ${url}`);
+    assert.equal(run.status(), null, `DOMへ書き込む: ${url}`);
+  }
+});
+
+test("V-12 settings script never asks for the session when identity is not unique", async () => {
+  for (const options of [
+    { identities: ["one", "two"] },
+    { identities: [] },
+    { webdriver: true },
+    { identityOk: false },
+  ]) {
+    const run = runAtCoderScriptAt("https://atcoder.jp/settings", options);
+    await settle();
+    assert.equal(run.sent.some((message) => message.type === "capture_session"), false,
+      `capture_sessionを送ってしまう: ${JSON.stringify(options)}`);
+  }
+});
+
+// service_worker.jsを実際に評価する。動的な待受番号を持つ送信元を受け付けるか、
+// それ以外を拒むかは、bootstrap.jsで止まったのと同じ種類の判定である。
+function runServiceWorker() {
+  const listeners = [];
+  const storage = new Map();
+  const requests = [];
+  const sandbox = {
+    URL,
+    fetch: async (url, options) => {
+      requests.push({ url, options });
+      return { ok: true, status: 200, json: async () => ({ ok: true }) };
+    },
+    chrome: {
+      runtime: {
+        onMessage: { addListener: (listener) => listeners.push(listener) },
+        getManifest: () => ({ version: "0.1.1" }),
+      },
+      storage: {
+        session: {
+          get: async (key) => (storage.has(key) ? { [key]: storage.get(key) } : {}),
+          set: async (values) => { for (const [key, value] of Object.entries(values)) storage.set(key, value); },
+          remove: async (keys) => { for (const key of [].concat(keys)) storage.delete(key); },
+          clear: async () => storage.clear(),
+        },
+      },
+      cookies: { getAll: async () => [] },
+    },
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(WORKER, sandbox);
+  assert.equal(listeners.length, 1, "message listenerが登録されない");
+  const send = (message, sender) => new Promise((resolve) => listeners[0](message, sender, resolve));
+  return { send, requests, storage };
+}
+
+test("V-12 service worker initializes from a dynamic loopback port and refuses other senders", async () => {
+  for (const port of [53673, 1024, 65535]) {
+    const worker = runServiceWorker();
+    const answer = await worker.send({
+      type: "initialize", port, token: "a".repeat(64), consent_version: "1.0", extension_version: "0.1.1",
+    }, { url: `http://127.0.0.1:${port}/bootstrap` });
+    assert.equal(answer.ok, true, `port ${port}で初期化できない: ${answer.error}`);
+    assert.equal(worker.requests[0].url, `http://127.0.0.1:${port}/event`);
+    assert.equal(worker.storage.get("v12Loopback").port, port);
+  }
+});
+
+test("V-12 service worker refuses senders and values that do not match the loopback", async () => {
+  const valid = { type: "initialize", port: 53673, token: "a".repeat(64), consent_version: "1.0", extension_version: "0.1.1" };
+  const cases = [
+    ["送信元がloopbackでない", valid, { url: "https://atcoder.jp/bootstrap" }, "initializer_origin_invalid"],
+    ["送信元のpathが違う", valid, { url: "http://127.0.0.1:53673/settings" }, "initializer_origin_invalid"],
+    ["送信元のportと申告portが違う", valid, { url: "http://127.0.0.1:1024/bootstrap" }, "initializer_value_invalid"],
+    ["拡張機能の版が違う", { ...valid, extension_version: "0.1.0" }, { url: "http://127.0.0.1:53673/bootstrap" }, "initializer_value_invalid"],
+    ["tokenが64桁の16進でない", { ...valid, token: "short" }, { url: "http://127.0.0.1:53673/bootstrap" }, "initializer_value_invalid"],
+    ["知らないmessage type", { type: "capture_everything" }, { url: "http://127.0.0.1:53673/bootstrap" }, "message_type_invalid"],
+  ];
+  for (const [label, message, sender, expected] of cases) {
+    const worker = runServiceWorker();
+    const answer = await worker.send(message, sender);
+    assert.equal(answer.ok, false, `通ってしまう: ${label}`);
+    assert.equal(answer.error, expected, `停止理由が違う: ${label}`);
+    assert.deepEqual(worker.requests, [], `外部へ出てしまう: ${label}`);
+  }
+});
