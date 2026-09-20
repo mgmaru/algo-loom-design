@@ -2,3 +2,4 @@ prompts
 /.verification-work/
 __pycache__/
 *.py[cod]
+/scripts/verification/atcoder_v12/helper/v12helper

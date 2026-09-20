@@ -108,7 +108,12 @@ func detectInstalledExtension(profileRoot, extensionID, expectedVersion string) 
 			candidates = append(candidates, filepath.Join(root, entry.Name()))
 		}
 	}
-	if len(candidates) != 1 {
+	// 「対象版が入っていない」と「同じ版が複数ある」は、次に取る行動が違う。
+	// 前者は対象itemと版を確かめ、後者は重複した導入を片付ける。
+	if len(candidates) == 0 {
+		return "", errors.New("extension_version_not_installed")
+	}
+	if len(candidates) > 1 {
 		return "", errors.New("extension_installation_not_unique")
 	}
 	manifestPath := filepath.Join(candidates[0], "manifest.json")
@@ -227,7 +232,16 @@ func destroyRuntime(runtimeRoot, repositoryRoot string) error {
 	if json.Unmarshal(data, &marker) != nil || marker.SchemaVersion != 1 || !hashPattern.MatchString(marker.TemplateIntegrityID) {
 		return errors.New("runtime_marker_invalid")
 	}
-	return os.RemoveAll(runtimeRoot)
+	if err := os.RemoveAll(runtimeRoot); err != nil {
+		return errors.New("runtime_removal_failed")
+	}
+	// 「消した」と報告する前に、消えたことを観測する。
+	if _, err := os.Lstat(runtimeRoot); err == nil {
+		return errors.New("runtime_still_present")
+	} else if !os.IsNotExist(err) {
+		return errors.New("runtime_removal_unverifiable")
+	}
+	return nil
 }
 
 func scrubBrowsingState(root string) error {

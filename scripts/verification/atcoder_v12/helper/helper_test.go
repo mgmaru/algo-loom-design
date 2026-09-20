@@ -662,3 +662,238 @@ func TestFirstLoginNamesEachStopCauseDistinctly(t *testing.T) {
 		t.Fatalf("self hash: %s", got)
 	}
 }
+
+// V-12Eの提出前入力は、提出確認画面に出す値そのものである。pathやAtCoder以外の
+// URLを受け取ると、意図しないfileや遷移先を「提出対象」として示してしまう。
+func TestSubmissionPlanRejectsUnsafeInput(t *testing.T) {
+	t.Parallel()
+	// traversalを検出できるよう、逃げた先に実在するfileを置く。fileが無いことを
+	// 理由に落ちるtestでは、file名の検査が外れても気づけない。
+	base := t.TempDir()
+	root := filepath.Join(base, "input")
+	if err := os.MkdirAll(filepath.Join(root, "sub"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	write := func(name, body string) string {
+		path := filepath.Join(root, name)
+		if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		return path
+	}
+	write("source.py", "print(1)\n")
+	write("sub/source.py", "print(2)\n")
+	if err := os.WriteFile(filepath.Join(base, "outside.py"), []byte("print(3)\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	inputTemplate := `{"schema_version":1,"problem_id":"abc300_a",` +
+		`"problem_url":"https://atcoder.jp/contests/abc300/tasks/abc300_a",` +
+		`"submit_url":"https://atcoder.jp/contests/abc300/submit?taskScreenName=abc300_a",` +
+		`"language_display":"Python (CPython 3.11.4)","source_file":%q}`
+
+	good := write("good.json", fmt.Sprintf(inputTemplate, "source.py"))
+	plan, err := loadSubmissionPlan(good)
+	if err != nil || plan.ProblemID != "abc300_a" || plan.SourceBytes != 9 || !hashPattern.MatchString(plan.SourceSHA256) {
+		t.Fatalf("valid input rejected: plan=%+v err=%v", plan, err)
+	}
+
+	for name, body := range map[string]string{
+		"relative_path":   fmt.Sprintf(inputTemplate, "../outside.py"),
+		"nested_path":     fmt.Sprintf(inputTemplate, "sub/source.py"),
+		"absolute_path":   fmt.Sprintf(inputTemplate, "/etc/hosts"),
+		"missing_source":  fmt.Sprintf(inputTemplate, "absent.py"),
+		"foreign_submit":  strings.Replace(fmt.Sprintf(inputTemplate, "source.py"), "https://atcoder.jp/contests/abc300/submit", "https://example.invalid/submit", 1),
+		"foreign_problem": strings.Replace(fmt.Sprintf(inputTemplate, "source.py"), "https://atcoder.jp/contests/abc300/tasks", "http://atcoder.jp/contests/abc300/tasks", 1),
+		"unknown_field":   strings.Replace(fmt.Sprintf(inputTemplate, "source.py"), `"schema_version":1`, `"schema_version":1,"submit_now":true`, 1),
+		"other_schema":    strings.Replace(fmt.Sprintf(inputTemplate, "source.py"), `"schema_version":1`, `"schema_version":2`, 1),
+	} {
+		if _, err := loadSubmissionPlan(write(name+".json", body)); err == nil {
+			t.Fatalf("%s: unsafe submission input was accepted", name)
+		}
+	}
+	if _, err := loadSubmissionPlan("v12e-submission/input.json"); err == nil {
+		t.Fatal("relative input path was accepted")
+	}
+}
+
+// リポジトリに置いた提出前入力が、そのまま読めることを固定する。
+func TestRepositorySubmissionInputLoads(t *testing.T) {
+	t.Parallel()
+	path, err := filepath.Abs(filepath.Join("..", "v12e-submission", "input.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan, err := loadSubmissionPlan(path)
+	if err != nil {
+		t.Fatalf("repository submission input: %v", err)
+	}
+	if plan.ProblemID != "abc300_a" || plan.Language == "" || plan.SourceBytes == 0 ||
+		!strings.HasPrefix(plan.SubmitURL, "https://atcoder.jp/contests/") {
+		t.Fatalf("unexpected plan: %+v", plan)
+	}
+}
+
+// 提出確認画面は、押されるまで提出pageへ遷移させない。押したのが自分の出した
+// 画面であることを、originと一回限りの値で確かめる。
+func TestSubmissionConfirmationRedirectsOnlyAfterItIsPressed(t *testing.T) {
+	t.Parallel()
+	machine, err := newProtocolMachine("0.1.0", "1.0", testAccount, func(captureInput) (publicVerify, error) {
+		return publicVerify{}, nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	handler, err := newLoopbackHandler(41234, testToken, testExtensionID, "1.0", machine)
+	if err != nil {
+		t.Fatal(err)
+	}
+	origin := "http://127.0.0.1:41234"
+	submitURL := "https://atcoder.jp/contests/abc300/submit?taskScreenName=abc300_a"
+
+	// 有効にするまでは、他のrouteと同じように拒否する（V-12B → V-12Dの経路）。
+	before := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, origin+"/submission", nil)
+	request.RemoteAddr = "127.0.0.1:50000"
+	handler.ServeHTTP(before, request)
+	if before.Code != http.StatusNotFound {
+		t.Fatalf("submission page served before it was enabled: %d", before.Code)
+	}
+
+	proceedToken := strings.Repeat("b", 64)
+	plan := submissionPlan{
+		ProblemID: "abc300_a", ProblemURL: "https://atcoder.jp/contests/abc300/tasks/abc300_a",
+		SubmitURL: submitURL, Language: "Python (CPython 3.11.4)", SourceName: "source.py",
+		SourceBytes: 9, SourceLines: 1, SourceSHA256: strings.Repeat("c", 64), preview: "print(1)",
+	}
+	if err := handler.enableSubmissionConfirmation(renderSubmissionPage(plan, proceedToken), proceedToken, submitURL); err != nil {
+		t.Fatal(err)
+	}
+	if err := handler.enableSubmissionConfirmation("page", proceedToken, "https://example.invalid/submit"); err == nil {
+		t.Fatal("confirmation accepted a non-AtCoder submission URL")
+	}
+
+	post := func(origin, contentType, body string) *httptest.ResponseRecorder {
+		recorder := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, "http://127.0.0.1:41234/submission/proceed", strings.NewReader(body))
+		request.RemoteAddr = "127.0.0.1:50000"
+		request.Header.Set("Origin", origin)
+		request.Header.Set("Content-Type", contentType)
+		handler.ServeHTTP(recorder, request)
+		return recorder
+	}
+	if got := post(origin, "application/x-www-form-urlencoded", "proceed_token="+proceedToken); got.Code != http.StatusConflict {
+		t.Fatalf("proceed accepted before the screen was shown: %d", got.Code)
+	}
+
+	page := httptest.NewRecorder()
+	shown := httptest.NewRequest(http.MethodGet, origin+"/submission", nil)
+	shown.RemoteAddr = "127.0.0.1:50000"
+	handler.ServeHTTP(page, shown)
+	body := page.Body.String()
+	for _, needed := range []string{"abc300_a", "Python (CPython 3.11.4)", "source.py", plan.SourceSHA256, submitURL} {
+		if !strings.Contains(body, needed) {
+			t.Fatalf("confirmation screen does not show %q", needed)
+		}
+	}
+	if !handler.submissionWasShown() {
+		t.Fatal("confirmation screen was not recorded as shown")
+	}
+	if again := httptest.NewRecorder(); true {
+		request := httptest.NewRequest(http.MethodGet, origin+"/submission", nil)
+		request.RemoteAddr = "127.0.0.1:50000"
+		handler.ServeHTTP(again, request)
+		if again.Code != http.StatusGone {
+			t.Fatalf("confirmation screen was served twice: %d", again.Code)
+		}
+	}
+
+	if got := post("chrome-extension://"+testExtensionID, "application/x-www-form-urlencoded", "proceed_token="+proceedToken); got.Code != http.StatusForbidden {
+		t.Fatalf("proceed accepted from another origin: %d", got.Code)
+	}
+	if got := post(origin, "application/json", `{"proceed_token":"`+proceedToken+`"}`); got.Code != http.StatusUnsupportedMediaType {
+		t.Fatalf("proceed accepted a foreign content type: %d", got.Code)
+	}
+	if got := post(origin, "application/x-www-form-urlencoded", "proceed_token="+strings.Repeat("d", 64)); got.Code != http.StatusForbidden {
+		t.Fatalf("proceed accepted a wrong token: %d", got.Code)
+	}
+	if got := post(origin, "application/x-www-form-urlencoded", "proceed_token="+proceedToken+"&submit=1"); got.Code != http.StatusForbidden {
+		t.Fatalf("proceed accepted extra fields: %d", got.Code)
+	}
+	select {
+	case <-handler.proceedSignal():
+		t.Fatal("a rejected press signalled the flow")
+	default:
+	}
+
+	accepted := post(origin, "application/x-www-form-urlencoded", "proceed_token="+proceedToken)
+	if accepted.Code != http.StatusSeeOther || accepted.Header().Get("Location") != submitURL {
+		t.Fatalf("press did not move the browser to the submission page: %d %q", accepted.Code, accepted.Header().Get("Location"))
+	}
+	select {
+	case <-handler.proceedSignal():
+	default:
+		t.Fatal("press did not signal the flow")
+	}
+	if repeated := post(origin, "application/x-www-form-urlencoded", "proceed_token="+proceedToken); repeated.Code != http.StatusConflict {
+		t.Fatalf("press was accepted twice: %d", repeated.Code)
+	}
+}
+
+// 「消した」と報告する前に、消えたことを別の観測で確かめる。adapterでない
+// 実行ファイルは終了コード0で終わりうるため、0を成功と読まない。
+func TestSecretDeleteReportsOnlyConfirmedRemoval(t *testing.T) {
+	root, resolveErr := filepath.EvalSymlinks(t.TempDir())
+	if resolveErr != nil {
+		t.Fatal(resolveErr)
+	}
+	service := "io.algoloom.verification.v12." + strings.Repeat("0", 32) + ".session"
+	adapter := func(name, script string) string {
+		path := filepath.Join(root, name)
+		if err := os.WriteFile(path, []byte("#!/bin/sh\n"+script+"\n"), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		return path
+	}
+	alwaysOK := adapter("always-ok", `exit 0`)
+	absentAfterDelete := adapter("absent-after-delete", `case "$1" in exists) exit 44 ;; *) exit 0 ;; esac`)
+	unreadable := adapter("unreadable", `case "$1" in exists) exit 7 ;; *) exit 0 ;; esac`)
+
+	deleteWith := func(adapter string) error {
+		verifier, err := newLiveVerifier(testAccount, adapter, service, "/bin/echo")
+		if err != nil {
+			t.Fatal(err)
+		}
+		return deleteScopedSecret(verifier)
+	}
+	if err := deleteWith(alwaysOK); err == nil || err.Error() != "secret_store_item_still_present" {
+		t.Fatalf("delete reported success without confirming removal: %v", err)
+	}
+	if err := deleteWith(unreadable); err == nil || err.Error() != "secret_store_deletion_unverifiable" {
+		t.Fatalf("delete reported success when the verdict was unavailable: %v", err)
+	}
+	if err := deleteWith(absentAfterDelete); err != nil {
+		t.Fatalf("confirmed removal was rejected: %v", err)
+	}
+}
+
+// 「対象版が入っていない」と「同じ版が複数ある」は次に取る行動が違うため、
+// 別のエラー名で返す。
+func TestExtensionDetectionSeparatesMissingVersionFromDuplicate(t *testing.T) {
+	t.Parallel()
+	profile := t.TempDir()
+	extensions := filepath.Join(profile, "Default", "Extensions", testExtensionID)
+	if err := os.MkdirAll(filepath.Join(extensions, "0.1.0_0"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := detectInstalledExtension(profile, testExtensionID, "0.1.1"); err == nil ||
+		err.Error() != "extension_version_not_installed" {
+		t.Fatalf("missing target version: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(extensions, "0.1.0_1"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := detectInstalledExtension(profile, testExtensionID, "0.1.0"); err == nil ||
+		err.Error() != "extension_installation_not_unique" {
+		t.Fatalf("duplicate installation: %v", err)
+	}
+}
