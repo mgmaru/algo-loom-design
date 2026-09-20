@@ -34,22 +34,24 @@ Go testは、protocolの状態順序、版・同意不一致、`Host`、接続�
 
 review fixtureの`--self-test`は、socketを一つも開かず固定入力だけでprotocolを確認します。16のcaseで、`Host`、接続元、拡張機能origin、Bearer token、`Content-Type`、32 KiB上限、状態順序、余剰key、版不一致、自動操作識別値、Cookieの範囲と属性、本人不一致、そして**受け取った値がどこにも残らないこと**を検査します。
 
-## browserが送る値を、手で組み立てたrequestで代用しない
+## browserで起きることを、手元の想定で代用しない
 
-**これは2度失敗した箇所です。3度目を起こさないための規則です。**
+**これは3度失敗した箇所です。4度目を起こさないための規則です。**
 
 | いつ | 何が起きたか | 決定 |
 |---|---|---|
 | 2026年9月19日 | 同意画面のcontent scriptが、sourceの検査では正しく見えるのに**実browserで動かなかった。** `location.origin`でloopbackを判定していたため、動的な待受番号が付くURLで常に`return`していた | [ADR-0005](../../../docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 | 2026年9月20日 | 提出確認画面のform POSTを**helper自身が拒否した。** 契約testが`Origin`ヘッダーを手で立てていたため、`Referrer-Policy: no-referrer`のページからのPOSTでChromeが`Origin: null`を送ることを一度も通していなかった | [ADR-0012](../../../docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md) |
+| 2026年9月21日 | 提出確認画面から提出pageへの**受け渡しが成立しなかった。** helperはPOSTを受理して303を書いたが、browserは提出pageへ着かず`ERR_CONNECTION_REFUSED`を表示した。この経路の契約testは`httptest`でhandlerを直接呼ぶため、**browserが応答を受け取るところを一度も通していない** | [ADR-0013](../../../docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md) |
 
-どちらも、**確かめたい相手はbrowserなのに、browserの代わりに自分の思い込みを置いていた**ために起きました。テストは通り、実機で止まりました。
+3つとも、**確かめたい相手はbrowserなのに、browserの代わりに自分の思い込みを置いていた**ために起きました。テストは通り、実機で止まりました。
 
-規則は3つです。
+規則は4つです。
 
 1. **requestのヘッダーを手で立てる前に、その値をbrowserが決めるのかを判定します。** helperが生成する値（`Authorization`のtoken）や、拡張機能が明示的に付ける値（`Content-Type: application/json`）は手で立ててかまいません。**browserが決める値は代用しません**
 2. **browserが決める値は、実挙動を測ってから固定します。** 測り直せる形で残し、「前に確かめた」で済ませません
 3. **測る仕組みには必ずnegative controlを入れます。** 壊れた条件を検出できることを先に見せない限り、成功は成立証拠になりません
+4. **直す前に、その仮説が症状を説明できることを確かめます。** 2026年9月21日、303が届かない症状に対して「通知が応答より先だから`Shutdown`が先回りする」という仮説を立てましたが、**4条件×20回の再現ですべて303が届き、否定されました**（[ADR-0013](../../../docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)）。**確かめずに直していたら、人が15分操作するcampaignで同じ場所に止まっていました。** 測るのに15分もかかりません
 
 ### 手で組み立てているrequestの分類
 

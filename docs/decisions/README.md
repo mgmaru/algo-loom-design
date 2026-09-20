@@ -33,6 +33,8 @@
 | [ADR-0009](0009-required-cases-for-v12c.md) | `V-12C`の必須caseを代表環境の契約testに定め、3 OSと更新導線を外す | 採用 | 2026年9月20日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-12`](../../TODO.md#td-12-3つのosの認証検証マトリクスを作る) |
 | [ADR-0010](0010-build-the-three-os-auth-matrix-before-v12-passes.md) | 3つのOSの認証検証マトリクスを、`V-12`の結果に依存しない範囲だけ先に作る | 採用 | 2026年9月20日 | [`TD-12`](../../TODO.md#td-12-3つのosの認証検証マトリクスを作る)、[`TD-46`](../../TODO.md#td-46-検証マトリクスを確定しwindowsとlinuxの秘密情報保管庫を観測する) |
 | [ADR-0011](0011-add-submit-entry-before-rerunning-v12.md) | `V-12E`の`submit`相当の入口を検証物へ足してから、4回目のcampaignでやり直す | 採用 | 2026年9月20日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-49`](../../TODO.md#td-49-v-12eのsubmit相当の入口を検証物へ足す)、[`TD-50`](../../TODO.md#td-50-helperの誤った成功報告と原因を指せないエラー名を直す) |
+| [ADR-0012](0012-serve-submission-page-with-same-origin-referrer-policy.md) | 提出確認画面の`Referrer-Policy`を`same-origin`へ変え、5回目のcampaignでやり直す | 採用 | 2026年9月20日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-51`](../../TODO.md#td-51-提出確認画面のform-postがbrowserで拒否される問題を直す)、[`TD-52`](../../TODO.md#td-52-browser由来のrequestを手で組み立てている契約testを洗い出す) |
+| [ADR-0013](0013-find-the-cause-before-fixing-the-v12e-handoff.md) | `V-12E`の受け渡しは原因を特定してから直し、helperの成功報告を到達と切り離す | 採用 | 2026年9月21日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-53`](../../TODO.md#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する)、[`TD-54`](../../TODO.md#td-54-helperの成功報告が到達していないことを覆い隠さないようにする) |
 
 ## 何をADRにするか
 

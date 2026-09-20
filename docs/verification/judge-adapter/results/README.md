@@ -25,7 +25,7 @@
 | P1 | `V-11` | ✅ 合格 | [`p1-03`](2026-08-13-p1-03.md)で、実サービスのCookie更新・明示期限・再起動後の本人照合と、ローカル制御の失効・競合・秘密情報保管庫障害の提出前停止を確認 |
 | P2 | `V-08` | ✅ 合格 | [`p2-01`](2026-08-13-p2-01.md)で、`p0-22`の`submission-A`から実行時間11 msとメモリ9,172 KiBを取得して共通単位へ正規化し、欠損時も判定保存を継続できることを確認 |
 | P2 | `V-09` | ✅ 合格 | [`p0-22`](2026-08-12-p0-22.md)で判定ポーリング、分離した各上限、サーバー指定間隔と最小2秒待機を実サービス確認 |
-| P0 | `V-12` | ❌ 未合格 | [`v12-02`](2026-09-20-v12-02.md)の3回目のcampaignで`V-12A`・`V-12B`・`V-12C`の必須case・`V-12D`が合格した。**`V-12E`は検証物に`submit`相当の入口が無く実行できない。** 入口を足してから4回目のcampaignでやり直す（[ADR-0011](../../../decisions/0011-add-submit-entry-before-rerunning-v12.md)） |
+| P0 | `V-12` | ❌ 未合格 | [`v12-04`](2026-09-21-v12-04.md)の5回目のcampaignで`V-12A`・`V-12B`・`V-12C`の必須case・`V-12D`が合格した。**`V-12E`は提出pageへの受け渡しに到達せず、原因は特定できていない。** 原因を特定してから6回目のcampaignでやり直す（[ADR-0013](../../../decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)） |
 
 凡例: ✅ 合格 / 🟡 一部観測 / ⬜ 未実施 / ❌ 未合格
 
@@ -62,6 +62,8 @@
 | 2026年8月13日 | [`p2-01`](2026-08-13-p2-01.md) | `V-08`ジャッジ実行時間・メモリ | `p0-22`の`submission-A`から`FINAL` / `AC`、実行時間11 ms、メモリ9,172 KiBを取得し、11 msと9,392,128 byteへ正規化。固定入力の欠損時も判定を保持してV-08は合格 |
 | 2026年9月20日 | [`v12-01`](2026-09-20-v12-01.md) | `V-12`方式A製品形態（campaign `v12-2026-09-20-01`、**無効**） | 修正版`0.1.1`の配信後にやり直した2回目のcampaign。`V-12A`が外部通信0件で合格、`V-12B`が標準追加から基準template確定まで合格、`V-12D`が同意画面から新process再照合まで合格。`GET /settings`は上限と同数の2回、提出0件。`V-12C`は開始前に停止。manifestをrevision 2へ上げたところ、**確定の遷移が`V-12B`と`V-12D`を無効化し、`V-12`が原理的に完了できない**ことが分かった（[ADR-0006](../../../decisions/0006-profile-contract-establishment-is-not-invalidation.md)） |
 | 2026年9月20日 | [`v12-02`](2026-09-20-v12-02.md) | `V-12`方式A製品形態（campaign `v12-2026-09-20-02`） | 3回目のcampaign。`V-12A`が外部通信0件で合格、`V-12B`が標準追加から基準template確定まで合格、`V-12C`の必須case5件が隔離環境で合格、`V-12D`が同意画面から新process再照合まで合格。**基準templateの確定でmanifestをrevision 2へ上げても`invalidated`は空**で、[ADR-0006](../../../decisions/0006-profile-contract-establishment-is-not-invalidation.md)の修正が実campaignで機能した。`GET /settings`は上限と同数の2回、提出0件。**`V-12E`は検証物に`submit`相当の入口が無く実行できず、`V-12`全体は未合格**（[ADR-0011](../../../decisions/0011-add-submit-entry-before-rerunning-v12.md)） |
+| 2026年9月20日 | [`v12-03`](2026-09-20-v12-03.md) | `V-12`方式A製品形態（campaign `v12-2026-09-20-03`、**無効**） | 4回目のcampaign。`V-12A`・`V-12B`・`V-12C`の必須case5件・`V-12D`が合格。`V-12E`は`submit`相当の入口が動き、再認証と提出確認画面まで成立したが、**画面のform POSTをhelper自身が`authentication_rejected`で拒否して停止**した。`Referrer-Policy: no-referrer`のページからのPOSTでChromeが`Origin: null`を送るためで、契約testが`Origin`を手で立てていたため見つかっていなかった（[ADR-0012](../../../decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md)）。提出0件 |
+| 2026年9月21日 | [`v12-04`](2026-09-21-v12-04.md) | `V-12`方式A製品形態（campaign `v12-2026-09-21-01`） | 5回目のcampaign。`V-12A`・`V-12B`・`V-12C`の必須case5件・`V-12D`が合格。`authentication_rejected`は再発せず、**POSTは受理され303も書かれた**が、browserは提出pageへ着かず`ERR_CONNECTION_REFUSED`を表示し、`V-12E`は到達せず。**原因は特定できていない。** 最初の仮説（通知と応答の順序）は4条件×20回の再現で否定した。helperは`ok: true`を返しており、**結果JSONだけでは到達していないことが分からない**（[ADR-0013](../../../decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)）。提出0件 |
 
 ## `p0-02`後の設計変更
 
