@@ -204,6 +204,7 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える) | 技術検証 | 修正版`0.1.1`を公開し、`V-12`の再実行条件を整える | `TD-39` | 完了 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 | [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42` | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 | [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) | 設計判断 | 検証支援物の実行経路をbrowser相当で確認する範囲を決める | ― | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
+| [`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す) | 技術検証 | helperのエラーが原因を一意に指せない箇所を洗い出して直す | ― | 未着手 | ― |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 | ― |
 | [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 | ― |
 | [`TD-38`](#td-38-認証配布物とテンプレートのライフサイクル契約を確定する) | 機能設計 | 認証配布物とテンプレートのライフサイクル契約を確定する | `TD-11`, `TD-12` | 未着手 | ― |
@@ -744,6 +745,47 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 
 ---
 
+#### `TD-44` helperのエラーが原因を一意に指せない箇所を洗い出して直す
+
+| 項目 | 内容 |
+|---|---|
+| カテゴリ | 技術検証 |
+| 対象ファイル | [`scripts/verification/atcoder_v12/helper/`](scripts/verification/atcoder_v12/helper/)、[`scripts/verification/test_atcoder_v12.mjs`](scripts/verification/test_atcoder_v12.mjs) |
+| 依存 | ― |
+| 決定 | ― |
+
+**なぜこの作業が要るか:** 2026年9月20日の`V-12`campaignで、`first-login`が`first_login_secret_namespace_not_empty`を返して停止しました。**実際の原因は、secret storeに項目が残っていたことではなく、Keychainのservice IDの形式が不正だったことです。** helperは次のとおり、原因の異なる2つの場合へ同じ名前を割り当てています。
+
+```go
+cleanupVerifier, err := newLiveVerifier("fixture_account", *keychainHelper, *keychainService, self)
+if err != nil || !cleanupVerifier.keychainItemAbsent() {
+    return errors.New("first_login_secret_namespace_not_empty")
+}
+```
+
+このため、Keychainを調べて「項目は残っていない」と確認したうえでソースを読むまで、原因にたどり着けませんでした。**エラー名が指す原因と実際の原因が違うと、誤った対処（残っていない項目を消そうとする）へ誘導します。**
+
+[`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める)と同じ型の問題です。確かめたい対象と、実際に報告している対象がずれています。`TD-43`が扱うのはtestの検査対象、本作業が扱うのはエラー報告の指示対象です。**同じ型が2箇所で出たため、他にも残っている前提で洗い出します。**
+
+**手順:**
+
+1. helperがエラーを返すすべての箇所を列挙し、**一つのエラー名が複数の原因で返る箇所**を特定する。
+2. 各箇所について、原因を分ける価値と費用を比べる。分けないものは、**なぜ一つの名前で足りるのか**を書く。安全側で停止するという結果が同じでも、次に取るべき行動が違うなら分ける。
+3. 分けるものへエラー名を割り当てる。**秘密値、実path、実account名をエラー名と出力へ入れない。** 現在の`fail()`が名前を`^[a-z0-9_]{1,96}$`へ制限しているのと同じ制約を守る。
+4. 固定入力testを足し、**分離前のコードでは区別できないことを各caseで確認する。** 落ちないtestは、その取り違えを検出できていない。
+5. 得られた方針を[`TD-32`](#td-32-テスト方針の骨格を決める)へ引き渡す。製品実装のエラー分類でも同じ取り違えが起こりうるため。
+
+**完了条件:**
+
+- [ ] helperのエラー返却箇所が列挙され、一つの名前で複数の原因を返すものが特定されている
+- [ ] 分けたものと、分けずに残したものの理由が記録されている
+- [ ] `first_login_secret_namespace_not_empty`が、secret storeの残存と設定不正を区別して返す
+- [ ] 追加した各testが、分離前のコードで落ちることを確認できている
+- [ ] エラー名と出力に秘密値、実path、実account名が入っていない
+- [ ] `TD-32`への引き渡し内容が記載されている
+
+---
+
 #### `TD-11` 方式A製品形態を実サービスで検証する
 
 | 項目 | 内容 |
@@ -753,7 +795,7 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 | 依存 | `TD-39`、`TD-42` |
 | 決定 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 
-**2026年9月20日の実施記録（2回目、campaign `v12-2026-09-20-01`）:** 手順1〜5を実行し、**`V-12A`・`V-12B`・`V-12D`が合格しました。** 9月19日に停止した同意画面を通過し、[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)の修正が実browserで機能することを初めて実行結果として観測しています。`V-12A`は外部通信0件、`V-12B`はdeveloper modeなしの標準追加から基準templateの一度だけの確定まで、`V-12D`は本人照合・secret store保存・新processからの再照合までが分断なく成立しました。`GET /settings`は**上限と同数の2回**、提出は0件、Bot対策の回避も0件です。後始末はsetup profileとruntime profileの削除まで完了し、基準template（完全性ID `738757a2…`）と検証用secret store項目を`V-12E`まで保持しています。**`V-12C`と`V-12E`は未実施で、`V-12`全体は判定不能のままです。** `V-12E`は対象問題が未確定のため開始条件を満たしていません。記録は[`v12-01`](docs/verification/judge-adapter/results/2026-09-20-v12-01.md)にあります。
+**2026年9月20日の実施記録（2回目、campaign `v12-2026-09-20-01`）:** 手順1〜5を実行し、**`V-12A`・`V-12B`・`V-12D`が合格しました。** 9月19日に停止した同意画面を通過し、[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)の修正が実browserで機能することを初めて実行結果として観測しています。`V-12A`は外部通信0件、`V-12B`はdeveloper modeなしの標準追加から基準templateの一度だけの確定まで、`V-12D`は本人照合・secret store保存・新processからの再照合までが分断なく成立しました。`GET /settings`は**上限と同数の2回**、提出は0件、Bot対策の回避も0件です。後始末はsetup profileとruntime profileの削除まで完了し、基準template（完全性ID `738757a2…`）と検証用secret store項目を`V-12E`まで保持しています。**`V-12C`と`V-12E`は未実施で、`V-12`全体は判定不能のままです。** `V-12E`の対象問題は`abc300_a`で確定しました。2026年9月20日にABC300が2023年4月29日に**終了済み**であることを公式ページで確認し、開始条件を満たしています。**最後の提出操作は行いません。**記録は[`v12-01`](docs/verification/judge-adapter/results/2026-09-20-v12-01.md)にあります。
 
 **2026年9月20日:** [`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える)が完了し、**この作業の保留が解けました。** 修正版`0.1.1`が配信され、配信bytesとsourceの照合まで済んでいます（[CWS配布準備 §8.1.9](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#819-2026年9月20日の011配信bytes取得記録)）。やり直しは**新しいcampaign IDで`V-12A`から**行います。**実行にはAtCoderへの接続を伴うため、人の明示承認が要ります。**
 
