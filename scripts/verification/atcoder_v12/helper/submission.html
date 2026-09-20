@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AlgoLoom submission confirmation</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #172033;
+      background: #eef4ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      padding: 32px;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(56, 189, 248, 0.24), transparent 34%),
+        radial-gradient(circle at 88% 90%, rgba(37, 99, 235, 0.18), transparent 32%),
+        #eef4ff;
+    }
+
+    main {
+      width: min(100%, 840px);
+      padding: 36px 40px 38px;
+      border: 1px solid #cbdaf5;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 24px 64px rgba(30, 64, 175, 0.14);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 14px;
+      padding: 7px 11px;
+      border-radius: 999px;
+      color: #1747a6;
+      background: #e4edff;
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 0.08em;
+    }
+
+    .eyebrow::before {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2563eb;
+      content: "";
+    }
+
+    h1 {
+      margin: 0;
+      color: #0f1d3b;
+      font-size: clamp(28px, 4.6vw, 40px);
+      line-height: 1.16;
+      letter-spacing: -0.035em;
+    }
+
+    .lead {
+      max-width: 680px;
+      margin: 14px 0 24px;
+      color: #4b5c78;
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    dl {
+      display: grid;
+      grid-template-columns: max-content minmax(0, 1fr);
+      gap: 10px 20px;
+      margin: 0 0 22px;
+      padding: 18px 20px;
+      border: 1px solid #dce6f8;
+      border-radius: 16px;
+      background: #f8faff;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    dt { color: #60708a; font-weight: 700; }
+    dd { margin: 0; overflow-wrap: anywhere; }
+
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+
+    pre {
+      max-height: 260px;
+      margin: 0 0 22px;
+      padding: 16px 18px;
+      overflow: auto;
+      border: 1px solid #dce6f8;
+      border-radius: 16px;
+      background: #f8faff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .warning {
+      margin: 0 0 22px;
+      padding: 14px 16px;
+      border-left: 4px solid #f59e0b;
+      border-radius: 0 12px 12px 0;
+      color: #713f12;
+      background: #fffbeb;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .actions { display: flex; align-items: center; gap: 18px; }
+
+    button {
+      min-height: 48px;
+      padding: 12px 20px;
+      border: 0;
+      border-radius: 12px;
+      color: #ffffff;
+      background: #1d4ed8;
+      box-shadow: 0 8px 18px rgba(29, 78, 216, 0.22);
+      font: inherit;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    button:focus-visible { outline: 3px solid #93c5fd; outline-offset: 3px; }
+
+    .cancel { margin: 0; color: #60708a; font-size: 13px; line-height: 1.5; }
+
+    @media (max-width: 680px) {
+      body { padding: 16px; }
+      main { padding: 26px 22px 28px; border-radius: 18px; }
+      dl { grid-template-columns: 1fr; }
+      .actions { align-items: stretch; flex-direction: column; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">ALGOLOOM · TECHNICAL VERIFICATION BETA</p>
+    <h1>提出対象の確認</h1>
+    <p class="lead">再認証が終わりました。次の内容でAtCoderの提出画面を開きます。<strong>AlgoLoomは提出操作を行いません。</strong></p>
+    <dl>
+      <dt>対象問題</dt><dd><code>{{PROBLEM_ID}}</code>（{{PROBLEM_URL}}）</dd>
+      <dt>言語</dt><dd>{{LANGUAGE}}</dd>
+      <dt>ソース</dt><dd><code>{{SOURCE_NAME}}</code> / {{SOURCE_BYTES}} byte / {{SOURCE_LINES}} 行</dd>
+      <dt>ソースのSHA-256</dt><dd><code>{{SOURCE_SHA256}}</code></dd>
+      <dt>提出先</dt><dd>{{SUBMIT_URL}}</dd>
+    </dl>
+    <pre>{{SOURCE_PREVIEW}}</pre>
+    <p class="warning"><strong>この画面はAlgoLoomがこの端末で表示しています。</strong> 提出画面ではフォームを操作せず、最後の提出操作も行いません。中止する場合は、このまま専用Chromeを閉じてください。</p>
+    <form method="post" action="/submission/proceed">
+      <input type="hidden" name="proceed_token" value="{{PROCEED_TOKEN}}">
+      <div class="actions">
+        <button type="submit">AtCoderの提出画面へ進む</button>
+        <p class="cancel">押すと同じChromeで提出画面を開きます。提出はされません。</p>
+      </div>
+    </form>
+  </main>
+</body>
+</html>

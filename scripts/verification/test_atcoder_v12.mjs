@@ -420,3 +420,51 @@ test("V-12 service worker refuses senders and values that do not match the loopb
     assert.deepEqual(worker.requests, [], `外部へ出てしまう: ${label}`);
   }
 });
+
+// V-12Eの提出確認画面は、拡張機能のcontent scriptと同じorigin（127.0.0.1）で
+// 出す。同意画面と取り違えて動かないこと、JSなしで成立することを確かめる。
+const SUBMISSION_PAGE = fs.readFileSync(path.join(ROOT, "helper", "submission.html"), "utf8");
+
+test("V-12E submission confirmation page stays inert for the extension", async () => {
+  const { button, navigated, sent } = runBootstrapAt("http://127.0.0.1:53673/submission");
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(button.onClick, null, "提出確認画面でcontent scriptのhandlerが付いた");
+  assert.deepEqual(navigated, []);
+  assert.deepEqual(sent, []);
+});
+
+test("V-12E submission confirmation page needs no script and no secret", () => {
+  assert.doesNotMatch(SUBMISSION_PAGE, /<script/i);
+  assert.doesNotMatch(SUBMISSION_PAGE, /\son(?:click|submit|load|error|focus|change|input|mouse[a-z]+)\s*=/i);
+  assert.doesNotMatch(SUBMISSION_PAGE, /algoloom-loopback-token|REVEL_SESSION/);
+  // 押されたことは、自分のoriginへのform POSTで伝える。
+  assert.match(SUBMISSION_PAGE, /<form method="post" action="\/submission\/proceed">/);
+  assert.match(SUBMISSION_PAGE, /name="proceed_token"/);
+  for (const placeholder of [
+    "{{PROBLEM_ID}}", "{{LANGUAGE}}", "{{SOURCE_NAME}}", "{{SOURCE_SHA256}}", "{{SUBMIT_URL}}",
+  ]) {
+    assert.ok(SUBMISSION_PAGE.includes(placeholder), `提出確認画面に${placeholder}がない`);
+  }
+});
+
+test("V-12E entry point never submits and never fills the submission form", () => {
+  const entry = fs.readFileSync(path.join(ROOT, "helper", "submit_entry.go"), "utf8");
+  // 提出は利用者の操作であり、検証物は最後まで行わない。
+  assert.match(entry, /Submitted:\s+false/);
+  assert.match(entry, /FormOperated:\s+false/);
+  assert.doesNotMatch(entry, /http\.Post|"POST"/);
+  assert.doesNotMatch(entry, /--headless|remote-debugging-port|--load-extension/);
+  // 提出先は入力fileが持つ。helperのsourceへAtCoderのURLを固定で埋めない。
+  assert.doesNotMatch(entry, /https:\/\/atcoder\.jp\/contests/);
+});
+
+test("V-12E submission input carries no AtCoder-derived content", () => {
+  const directory = path.join(ROOT, "v12e-submission");
+  const input = JSON.parse(fs.readFileSync(path.join(directory, "input.json"), "utf8"));
+  assert.equal(input.schema_version, 1);
+  assert.match(input.submit_url, /^https:\/\/atcoder\.jp\/contests\//);
+  assert.equal(input.source_file, path.basename(input.source_file));
+  const source = fs.readFileSync(path.join(directory, input.source_file), "utf8");
+  assert.ok(source.length < 4096, "提出前入力のsourceが大きすぎる");
+  assert.match(source, /解答ではなく/);
+});

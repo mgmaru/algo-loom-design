@@ -51,6 +51,8 @@ func run(arguments []string) error {
 		return runServe(arguments[1:])
 	case "first-login":
 		return runFirstLogin(arguments[1:])
+	case "submit-entry":
+		return runSubmitEntry(arguments[1:])
 	case "recheck":
 		return runRecheckCommand(arguments[1:])
 	case "secret":
@@ -650,10 +652,28 @@ func runSecret(arguments []string) error {
 	if err != nil {
 		return err
 	}
-	if err := verifier.keychain("delete", nil); err != nil {
+	if err := deleteScopedSecret(verifier); err != nil {
 		return err
 	}
 	return writeStdout(map[string]any{"ok": true, "secret_store_item_removed": true})
+}
+
+// deleteScopedSecret removes the scoped item and confirms it is gone.
+// 削除commandの終了コード0を成功と読まない。渡された実行ファイルがKeychain
+// adapterでなくても0で終わりうるため、消えたことを別の観測で確かめる。
+// 「消せた」「まだ在る」「判定できなかった」を分ける。
+func deleteScopedSecret(verifier *liveVerifier) error {
+	if err := verifier.keychain("delete", nil); err != nil {
+		return err
+	}
+	absent, err := verifier.keychainItemAbsent()
+	if err != nil {
+		return errors.New("secret_store_deletion_unverifiable")
+	}
+	if !absent {
+		return errors.New("secret_store_item_still_present")
+	}
+	return nil
 }
 
 func readRuntimeMarker(root string) (runtimeMarker, error) {

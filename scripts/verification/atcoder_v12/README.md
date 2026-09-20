@@ -13,6 +13,7 @@
 | `keychain/` | 実行前に配布物へcompileするmacOS Security Framework adapter |
 | `consent-v1.0.ja.md` | 初回画面と対応付ける同意文面の正本 |
 | `fixtures/` | 秘密値を含まないmanifest例。実campaignへ流用しない |
+| [`v12e-submission/`](v12e-submission/README.md) | `V-12E`の提出前入力。対象問題、提出先URL、言語、固定source。**AtCoder由来の内容は含まない** |
 | `algoloom_v12_review_fixture.py` | **helperの代用部品（review fixture）。** CWS reviewerがhelperなしで拡張機能を確認するための単一ファイルで、同じprotocolと同じ検査を実装する。**本物のhelperと違い、何も保存せず、外部へ接続しない。** 審査期間だけのもので、製品では使わない |
 | `prepare.mjs` | リポジトリ外へ拡張ZIP、実行時compile不要のhelper、reviewer受渡し用の再現可能な`.tar.gz`を排他的に生成する |
 | `prepare-store-assets.mjs` | clean buildに対応する実同意UIのscreenshot、small promo、iconをリポジトリ外へ生成する |
@@ -160,6 +161,10 @@ commandは、manifestの固定ID・対象版・listing・同意・template schem
 | Keychain adapterのhashが違う | `first_login_keychain_helper_hash_mismatch` | 渡したpathを確かめる |
 | service IDの書式、または実行ファイルのpathが不正 | `first_login_verifier_configuration_invalid` | **引数を直す。項目を消しに行かない** |
 | secret storeに項目が残っている | `first_login_secret_namespace_not_empty` | `secret delete`で消す |
+| 対象版が導入されていない | `extension_version_not_installed` | 対象itemと版を確かめる |
+| 同じ版が複数導入されている | `extension_installation_not_unique` | 重複した導入を片付ける |
+| 削除したのに項目が残っている | `secret_store_item_still_present` | 渡したadapterとservice IDを確かめる |
+| 削除できたか判定できない | `secret_store_deletion_unverifiable` | Keychain adapterが動くかを確かめる |
 | secret storeを参照できず判定できない | `first_login_secret_store_unavailable` | Keychain adapterが動くかを確かめる |
 | 子processの出力が上限を超えた | `first_login_child_output_too_large` | **秘密値の混入を疑う** |
 | 子processの出力を読めない | `first_login_output_undecodable` | helperの不具合として扱う |
@@ -168,6 +173,46 @@ commandは、manifestの固定ID・対象版・listing・同意・template schem
 **分けなかったものもあります。** `*_arguments_invalid`（引数の解析失敗、余剰引数、timeoutの範囲外）、`manifest_size_invalid`（空、上限超過）、`manifest_identity_invalid`（schema版、revision、campaign ID）は、原因が違っても**次に取る行動が「渡した値を直す」で同じ**なので、一つの名前のままにしています。
 
 `keychainItemAbsent`は「項目なし」「項目あり」「判定できなかった」の3つを返します。**判定できなかったものを「項目あり」と報告しません。** 終了コード44が「なし」、0が「あり」、それ以外は判定できていない、という対応です。
+
+### `V-12E`の`submit`相当の入口
+
+`submit-entry`は、保存済みlocal sessionが無い状態から`V-12E`の一連を実行します。**製品の`aloom submit`ではありません。** 提出は行わず、提出formも操作しません。
+
+```console
+printf '%s\n' "$EXPECTED_ACCOUNT" | "$V12_HELPER" submit-entry \
+  --manifest /absolute/owner-only/campaign-manifest-r2.json \
+  --expected-manifest-sha256 aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+  --extension-id aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+  --extension-version 0.1.1 \
+  --consent-version 1.0 \
+  --template-schema-version 1.0 \
+  --keychain-helper /absolute/owner-only/algoloom-v12-keychain-darwin-arm64 \
+  --keychain-service io.algoloom.verification.v12.00000000000000000000000000000000.session \
+  --chrome "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+  --template /absolute/owner-only/baseline-template \
+  --runtime /absolute/owner-only/runtime-profile-v12e \
+  --repository-root /absolute/path/to/algo-loom-design \
+  --submission-input /absolute/path/to/algo-loom-design/scripts/verification/atcoder_v12/v12e-submission/input.json
+```
+
+順序と、どこを人が操作するかです。
+
+| # | 場所 | 誰が | 何が起きるか |
+|---|---|---|---|
+| 1 | CLI | helper | manifest・自分自身・Keychain adapterのhashと、基準templateの完全性IDを照合する |
+| 2 | CLI | helper | **保存済みlocal sessionが無いことを確認する。** 残っていれば`submit_entry_local_session_present`で停止し、消しに行かない |
+| 3 | CLI | helper | **再認証の理由、中止方法、対象問題・言語・sourceのhashとbytes、提出先を表示する。** 質問はしない |
+| 4 | browser | 人 | 同意画面（既存）で「同意してAtCoderへ進む」 |
+| 5 | browser | 人 | AtCoderへログインする。Turnstileが出たら操作する |
+| 6 | browser | 拡張機能とhelper | `/settings`で本人照合し、`REVEL_SESSION`を1件だけ受け取り、`GET /settings`1回で確認してsecret storeへ保存する |
+| 7 | browser | helper | 同じChromeで**提出確認画面**（`http://127.0.0.1:<待受番号>/submission`）を開く |
+| 8 | browser | 人 | 対象問題・言語・sourceを見て「AtCoderの提出画面へ進む」を押す |
+| 9 | browser | helper | 303応答で同じtabをAtCoderの提出pageへ送る。**formへは何も入れない** |
+| 10 | CLI | 人 | Chromeを完全終了する。helperがruntime複製を破棄して結果JSONを返す |
+
+提出確認画面は同意画面と同じ仕組みで配信しますが、**JavaScriptを持ちません。** 押されたことは同じoriginへのform POSTで伝わり、遷移は303応答で起きます。拡張機能のcontent scriptは`/bootstrap`でしか動かないため、この画面では何もしません。
+
+**helperが観測できるのは303を返したところまでです。** browserが提出pageへ着いたことは、提出ページで拡張機能を動かさない限り観測できません。それは`V-12`の範囲外です（[`TD-40`](../../../TODO.md#td-40-提出ページのcontent-scriptとturnstileの共存を検証する)）。結果JSONの`submit_page_redirect_issued`はそのままの意味で読み、到達は人の観測として記録します。
 
 ### manifest
 
@@ -237,6 +282,8 @@ helperは`127.0.0.1`の動的portへbindし、一回限りの64桁token、正確
 Cookieと実account名は、URL、argv、環境変数、通常log、公開JSONへ含めません。パスワード、Turnstile token、他のCookieを読みません。CDP、WebDriver、remote debugging、headless、stealth、User-Agent偽装を使いません。POST、自動再試行、提出は実装していません。
 
 正常完了後も、利用者がChromeを完全終了するまでhelperは成功を返しません。取消、全体timeout、Chrome先行終了、helper終了では安全側に停止します。確認済みのKeychain項目はcampaign終了まで保持するため、正確なservice IDをmanifest外のstore用一時情報で管理し、終了時は次で削除します。
+
+`secret delete`は、削除したあとに**項目が無いことを別の観測で確かめてから**成功を返します。削除commandの終了コード0だけを成功と読みません。Keychain adapterでない実行ファイルを渡しても0で終わりうるためです。
 
 ```console
 "$V12_HELPER" secret delete \

@@ -246,6 +246,16 @@ type loopbackHandler struct {
 	machine          *protocolMachine
 	mu               sync.Mutex
 	bootstrapClaimed bool
+
+	// V-12Eの提出確認画面。`submit-entry`だけが設定する。設定しない限り
+	// `/submission`は他のroute同様に拒否される。
+	submissionPage    string
+	proceedToken      string
+	submitURL         string
+	submissionShown   bool
+	submissionClaimed bool
+	proceededOnce     bool
+	proceeded         chan struct{}
 }
 
 func newLoopbackHandler(port int, token, extensionID, consentVersion string, machine *protocolMachine) (*loopbackHandler, error) {
@@ -272,6 +282,10 @@ func (h *loopbackHandler) ServeHTTP(response http.ResponseWriter, request *http.
 
 	if request.Method == http.MethodGet && request.URL.Path == "/bootstrap" {
 		h.serveBootstrap(response)
+		return
+	}
+	if request.URL.Path == "/submission" || request.URL.Path == "/submission/proceed" {
+		h.serveSubmission(response, request)
 		return
 	}
 	if request.Method != http.MethodPost || (request.URL.Path != "/event" && request.URL.Path != "/capture") {
@@ -327,6 +341,108 @@ func (h *loopbackHandler) serveBootstrap(response http.ResponseWriter) {
 	response.Header().Set("X-Frame-Options", "DENY")
 	response.WriteHeader(http.StatusOK)
 	_, _ = io.WriteString(response, renderConsentPage(h.token, h.consentVersion))
+}
+
+// enableSubmissionConfirmation turns on the V-12E confirmation screen. It stays
+// off for V-12B → V-12D, where no submission plan exists.
+func (h *loopbackHandler) enableSubmissionConfirmation(page, proceedToken, submitURL string) error {
+	if page == "" || !tokenPattern.MatchString(proceedToken) ||
+		validateAtCoderURL(submitURL, "/contests/") != nil {
+		return errors.New("submission_confirmation_configuration_invalid")
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.submissionPage = page
+	h.proceedToken = proceedToken
+	h.submitURL = submitURL
+	h.proceeded = make(chan struct{}, 1)
+	return nil
+}
+
+func (h *loopbackHandler) proceedSignal() <-chan struct{} {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return h.proceeded
+}
+
+func (h *loopbackHandler) submissionWasShown() bool {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return h.submissionShown
+}
+
+// serveSubmission shows the confirmation screen once, and redirects to the
+// AtCoder submission page only after the person presses the button on it.
+// The redirect is what moves the same browser to the submission page; the
+// helper never fills the form and never submits.
+func (h *loopbackHandler) serveSubmission(response http.ResponseWriter, request *http.Request) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if h.submissionPage == "" {
+		writeJSON(response, http.StatusNotFound, map[string]any{"error": "route_rejected"})
+		return
+	}
+	if request.URL.Path == "/submission" {
+		if request.Method != http.MethodGet {
+			writeJSON(response, http.StatusNotFound, map[string]any{"error": "route_rejected"})
+			return
+		}
+		if h.submissionClaimed {
+			writeJSON(response, http.StatusGone, map[string]any{"error": "submission_already_claimed"})
+			return
+		}
+		h.submissionClaimed = true
+		h.submissionShown = true
+		response.Header().Set("Content-Type", "text/html; charset=utf-8")
+		response.Header().Set("Content-Security-Policy",
+			"default-src 'none'; style-src 'unsafe-inline'; form-action "+h.origin()+"; frame-ancestors 'none'")
+		response.Header().Set("Referrer-Policy", "no-referrer")
+		response.Header().Set("X-Frame-Options", "DENY")
+		response.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(response, h.submissionPage)
+		return
+	}
+
+	if request.Method != http.MethodPost {
+		writeJSON(response, http.StatusNotFound, map[string]any{"error": "route_rejected"})
+		return
+	}
+	// 押したのは、このhelperが出した画面だけである。拡張機能のoriginではなく
+	// 自分のoriginと、画面へ埋めた一回限りの値で確かめる。
+	if request.Header.Get("Origin") != h.origin() {
+		writeJSON(response, http.StatusForbidden, map[string]any{"error": "authentication_rejected"})
+		return
+	}
+	if request.Header.Get("Content-Type") != "application/x-www-form-urlencoded" {
+		writeJSON(response, http.StatusUnsupportedMediaType, map[string]any{"error": "content_type_rejected"})
+		return
+	}
+	if !h.submissionShown {
+		writeJSON(response, http.StatusConflict, map[string]any{"error": "submission_not_shown"})
+		return
+	}
+	request.Body = http.MaxBytesReader(response, request.Body, maxRequestBytes)
+	if request.ParseForm() != nil {
+		writeJSON(response, http.StatusBadRequest, map[string]any{"error": "body_rejected"})
+		return
+	}
+	submitted := request.PostForm.Get("proceed_token")
+	if len(request.PostForm) != 1 || len(submitted) != len(h.proceedToken) ||
+		subtle.ConstantTimeCompare([]byte(submitted), []byte(h.proceedToken)) != 1 {
+		writeJSON(response, http.StatusForbidden, map[string]any{"error": "authentication_rejected"})
+		return
+	}
+	if h.proceededOnce {
+		writeJSON(response, http.StatusConflict, map[string]any{"error": "submission_already_proceeded"})
+		return
+	}
+	h.proceededOnce = true
+	h.proceeded <- struct{}{}
+	http.Redirect(response, request, h.submitURL, http.StatusSeeOther)
+}
+
+func (h *loopbackHandler) origin() string {
+	return "http://127.0.0.1:" + strconv.Itoa(h.port)
 }
 
 func renderConsentPage(token, consentVersion string) string {
