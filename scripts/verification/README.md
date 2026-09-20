@@ -489,3 +489,49 @@ node scripts/verification/cloudflare_browser_local_diagnostic.mjs \
 ```console
 node --test scripts/verification/test_cloudflare_browser_local_diagnostic.mjs
 ```
+
+## `secret_store_guarantees.py`
+
+OSの秘密情報保管庫が実際に保証する範囲を観測するスクリプトです。[`TD-12`](../../TODO.md#td-12-3つのosの認証検証マトリクスを作る)と[`TD-46`](../../TODO.md#td-46-検証マトリクスを確定しwindowsとlinuxの秘密情報保管庫を観測する)が必要とする2点を、3つのOSで同じIDのまま並べて比較できるようにします。
+
+- 同じ利用者として動作する他のプロセスから読めるか
+- AlgoLoomの更新時に再認可を求められるか
+
+`JudgeAdapter`の`V-xx`ではなく、[未決事項 7.3](../../docs/project/unresolved-decisions.md#73-秘密情報保管庫が保証する範囲と表示文言)の表示文言を決めるための観測です。
+
+```console
+python3 scripts/verification/secret_store_guarantees.py
+```
+
+Python標準ライブラリだけを使い、`keyring`のバックエンドと同じAPIを直接呼びます。macOSは`SecItemAdd`・`SecItemCopyMatching`、WindowsはCredential Managerの`CredWriteW`・`CredReadW`です。**Linux Secret Serviceは未実装で、`TD-46`で追加します。**
+
+観測は5つです。`same-interpreter`は同じインタプリタで別のスクリプトファイルを動かすもので、AlgoLoomのコードだけが変わった状況にあたります。`other-executable`は別の実行ファイル（macOSは`/usr/bin/security`、WindowsはPowerShell）から読むもので、同じ利用者として動作する他のプロセスにあたります。
+
+| 観測 | 何を見るか |
+|---|---|
+| `same-process` | 作成したプロセス自身から読めるか |
+| `same-interpreter` | 同じインタプリタの別スクリプトから読めるか |
+| `other-executable` | 別の実行ファイルから読めるか |
+| `delete` | 読み出しの認可なしで削除できるか |
+| `residue` | 後始末のあと残っていないか |
+
+macOSでは`other-executable`で利用者への確認画面が出ます。15秒で子プロセスを終了しますが、画面にダイアログが残っていれば閉じてください。再実行で確認画面を出したくない場合は`--skip-interactive`を付けます。
+
+### 安全境界
+
+- AtCoderへ接続せず、実アカウント、Cookie、認証情報を一切扱いません。
+- 保存するのは`PROBE-VALUE-NOT-A-SECRET`という固定値だけです。
+- `algoloom-secret-store-probe-`で始まる名前の項目しか読み書き・削除しません。この形式に合わない名前は安全弁で拒否します。既存の項目には触れません。
+- 観測後に必ず削除し、残っていないことを確認して報告します。
+- 出力は端末名、利用者名、ホームディレクトリ配下の絶対パスを伏せます。**そのまま実行記録へ貼れます。**
+- 子プロセスは15秒で打ち切ります。終わらない場合は対話の確認画面が出たものとして扱い、値を待ちません。
+
+macOSの観測結果と、このスクリプトが扱わないmacOS固有の観測（ad-hoc署名の実行ファイルを再ビルドすると読めなくなること）は[AtCoder認証設計 §4.1.1](../../docs/architecture/atcoder-authentication.md#411-macosで観測した実際の保証範囲)にあります。
+
+### ローカルテスト
+
+保管庫へ触れずに、安全弁、伏せ字、出力形式だけを確認します。
+
+```console
+python3 scripts/verification/secret_store_guarantees.py --self-test
+```
