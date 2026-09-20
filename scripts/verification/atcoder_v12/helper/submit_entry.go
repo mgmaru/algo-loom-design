@@ -29,6 +29,7 @@ import (
 
 type submitEntryOutput struct {
 	OK                   bool                `json:"ok"`
+	ObservedScope        string              `json:"observed_scope"`
 	HelperVersion        string              `json:"helper_version"`
 	ProtocolVersion      int                 `json:"protocol_version"`
 	ExtensionVersion     string              `json:"extension_version"`
@@ -54,12 +55,61 @@ type reauthenticationOut struct {
 // AtCoder page is the browser's move: the helper issues the redirect and the
 // person sees the page. 提出ページで拡張機能を動かさない限り到達は観測できず、
 // それはV-12の範囲外である（TD-40）。
+//
+// **到達を`true`で埋めない。** 2026年9月21日の5回目のcampaignで、browserが
+// 提出pageへ着いていないのにhelperが`ok: true`を返し、結果JSONだけを見ると
+// `V-12E`が成立したと読めた（ADR-0013）。観測できない範囲は、観測できない
+// ことが分かる値で返す。
 type submissionOutcome struct {
 	Plan                 submissionPlan `json:"plan"`
 	ConfirmationShown    bool           `json:"confirmation_shown"`
 	SubmitRedirectIssued bool           `json:"submit_page_redirect_issued"`
+	SubmitPageArrival    string         `json:"submit_page_arrival"`
 	FormOperated         bool           `json:"submission_form_operated"`
 	Submitted            bool           `json:"submitted"`
+}
+
+// helperが観測できない範囲であることを示す値。人が画面で見た結果を実行記録へ
+// 書くまで、到達は未確認のままである。
+const submitPageArrivalUnobserved = "unobserved_by_helper"
+
+// observedScope states how far the helper's own observation reaches. V-12Eの
+// 合否はこの出力だけでは決まらない。
+const helperObservedScope = "helper_observable_only"
+
+// newSubmitEntryOutput assembles the result. **到達は埋めない。** helperが
+// 観測できるのは303を書いたところまでで、browserが提出pageへ着いたかどうかは
+// 人の観測である（ADR-0013）。
+func newSubmitEntryOutput(extensionVersion string, plan submissionPlan,
+	confirmationShown bool, outcome captureOutcome) submitEntryOutput {
+	return submitEntryOutput{
+		OK:               true,
+		ObservedScope:    helperObservedScope,
+		HelperVersion:    helperVersion,
+		ProtocolVersion:  protocolVersion,
+		ExtensionVersion: extensionVersion,
+		Reauthentication: reauthenticationOut{
+			Reason:             "local_session_absent",
+			ReasonShown:        true,
+			CancelMethodShown:  true,
+			ExtraAuthCommands:  0,
+			ExtraConfirmations: 0,
+		},
+		Capture:      outcome.PublicCapture,
+		Verification: outcome.Verification,
+		Submission: submissionOutcome{
+			Plan:                 plan,
+			ConfirmationShown:    confirmationShown,
+			SubmitRedirectIssued: true,
+			SubmitPageArrival:    submitPageArrivalUnobserved,
+			FormOperated:         false,
+			Submitted:            false,
+		},
+		RuntimeProfileRemove: true,
+		BrowserFullyStopped:  true,
+		LoopbackFullyStopped: true,
+		SecretValuesInOutput: false,
+	}
 }
 
 func runSubmitEntry(arguments []string) error {
@@ -293,32 +343,8 @@ func runSubmitEntry(arguments []string) error {
 	}
 	runtimeExists = false
 
-	if err := writeStdout(submitEntryOutput{
-		OK:               true,
-		HelperVersion:    helperVersion,
-		ProtocolVersion:  protocolVersion,
-		ExtensionVersion: *extensionVersion,
-		Reauthentication: reauthenticationOut{
-			Reason:             "local_session_absent",
-			ReasonShown:        true,
-			CancelMethodShown:  true,
-			ExtraAuthCommands:  0,
-			ExtraConfirmations: 0,
-		},
-		Capture:      outcome.PublicCapture,
-		Verification: outcome.Verification,
-		Submission: submissionOutcome{
-			Plan:                 plan,
-			ConfirmationShown:    handler.submissionWasShown(),
-			SubmitRedirectIssued: true,
-			FormOperated:         false,
-			Submitted:            false,
-		},
-		RuntimeProfileRemove: true,
-		BrowserFullyStopped:  true,
-		LoopbackFullyStopped: true,
-		SecretValuesInOutput: false,
-	}); err != nil {
+	if err := writeStdout(newSubmitEntryOutput(
+		*extensionVersion, plan, handler.submissionWasShown(), outcome)); err != nil {
 		return err
 	}
 	completed = true

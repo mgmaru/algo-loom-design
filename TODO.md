@@ -171,7 +171,9 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 
 **4回目の`authentication_rejected`は再発していません。** POSTはhelperが受理し、303も書いています。それでもbrowserは提出pageへ着かず、`ERR_CONNECTION_REFUSED`を表示しました。**原因は特定できていません**（[ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)）。
 
-**次にやるのは[`TD-53`](#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する)と[`TD-54`](#td-54-helperの成功報告が到達していないことを覆い隠さないようにする)です。campaignではありません。** 最初に立てた仮説（通知と応答の順序）は**実測で否定済み**で、そのまま直しても直りません。**原因を特定してからコードへ触れます。**
+**[`TD-53`](#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する)と[`TD-54`](#td-54-helperの成功報告が到達していないことを覆い隠さないようにする)は2026年9月21日に完了しました。** 原因は提出確認画面のCSPの`form-action`で、helperが自分のloopback originだけを許していたため、**Chromeがform POSTの後の303遷移を止めていました**（[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md)）。遷移先originも許す形へ直し、[受け渡しのprobe](scripts/verification/atcoder_v12/submission-handoff-probe.mjs)で提出page相当へ着くことを実測しています。2件を同じ変更にまとめたため、helperのbuild hashが変わるのは1回だけです。
+
+**次にやるのは6回目のcampaignです。再び人の明示承認と15分程度の操作が要ります。**
 
 | campaign | 到達点 | 状態 |
 |---|---|---|
@@ -198,15 +200,15 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | 誤った成功報告とエラー名（`TD-50`） | [ADR-0011](docs/decisions/0011-add-submit-entry-before-rerunning-v12.md) |
 | 提出確認画面のform POSTが拒否される問題（`TD-51`） | [ADR-0012](docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md) |
 | 手で組み立てたrequestで代用していた契約test（`TD-52`） | [ADR-0012](docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md) |
-| **未着手:** 303の受け渡しが成立しない原因（`TD-53`） | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md) |
-| **未着手:** 到達を覆い隠す成功報告（`TD-54`） | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md) |
+| 303の受け渡しが成立しない原因（`TD-53`） | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md) |
+| 到達を覆い隠す成功報告（`TD-54`） | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md) |
 
-6回目のcampaignの順序です。**`TD-53`・`TD-54`が終わるまで始めません。**
+6回目のcampaignの順序です。**手順1は2026年9月21日に完了しました。次は手順2からです。**
 
-1. [`TD-53`](#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する)と[`TD-54`](#td-54-helperの成功報告が到達していないことを覆い隠さないようにする)を**同じ変更で**直す
+1. ~~[`TD-53`](#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する)と[`TD-54`](#td-54-helperの成功報告が到達していないことを覆い隠さないようにする)を**同じ変更で**直す~~ **完了**
 2. 5回目のcampaignの資源（基準template 完全性ID `56cb7608…`、manifest revision 1・2、実行script2件、`build/`、store用一時情報）を**破棄する。** 古い基準templateを6回目へ流用しない。**secret store項目は5回目のcampaign終了時に削除済みだが、不在は`secret delete`の戻り値ではなく独立した手段で確かめ直す**（`TD-50`の1件目）
-3. `prepare.mjs`で成果物を作り直し、新しいhelperのhashを記録する。**`TD-53`・`TD-54`の修正で`087038c7…`から変わる。** cleanな作業treeで`campaign_ready`が`true`になることも確かめる
-4. **[browser probe](scripts/verification/atcoder_v12/browser-request-probe.mjs)と、`TD-53`で作る受け渡しのprobeを実行する。** どちらも外部接続0件。**negative controlが壊れた条件を検出していること**を先に見る
+3. `prepare.mjs`で成果物を作り直し、新しいhelperのhashを記録する。**`TD-53`・`TD-54`の修正で`087038c7…`から変わる**（CSPと結果JSONの両方がbinaryへ入るため）。cleanな作業treeで`campaign_ready`が`true`になることも確かめる
+4. **[browser probe](scripts/verification/atcoder_v12/browser-request-probe.mjs)と[受け渡しのprobe](scripts/verification/atcoder_v12/submission-handoff-probe.mjs)を実行する。** どちらも外部接続0件。**negative controlが壊れた条件を検出していること**を先に見る（受け渡しのprobeでは、`form-action`をloopback originだけにしたcaseが「着かない」と出ること）
 5. 新しいcampaign IDとmanifestを作り、`V-12A`を外部通信0件で実行する
 6. **当日の外部条件を取り直す**（[実施手順 §3](docs/verification/judge-adapter/README.md#3-当日の外部条件)）。**この確認自体が外部サービスへの接続であり、承認の対象に含まれる**
 7. **ownerが`V-12B → V-12D`を分断せず通す（15分程度）。** listingから標準追加 → Chrome完全終了 → AtCoderログイン。実行scriptはowner専用領域の`run-first-login.sh`にあり、固定IDとservice IDをfileから読むためshell履歴へ実値が残らない
@@ -256,9 +258,9 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-50`](#td-50-helperの誤った成功報告と原因を指せないエラー名を直す) | 技術検証 | helperの誤った成功報告と原因を指せないエラー名を直す | ― | 完了 | [ADR-0011](docs/decisions/0011-add-submit-entry-before-rerunning-v12.md) |
 | [`TD-51`](#td-51-提出確認画面のform-postがbrowserで拒否される問題を直す) | 技術検証 | 提出確認画面のform POSTがbrowserで拒否される問題を直す | ― | 完了 | [ADR-0012](docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md) |
 | [`TD-52`](#td-52-browser由来のrequestを手で組み立てている契約testを洗い出す) | 技術検証 | browser由来のrequestを手で組み立てている契約testを洗い出す | ― | 完了 | [ADR-0012](docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md) |
-| [`TD-53`](#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する) | 技術検証 | 提出確認画面から提出pageへの受け渡しが成立しない原因を特定する | ― | 未着手 | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md) |
-| [`TD-54`](#td-54-helperの成功報告が到達していないことを覆い隠さないようにする) | 技術検証 | helperの成功報告が「到達していない」ことを覆い隠さないようにする | ― | 未着手 | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md) |
-| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42`, `TD-49`, `TD-50`, `TD-51`, `TD-52`, `TD-53`, `TD-54` | 進行中 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md)、[ADR-0009](docs/decisions/0009-required-cases-for-v12c.md)、[ADR-0011](docs/decisions/0011-add-submit-entry-before-rerunning-v12.md)、[ADR-0012](docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md)、[ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md) |
+| [`TD-53`](#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する) | 技術検証 | 提出確認画面から提出pageへの受け渡しが成立しない原因を特定する | ― | 完了 | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md) |
+| [`TD-54`](#td-54-helperの成功報告が到達していないことを覆い隠さないようにする) | 技術検証 | helperの成功報告が「到達していない」ことを覆い隠さないようにする | ― | 完了 | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md) |
+| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42`, `TD-49`, `TD-50`, `TD-51`, `TD-52`, `TD-53`, `TD-54` | 進行中 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md)、[ADR-0009](docs/decisions/0009-required-cases-for-v12c.md)、[ADR-0011](docs/decisions/0011-add-submit-entry-before-rerunning-v12.md)、[ADR-0012](docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md)、[ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md) |
 | [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) | 設計判断 | 検証支援物の実行経路をbrowser相当で確認する範囲を決める | ― | 完了 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md) |
 | [`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す) | 技術検証 | helperのエラーが原因を一意に指せない箇所を洗い出して直す | ― | 完了 | ― |
 | [`TD-45`](#td-45-campaign-manifestの確定遷移が自分を無効化する不整合を直す) | 技術検証 | campaign manifestの確定遷移が自分を無効化する不整合を直す | ― | 完了 | [ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
@@ -1041,7 +1043,9 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 | カテゴリ | 技術検証 |
 | 対象ファイル | [`scripts/verification/atcoder_v12/helper/`](scripts/verification/atcoder_v12/helper/)、[`scripts/verification/atcoder_v12/`](scripts/verification/atcoder_v12/)のprobe |
 | 依存 | ― |
-| 決定 | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md) |
+| 決定 | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md) |
+
+**2026年9月21日に完了しました。原因は提出確認画面のCSPの`form-action`でした。** helperが自分のloopback originだけを許していたため、**Chromeがform POSTの後の303遷移を止めていました**（[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md)）。
 
 **なぜこの作業が要るか:** 2026年9月21日の5回目のcampaignで、`V-12E`が最後の受け渡しに到達しませんでした。「AtCoderの提出画面へ進む」のPOSTは**helperが受理し、303も書いています**（4回目の`authentication_rejected`は再発していません）。それでもbrowserは提出pageへ着かず、`http://127.0.0.1:<待受番号>/submission/proceed`で`ERR_CONNECTION_REFUSED`を表示しました（[実行記録 §8](docs/verification/judge-adapter/results/2026-09-21-v12-04.md#8-v-12eが最後の受け渡しに到達しなかった理由)）。**`TD-11`はこの作業が終わるまで再開できません。**
 
@@ -1058,12 +1062,14 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 
 **完了条件:**
 
-- [ ] 症状をローカルで再現できている、または再現できない事実と次の観測設計が記録されている
-- [ ] 測る仕組みにnegative controlがあり、壊れた条件を検出できることを示している
-- [ ] 症状を説明できる仮説にもとづいて直している。**説明できないまま直していない**
-- [ ] 各caseのtestが、修正前のコードで落ちることを確認できている
-- [ ] 外部サービスへ接続していない
-- [ ] `TD-54`と同じ変更にまとまっている
+- [x] 症状をローカルで再現できている（2026年9月21日。[受け渡しのprobe](scripts/verification/atcoder_v12/submission-handoff-probe.mjs)で、`form-action`をloopback originだけにすると提出pageへ着かない）
+- [x] 測る仕組みにnegative controlがあり、壊れた条件を検出できることを示している（修正前の`form-action`と、応答を書かずに切る条件の2つ）
+- [x] 症状を説明できる仮説にもとづいて直している（**待受を閉じる時刻を5秒遅らせても結果が変わらない**ことを同じprobeで確かめ、原因を`form-action`に絞った）
+- [x] 各caseのtestが、修正前のコードで落ちることを確認できている（`form-action`をloopback originだけへ戻す変異と、到達を`arrived`と報告する変異の2つで、いずれもGo testが落ちた）
+- [x] 外部サービスへ接続していない（probeはloopback 2つだけを使い、使い捨てChrome profileはリポジトリ外に作って破棄する）
+- [x] `TD-54`と同じ変更にまとまっている
+
+**残り:** 6回目のcampaignの開始前に、cleanな作業treeでhelperのbuild hashを記録します。**`087038c7…`から変わります。**
 
 ---
 
@@ -1074,7 +1080,9 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 | カテゴリ | 技術検証 |
 | 対象ファイル | [`scripts/verification/atcoder_v12/helper/`](scripts/verification/atcoder_v12/helper/) |
 | 依存 | ― |
-| 決定 | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md) |
+| 決定 | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md) |
+
+**2026年9月21日に完了しました。** 結果JSONへ`observed_scope`を足し、`submit_page_arrival`を`unobserved_by_helper`にしています。
 
 **なぜこの作業が要るか:** 5回目のcampaignで、browserが提出pageへ到達していないのに、helperは`ok: true`・`submit_page_redirect_issued: true`を返しました。helperが観測できるのは303を書いたところまでで、**この値自体は嘘ではありません。** それでも**結果JSONだけを見た人は`V-12E`が成立したと読みます。** 今回は人がエラー画面を見ていたため気づけましたが、見ていなければ合格として記録されていました。[`TD-50`](#td-50-helperの誤った成功報告と原因を指せないエラー名を直す)で直した「消したつもりで残る」と同じ型が、別の場所に残っています。
 
@@ -1088,12 +1096,12 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 
 **完了条件:**
 
-- [ ] 結果JSONで、観測できた範囲とできていない範囲が区別できる
-- [ ] 到達が人の観測であることが、値の形から分かる
-- [ ] helper単独で`V-12E`の合否を述べない旨がREADMEにある
-- [ ] 他のcommandの結果JSONも確認し、同じ構造の有無を記録している
-- [ ] 固定入力testが、観測できていない範囲を成功と報告しないことを確かめている
-- [ ] `TD-53`と同じ変更にまとまっている
+- [x] 結果JSONで、観測できた範囲とできていない範囲が区別できる（`observed_scope: helper_observable_only`）
+- [x] 到達が人の観測であることが、値の形から分かる（`submit_page_arrival: unobserved_by_helper`。**真偽値にしていない。** `true`か`false`だと、helperが見ていない結果を見たように読める）
+- [x] helper単独で`V-12E`の合否を述べない旨がREADMEにある（[検証物README](scripts/verification/atcoder_v12/README.md)の`submit-entry`の節）
+- [x] 他のcommandの結果JSONも確認し、同じ構造の有無を記録している（`first-login`・`serve`・`secret delete`・`profile`系を確認した。**いずれもhelper自身が観測した事実だけを返しており、同じ構造は無かった**）
+- [x] 固定入力testが、観測できていない範囲を成功と報告しないことを確かめている（`TestSubmitEntryOutputDoesNotClaimTheBrowserArrived`。**本番と同じ組み立て関数を通す**）
+- [x] `TD-53`と同じ変更にまとまっている
 
 ---
 

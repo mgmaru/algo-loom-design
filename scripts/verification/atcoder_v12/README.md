@@ -42,7 +42,7 @@ review fixtureの`--self-test`は、socketを一つも開かず固定入力だ�
 |---|---|---|
 | 2026年9月19日 | 同意画面のcontent scriptが、sourceの検査では正しく見えるのに**実browserで動かなかった。** `location.origin`でloopbackを判定していたため、動的な待受番号が付くURLで常に`return`していた | [ADR-0005](../../../docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 | 2026年9月20日 | 提出確認画面のform POSTを**helper自身が拒否した。** 契約testが`Origin`ヘッダーを手で立てていたため、`Referrer-Policy: no-referrer`のページからのPOSTでChromeが`Origin: null`を送ることを一度も通していなかった | [ADR-0012](../../../docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md) |
-| 2026年9月21日 | 提出確認画面から提出pageへの**受け渡しが成立しなかった。** helperはPOSTを受理して303を書いたが、browserは提出pageへ着かず`ERR_CONNECTION_REFUSED`を表示した。この経路の契約testは`httptest`でhandlerを直接呼ぶため、**browserが応答を受け取るところを一度も通していない** | [ADR-0013](../../../docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md) |
+| 2026年9月21日 | 提出確認画面から提出pageへの**受け渡しが成立しなかった。** helperはPOSTを受理して303を書いたが、browserは提出pageへ着かなかった。**CSPの`form-action`がloopback originだけを許していたため、Chromeがform POSTの後の303遷移を止めていた。** この経路の契約testは`httptest`でhandlerを直接呼ぶため、**browserが応答を受け取って遷移するところを一度も通していない** | [ADR-0013](../../../docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](../../../docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md) |
 
 3つとも、**確かめたい相手はbrowserなのに、browserの代わりに自分の思い込みを置いていた**ために起きました。テストは通り、実機で止まりました。
 
@@ -65,18 +65,24 @@ review fixtureの`--self-test`は、socketを一つも開かず固定入力だ�
 | loopback handlerの接続検査 | `Host`、接続元 | **決める** | 同上 |
 | 提出確認画面の`proceed`検査 | `Origin: http://127.0.0.1:<待受番号>` | **決める** | **ここが2度目の失敗。** `browser-request-probe.mjs`で測る |
 | 提出確認画面の`proceed`検査 | `Content-Type: application/x-www-form-urlencoded` | **決める。** form POSTでbrowserが付ける | 同じprobeで測り、一致を確認した |
+| 提出確認画面から提出pageへの303遷移 | CSPの`form-action`の適用範囲 | **決める。** browserがform POSTの後の遷移先も検査する | **ここが3度目の失敗。** [受け渡しのprobe](submission-handoff-probe.mjs)で測る |
 
 ### 実挙動を測る
 
 ```console
 node scripts/verification/atcoder_v12/browser-request-probe.mjs
+node scripts/verification/atcoder_v12/submission-handoff-probe.mjs
 ```
 
-ローカルだけで完結します。**AtCoder、Chrome Web Store、Cloudflareへ接続しません。** 使い捨てChrome profileをリポジトリ外に作り、終了時に破棄します。
+どちらもローカルだけで完結します。**AtCoder、Chrome Web Store、Cloudflareへ接続しません。** 使い捨てChrome profileをリポジトリ外に作り、終了時に破棄します。
+
+1つ目は、提出確認画面からのform POSTで`Origin`が保たれるかを測ります。2つ目は、**押した後に提出pageへ着くか**を測ります。提出pageの代わりに別portのローカル待受を置き、そこへのGETが届いたかどうかで判定します。portが違えばoriginも違うため、AtCoderへの遷移と同じ「別originへの303」になります。**画面は実物の`submission.html`とhelperと同じヘッダーを使い、人の指の代わりにscriptだけを足しています。**
+
+受け渡しのprobeのnegative controlは、**`form-action`をloopback originだけにした状態**（5回目のcampaignの設定）です。これが「着かない」と出ることを先に見てから、現行の設定の結果を成立とします。あわせて「応答を書かずに接続を切る」も測ります。
 
 probeはhelperの`submissionReferrerPolicy`を**sourceから読みます。** 実装とprobeが別々に動いて食い違うことを防ぐためです。あわせて`no-referrer`をnegative controlとして必ず測り、**`Origin`が落ちる条件を検出できることを示してから**、helperが使う値の結果を成立とします。
 
-**このprobeはCIで実行しません。** 通常Google Chromeを必要とし、CIの実行環境にないためです。CIが守るのは固定入力testのほうで、`Referrer-Policy`が`Origin`を保つ値から外れたらGo testが落ちます。**probeは「その許可listが実機で正しいか」を確かめるもので、campaignの開始前と、この経路へ触れたときに人が実行します。**
+**これらのprobeはCIで実行しません。** 通常Google Chromeを必要とし、CIの実行環境にないためです。CIが守るのは固定入力testのほうで、`Referrer-Policy`が`Origin`を保つ値から外れたときと、CSPの`form-action`が2つのorigin以外になったときにGo testが落ちます。**probeは「その指定が実機で正しいか」を確かめるもので、campaignの開始前と、この経路へ触れたときに人が実行します。**
 
 `Referrer-Policy`は見た目の設定ではなく、`Origin`の検査と対になっています。提出確認画面は`same-origin`で配信します。同一originへは正しい`Origin`を送り、AtCoderへは`Referer`を送りません。**`no-referrer`へ戻すと固定入力testが落ちます。**
 
@@ -258,7 +264,17 @@ printf '%s\n' "$EXPECTED_ACCOUNT" | "$V12_HELPER" submit-entry \
 
 提出確認画面は同意画面と同じ仕組みで配信しますが、**JavaScriptを持ちません。** 押されたことは同じoriginへのform POSTで伝わり、遷移は303応答で起きます。拡張機能のcontent scriptは`/bootstrap`でしか動かないため、この画面では何もしません。
 
-**helperが観測できるのは303を返したところまでです。** browserが提出pageへ着いたことは、提出ページで拡張機能を動かさない限り観測できません。それは`V-12`の範囲外です（[`TD-40`](../../../TODO.md#td-40-提出ページのcontent-scriptとturnstileの共存を検証する)）。結果JSONの`submit_page_redirect_issued`はそのままの意味で読み、到達は人の観測として記録します。
+**helperが観測できるのは303を返したところまでです。** browserが提出pageへ着いたことは、提出ページで拡張機能を動かさない限り観測できません。それは`V-12`の範囲外です（[`TD-40`](../../../TODO.md#td-40-提出ページのcontent-scriptとturnstileの共存を検証する)）。
+
+そのため結果JSONは**到達を埋めません。**
+
+| field | 意味 |
+|---|---|
+| `observed_scope` | `helper_observable_only`。**helperが観測できた範囲だけが成立したという意味である** |
+| `submit_page_redirect_issued` | 303を書いた。書いたというだけで、届いたことも着いたことも含まない |
+| `submit_page_arrival` | `unobserved_by_helper`。**真偽値にしていない。** `true`か`false`だと、helperが見ていない結果を見たように読める |
+
+**`ok: true`は`V-12E`の合格を意味しません。** 到達は人が画面で見た事実として実行記録へ書きます。2026年9月21日の5回目のcampaignでは、browserが着いていないのにhelperが`ok: true`を返し、結果JSONだけを見ると成立したと読めました（[ADR-0013](../../../docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)）。
 
 ### manifest
 

@@ -10,6 +10,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -23,6 +24,22 @@ const (
 	protocolVersion = 1
 	maxRequestBytes = 32 * 1024
 )
+
+// 提出確認画面のCSP。`form-action`は、押下を受けるloopback originと、その後
+// 303で送る提出先originの2つだけを許す。**遷移先を含めないと、Chromeが303の
+// 遷移そのものを`form-action`違反として止める。** form POSTの後の遷移先も
+// 検査対象であるためで、2026年9月21日に実測した（ADR-0014）。
+const submissionCSPTemplate = "default-src 'none'; style-src 'unsafe-inline'; " +
+	"form-action %s %s; frame-ancestors 'none'"
+
+// originOf returns the scheme and host of an absolute URL.
+func originOf(raw string) (string, error) {
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return "", errors.New("origin_unavailable")
+	}
+	return parsed.Scheme + "://" + parsed.Host, nil
+}
 
 var (
 	tokenPattern       = regexp.MustCompile(`^[0-9a-f]{64}$`)
@@ -265,6 +282,7 @@ type loopbackHandler struct {
 	submissionPage    string
 	proceedToken      string
 	submitURL         string
+	submitOrigin      string
 	submissionShown   bool
 	submissionClaimed bool
 	proceededOnce     bool
@@ -363,11 +381,16 @@ func (h *loopbackHandler) enableSubmissionConfirmation(page, proceedToken, submi
 		validateAtCoderURL(submitURL, "/contests/") != nil {
 		return errors.New("submission_confirmation_configuration_invalid")
 	}
+	origin, err := originOf(submitURL)
+	if err != nil {
+		return errors.New("submission_confirmation_configuration_invalid")
+	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.submissionPage = page
 	h.proceedToken = proceedToken
 	h.submitURL = submitURL
+	h.submitOrigin = origin
 	h.proceeded = make(chan struct{}, 1)
 	return nil
 }
@@ -408,7 +431,7 @@ func (h *loopbackHandler) serveSubmission(response http.ResponseWriter, request 
 		h.submissionShown = true
 		response.Header().Set("Content-Type", "text/html; charset=utf-8")
 		response.Header().Set("Content-Security-Policy",
-			"default-src 'none'; style-src 'unsafe-inline'; form-action "+h.origin()+"; frame-ancestors 'none'")
+			fmt.Sprintf(submissionCSPTemplate, h.origin(), h.submitOrigin))
 		// この値は見た目の設定ではなく、下のOrigin検査と対になっている。
 		// `no-referrer`にすると、この画面からのform POSTでbrowserが
 		// `Origin: null`を送り、自分が出した画面からの操作を拒否してしまう。
