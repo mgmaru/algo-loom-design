@@ -231,7 +231,10 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) | 設計判断 | 検証支援物の実行経路をbrowser相当で確認する範囲を決める | ― | 進行中 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md) |
 | [`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す) | 技術検証 | helperのエラーが原因を一意に指せない箇所を洗い出して直す | ― | 進行中 | ― |
 | [`TD-45`](#td-45-campaign-manifestの確定遷移が自分を無効化する不整合を直す) | 技術検証 | campaign manifestの確定遷移が自分を無効化する不整合を直す | ― | 進行中 | [ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
-| [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 | [ADR-0009](docs/decisions/0009-required-cases-for-v12c.md) |
+| [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 進行中 | [ADR-0009](docs/decisions/0009-required-cases-for-v12c.md)、[ADR-0010](docs/decisions/0010-build-the-three-os-auth-matrix-before-v12-passes.md) |
+| [`TD-47`](#td-47-windowsの秘密情報保管庫が保証する範囲を観測する) | 技術検証 | Windowsの秘密情報保管庫が保証する範囲を観測する | ― | 未着手 | ― |
+| [`TD-48`](#td-48-linuxの検証環境を確保し秘密情報保管庫が保証する範囲を観測する) | 技術検証 | Linuxの検証環境を確保し、秘密情報保管庫が保証する範囲を観測する | `TD-18` | 未着手 | ― |
+| [`TD-46`](#td-46-検証マトリクスを確定しwindowsとlinuxの秘密情報保管庫を観測する) | 機能設計 | 検証マトリクスを確定し、WindowsとLinuxの秘密情報保管庫を観測する | `TD-12`, `TD-31`, `TD-47`, `TD-48` | 未着手 | [ADR-0010](docs/decisions/0010-build-the-three-os-auth-matrix-before-v12-passes.md) |
 | [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 | ― |
 | [`TD-38`](#td-38-認証配布物とテンプレートのライフサイクル契約を確定する) | 機能設計 | 認証配布物とテンプレートのライフサイクル契約を確定する | `TD-11`, `TD-12` | 未着手 | ― |
 | [`TD-41`](#td-41-製品形態の拡張機能の審査条件と確認gateを確定する) | 設計判断 | 製品形態の拡張機能の審査条件と確認gateを確定する | `TD-38`, `TD-40` | 未着手 | ― |
@@ -906,10 +909,23 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 | 項目 | 内容 |
 |---|---|
 | カテゴリ | 機能設計 |
-| 対象ファイル | [`docs/architecture/atcoder-authentication.md`](docs/architecture/atcoder-authentication.md) §6 |
+| 対象ファイル | [`docs/architecture/atcoder-authentication.md`](docs/architecture/atcoder-authentication.md) §4.1.1・§6.2 |
 | 依存 | `TD-11` |
+| 決定 | [ADR-0009](docs/decisions/0009-required-cases-for-v12c.md)、[ADR-0010](docs/decisions/0010-build-the-three-os-auth-matrix-before-v12-passes.md) |
 
 **目的:** [MVPスコープ §5.1](docs/product/mvp.md#5-mvp完了条件)は「native macOS、native Linux、native Windowsの対応ブラウザと秘密情報保管庫で、方式Aの起動・保存・更新・削除・中断を検証できる」ことを完了条件にしています。
+
+**2026年9月20日の進捗（暫定）:** `TD-11`（`V-12`の3回目）を待たずに、**`V-12`の結果に依存しない範囲だけ**を先に作りました（[ADR-0010](docs/decisions/0010-build-the-three-os-auth-matrix-before-v12-passes.md)）。手順1と3〜5を[認証設計 §6.2](docs/architecture/atcoder-authentication.md#62-3つのosの認証検証マトリクス)へ、手順2のうちmacOS分を[同 §4.1.1](docs/architecture/atcoder-authentication.md#411-macosで観測した実際の保証範囲)へ置いています。**どちらも確定ではありません。**
+
+| 残っているもの | 理由 | 行き先 |
+|---|---|---|
+| マトリクスの確定 | `V-12`が不合格なら`M-05`〜`M-08`、`M-13`、`M-14`の確認項目そのものが変わる | `TD-11`の後に[`TD-46`](#td-46-検証マトリクスを確定しwindowsとlinuxの秘密情報保管庫を観測する) |
+| Windowsの秘密情報保管庫の観測 | **実機があり、外部接続も明示承認も要らない。依存がなく、いま着手できる** | [`TD-47`](#td-47-windowsの秘密情報保管庫が保証する範囲を観測する) |
+| Linuxの秘密情報保管庫の観測 | native Linuxの物理端末がない。**WSLは代替にならない**（[認証設計 §6.2.7](docs/architecture/atcoder-authentication.md#627-確認手段を用意できない組み合わせ)） | [`TD-18`](#td-18-windowsとlinuxの検証環境の確保方針を決める)の後に[`TD-48`](#td-48-linuxの検証環境を確保し秘密情報保管庫が保証する範囲を観測する) |
+| 3つのOSを踏まえた表示文言 | 上の2件の観測が揃うこと | [`TD-46`](#td-46-検証マトリクスを確定しwindowsとlinuxの秘密情報保管庫を観測する) |
+| CPU architectureと通常Google Chromeの対応版の固定 | [`TD-31`](#td-31-実行環境の組み合わせを固定する)が扱う | `TD-31` |
+
+macOSの観測では、§4.1が理由から導いていた「信頼される実行ファイルはインタプリタになる」がそのとおりであることに加え、**アクセス制御の信頼実行ファイル一覧が汎用インタプリタを締め出さない**ことが分かりました。仕組みは特定できていません。
 
 **手順:**
 
@@ -924,18 +940,126 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
    - アカウントの変更、期限切れ、ページ構造の変更における送信前停止
    - 初回、再認証、`submit`からの再認証における一往復と、同じbrowserでの認証後の提出確認
 2. 秘密情報保管庫を、macOS Keychain、Windowsの保護領域、Linux Secret Serviceとして明示する。あわせて[未決事項 7.3](docs/project/unresolved-decisions.md#73-秘密情報保管庫が保証する範囲と表示文言)に従い、各OSで「同じ利用者として動作する他のプロセスから読めるか」「AlgoLoomの更新時に再認可を求められるか」を確認し、[認証設計 §4.1](docs/architecture/atcoder-authentication.md#41-保管先)の保証範囲と利用者への表示文言を確定する。
+   観測には[`scripts/verification/secret_store_guarantees.py`](scripts/verification/secret_store_guarantees.py)を使う。**macOSは2026年9月20日に実施済み**（[認証設計 §4.1.1](docs/architecture/atcoder-authentication.md#411-macosで観測した実際の保証範囲)）。**Windowsは[`TD-47`](#td-47-windowsの秘密情報保管庫が保証する範囲を観測する)、Linuxは[`TD-48`](#td-48-linuxの検証環境を確保し秘密情報保管庫が保証する範囲を観測する)へ分けた。** 止まっている理由が違うためで、Windowsは依存がなく、Linuxは`TD-18`待ちである。表示文言の確定は3つが揃ってから`TD-46`で行う。
 3. 各セルの確認方法を、OS非依存の契約test、3 OS統合test、配布導線test、実サービスsmoke、未対応から選ぶ。VMで証明できる範囲と、通常Chromeを備えた物理端末を最終確認へ含める範囲を分け、`TD-18`と整合させる。
 4. 利用者による拡張機能追加・権限承認、AtCoderログイン、Turnstile、最後の提出操作を、手動の受け入れ操作として明示する。それ以外で自動化する処理は、単に「手動」とせず確認層と自動testを割り当てる。
 5. MVP完了条件 §5.1〜§5.3、`F-SUBMIT-01-R7`〜`R10`、`E2E-30`および`TD-15`で追加する認証UXシナリオと対応付ける。
 
 **完了条件:**
 
-- [ ] 表があり、すべてのセルに確認方法がある
-- [ ] 人が行う利用者承認と、自動化する製品処理が区別されている
-- [ ] VM、物理端末、実サービスのそれぞれで証明する範囲が明示されている
-- [ ] 3 OSすべてで拡張機能、helper、テンプレート、秘密情報保管庫、一往復UXの確認方法がある
-- [ ] 確認手段を用意できない組み合わせは、MVP保証範囲の変更提案として記録されている
-- [ ] 3 OSそれぞれで秘密情報保管庫が実際に保証する範囲を観測し、過大でない表示文言が確定している
+- [x] 表があり、すべてのセルに確認方法がある（2026年9月20日。[§6.2.3](docs/architecture/atcoder-authentication.md#623-検証マトリクス)と[§6.2.4](docs/architecture/atcoder-authentication.md#624-環境ごとの上書き)。`V-12`の合格までは暫定）
+- [x] 人が行う利用者承認と、自動化する製品処理が区別されている（2026年9月20日。[§6.2.5](docs/architecture/atcoder-authentication.md#625-人が行う受け入れ操作)）
+- [x] VM、物理端末、実サービスのそれぞれで証明する範囲が明示されている（2026年9月20日。[§6.2.6](docs/architecture/atcoder-authentication.md#626-vmと物理端末と実サービスの分担)）
+- [x] 3 OSすべてで拡張機能、helper、テンプレート、秘密情報保管庫、一往復UXの確認方法がある（2026年9月20日。§6.2.3の`M-05`〜`M-08`、`M-14`、`M-15`〜`M-17`、`M-20`）
+- [ ] 確認手段を用意できない組み合わせは、MVP保証範囲の変更提案として記録されている（[§6.2.7](docs/architecture/atcoder-authentication.md#627-確認手段を用意できない組み合わせ)へ候補として記録済み。arm64は通常Google Chromeの公式提供の有無が未確認のため、変更提案にするかを`TD-31`の後に決める）
+- [ ] 3 OSそれぞれで秘密情報保管庫が実際に保証する範囲を観測し、過大でない表示文言が確定している（macOSのみ観測済み。Windowsは`TD-47`、Linuxは`TD-48`、表示文言の確定は`TD-46`へ分けた）
+
+---
+
+#### `TD-47` Windowsの秘密情報保管庫が保証する範囲を観測する
+
+| 項目 | 内容 |
+|---|---|
+| カテゴリ | 技術検証 |
+| 対象ファイル | [`docs/architecture/atcoder-authentication.md`](docs/architecture/atcoder-authentication.md) §4.1.2（新規）、[`docs/project/unresolved-decisions.md`](docs/project/unresolved-decisions.md) 7.3 |
+| 依存 | ― |
+
+**なぜこの作業が要るか:** [未決事項 7.3](docs/project/unresolved-decisions.md#73-秘密情報保管庫が保証する範囲と表示文言)は3つのOSでの観測を求めています。macOSは2026年9月20日に観測しました（[認証設計 §4.1.1](docs/architecture/atcoder-authentication.md#411-macosで観測した実際の保証範囲)）。**Windowsは実機があり、AtCoderにもChrome Web Storeにも接続しないため、他の作業を待たずに実施できます。** [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る)の手順2へ入れたままにすると、`TD-11`待ちの作業に巻き込まれて着手可能な作業として見えなくなるため、独立させます。
+
+**手順:**
+
+1. Windows実機で観測物を実行する。AtCoderへ接続せず、実アカウントとCookieを使わない。
+
+   ```console
+   py -3 scripts\verification\secret_store_guarantees.py
+   ```
+
+2. 5つの観測すべてに結果が出ていることを確認する。とくに`other-executable`（PowerShellという別の実行ファイルからの読み出し）を見る。**確認画面なしで読めた場合、Credential Managerにアプリ単位の紐付けがないことを意味し、macOSとは違う結論になる。**
+3. 観測物がWindowsで動かない場合は、原因を直してから再実行する。**動かなかったことを記録から消さない。**
+4. 結果を認証設計 §4.1.2 として記録する。§4.1.1と同じ並びにして、macOSと比較できる形にする。端末名、利用者名、絶対パスを書かない（観測物が伏せる）。
+5. 未決事項 7.3 の観測結果へWindows分を足す。**表示文言はここで確定しない。** 3つのOSが揃ってから[`TD-46`](#td-46-検証マトリクスを確定しwindowsとlinuxの秘密情報保管庫を観測する)で決める。
+
+**完了条件:**
+
+- [ ] Windows実機で5つの観測すべてに結果がある
+- [ ] `same-interpreter`と`other-executable`の結果が、macOSと並べて比較できる形で記録されている
+- [ ] 観測に使った項目がCredential Managerに残っていない
+- [ ] 記録に端末名、利用者名、絶対パスが含まれていない
+- [ ] 表示文言の確定を含めず、`TD-46`へ渡している
+
+---
+
+#### `TD-48` Linuxの検証環境を確保し、秘密情報保管庫が保証する範囲を観測する
+
+| 項目 | 内容 |
+|---|---|
+| カテゴリ | 技術検証 |
+| 対象ファイル | [`scripts/verification/secret_store_guarantees.py`](scripts/verification/secret_store_guarantees.py)、[`docs/architecture/atcoder-authentication.md`](docs/architecture/atcoder-authentication.md) §4.1.3（新規）、[`docs/project/unresolved-decisions.md`](docs/project/unresolved-decisions.md) 7.3 |
+| 依存 | `TD-18` |
+
+**なぜこの作業が要るか:** native Linuxの物理端末がありません。**WSLは代替になりません**（理由は[認証設計 §6.2.7](docs/architecture/atcoder-authentication.md#627-確認手段を用意できない組み合わせ)）。確保手段が決まらないと観測できないため[`TD-18`](#td-18-windowsとlinuxの検証環境の確保方針を決める)に依存します。加えて、観測物のLinux Secret Service経路が未実装です。**用意できない場合の行き先はMVP保証範囲の変更提案であり、マトリクスの確定とは別の結果になります。** そのため`TD-47`とも分けます。
+
+**手順:**
+
+1. `TD-18`が決めた手段でnative Linux環境を用意する。[認証設計 §6.1](docs/architecture/atcoder-authentication.md#61-検証環境と自動化可能性の境界)が同等環境へ求める条件（対象OSのkernel、desktop session、権限、保管庫service、通常Google Chrome）を満たすことを確認する。**WSLを使わない。**
+2. 観測物へLinux Secret Service経路を実装する。D-Bus経由のSecret Service APIを使い、`keyring`のLinux backendと同じ経路にする。`other-executable`にはPython以外の実行ファイルを使う。
+3. Secret Serviceを利用できる構成（`ENV-LIN-X64-SS`）で5つの観測を行う。
+4. Secret Serviceを利用できない構成（`ENV-LIN-X64-NOSS`）でも実行し、平文へ退避せず提出だけを停止する`M-16`の扱いを確認する。
+5. 結果を認証設計 §4.1.3 として記録する。
+6. 環境を用意できなかった場合、**回避策へ切り替えず記録し**、[MVPスコープ §7](docs/product/mvp.md#7-変更管理)の変更管理へ、Linuxの保証範囲の変更提案として回す。
+
+**完了条件:**
+
+- [ ] native Linux環境が §6.1 の同等環境の条件を満たしている、または満たせない理由が記録されている
+- [ ] 観測物のLinux経路が実装され、`--self-test`が通る
+- [ ] `ENV-LIN-X64-SS`で5つの観測すべてに結果がある
+- [ ] `ENV-LIN-X64-NOSS`で安全側停止を確認している
+- [ ] 用意できなかった場合、変更提案がMVPスコープ §7 の変更管理へ回っている
+- [ ] 観測に使った項目が残っていない
+- [ ] WSLで代用していない
+
+---
+
+#### `TD-46` 検証マトリクスを確定し、WindowsとLinuxの秘密情報保管庫を観測する
+
+| 項目 | 内容 |
+|---|---|
+| カテゴリ | 機能設計 |
+| 対象ファイル | [`docs/architecture/atcoder-authentication.md`](docs/architecture/atcoder-authentication.md) §4.1・§4.1.1・§6.2、[`docs/project/unresolved-decisions.md`](docs/project/unresolved-decisions.md) 7.3 |
+| 依存 | `TD-12`、`TD-31`、`TD-47`、`TD-48` |
+| 決定 | [ADR-0010](docs/decisions/0010-build-the-three-os-auth-matrix-before-v12-passes.md) |
+
+**なぜこの作業が要るか:** [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る)は`V-12`の結果に依存しない範囲だけを作り、[認証設計 §6.2](docs/architecture/atcoder-authentication.md#62-3つのosの認証検証マトリクス)を**暫定**として残しました（[ADR-0010](docs/decisions/0010-build-the-three-os-auth-matrix-before-v12-passes.md)）。暫定のまま実装開始条件の判断（[`TD-28`](#td-28-実装開始条件の充足を確認する)）へ渡すと、**「3つのOSで検証できる」という完了条件を、1つのOSの観測と未確定の表で満たしたことになります。**
+
+| 未確定なもの | 解ける条件 |
+|---|---|
+| `M-05`〜`M-08`、`M-13`、`M-14`の確認項目そのもの | `V-12`の合格（[`TD-11`](#td-11-方式a製品形態を実サービスで検証する)） |
+| Windowsの`M-17` | [`TD-47`](#td-47-windowsの秘密情報保管庫が保証する範囲を観測する)の観測。依存がなく、いま着手できる |
+| Linuxの`M-17` | [`TD-48`](#td-48-linuxの検証環境を確保し秘密情報保管庫が保証する範囲を観測する)の観測。[`TD-18`](#td-18-windowsとlinuxの検証環境の確保方針を決める)が環境の確保手段を決めるまで動かせない |
+| 3つのOSを踏まえた秘密情報保管庫の表示文言 | 上の2件の観測が揃うこと。**この作業で決める** |
+| `ENV-WIN-ARM64`・`ENV-LIN-ARM64`の扱い | CPU architectureと通常Google Chromeの対応版の固定（[`TD-31`](#td-31-実行環境の組み合わせを固定する)） |
+
+**手順:**
+
+1. `V-12`の合格後、[認証設計 §6.2.2](docs/architecture/atcoder-authentication.md#622-列にする確認項目)の確認項目を実際に成立した製品形態と突き合わせる。配布物、折返し通信のプロトコル、テンプレートの扱いが変わっていれば`M-05`〜`M-08`、`M-13`、`M-14`へ反映する。**不合格の場合は反映せず、[`TD-09`](#td-09-方式aの製品形態候補を机上比較する)の別候補または方式Aの再設計へ戻す。**
+2. 3つのOSの観測が揃っていることを確認する。**観測そのものはこの作業で行わない。** macOSは[認証設計 §4.1.1](docs/architecture/atcoder-authentication.md#411-macosで観測した実際の保証範囲)、Windowsは`TD-47`、Linuxは`TD-48`にある。揃っていなければ先にそちらを終わらせる。
+3. 3つのOSの観測結果から、[認証設計 §4.1](docs/architecture/atcoder-authentication.md#41-保管先)の保証範囲の表と、利用者へ示す表示文言を確定する。**OSによって保証範囲が違う場合、いちばん弱いOSへ合わせるか、OSごとに表示を変えるかを決める。** 表示文言は利用者へ示す約束のため、決める前に提示して確認を得る（[作業ガイド §8](CLAUDE.md#8-判断の分担)）。
+4. [未決事項 7.3](docs/project/unresolved-decisions.md#73-秘密情報保管庫が保証する範囲と表示文言)を解消済みへ更新する。
+5. `TD-31`の結果で`ENV-WIN-ARM64`・`ENV-LIN-ARM64`の扱いを決める。通常Google Chromeの公式提供がない場合は、[MVPスコープ §7](docs/product/mvp.md#7-変更管理)の変更管理へ、保証範囲からarm64を外す提案として回す。
+6. §6.2の「状態」から暫定の表示を外し、[`TD-16`](#td-16-完了条件の追跡表を作り機能の漏れを確認する)の追跡表と[`TD-32`](#td-32-テスト方針の骨格を決める)のテスト方針へ引き渡す。
+7. macOSで観測した「アクセス制御の信頼実行ファイル一覧が汎用インタプリタを締め出さない」件を、配布形態が決まった時点で再確認する。仕組みを特定できた場合は§4.1.1の観測記述を仕組みの説明へ置き換える。
+
+**見出しについて:** この作業の見出しは「WindowsとLinuxの秘密情報保管庫を観測する」のままにします。観測は`TD-47`と`TD-48`へ分けましたが、**[ADR-0010](docs/decisions/0010-build-the-three-os-auth-matrix-before-v12-passes.md)がこの見出しをアンカーで参照しており、ADRは本文を書き換えないため**です（[決定記録の書き方](docs/decisions/README.md#書き方)）。この作業が実際に行うのは、分けた2件の観測結果を受け取って表示文言とマトリクスを確定することです。
+
+**完了条件:**
+
+- [ ] §6.2の確認項目が、`V-12`で成立した製品形態と一致している
+- [ ] 3つのOSそれぞれの観測記録が揃っている（macOSは§4.1.1、Windowsは`TD-47`、Linuxは`TD-48`）
+- [ ] 過大でない表示文言が確定し、利用者へ示す前に人の確認を得ている
+- [ ] 未決事項 7.3 が解消済みになっている
+- [ ] arm64の扱いが決まり、確認手段を用意できない組み合わせがMVP保証範囲の変更提案へ回っている
+- [ ] §6.2が暫定ではなくなり、`TD-16`と`TD-32`へ引き渡せる
+- [ ] 観測で使った値が成果物、ログ、Gitへ残っていない
 
 ---
 
