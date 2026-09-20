@@ -753,6 +753,8 @@ reviewer用helperの受渡し方法が確定せず一度停止しましたが、
 | 依存 | `TD-39`、`TD-42` |
 | 決定 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 
+**2026年9月20日の実施記録（2回目、campaign `v12-2026-09-20-01`）:** 手順1〜5を実行し、**`V-12A`・`V-12B`・`V-12D`が合格しました。** 9月19日に停止した同意画面を通過し、[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)の修正が実browserで機能することを初めて実行結果として観測しています。`V-12A`は外部通信0件、`V-12B`はdeveloper modeなしの標準追加から基準templateの一度だけの確定まで、`V-12D`は本人照合・secret store保存・新processからの再照合までが分断なく成立しました。`GET /settings`は**上限と同数の2回**、提出は0件、Bot対策の回避も0件です。後始末はsetup profileとruntime profileの削除まで完了し、基準template（完全性ID `738757a2…`）と検証用secret store項目を`V-12E`まで保持しています。**`V-12C`と`V-12E`は未実施で、`V-12`全体は判定不能のままです。** `V-12E`は対象問題が未確定のため開始条件を満たしていません。記録は[`v12-01`](docs/verification/judge-adapter/results/2026-09-20-v12-01.md)にあります。
+
 **2026年9月20日:** [`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える)が完了し、**この作業の保留が解けました。** 修正版`0.1.1`が配信され、配信bytesとsourceの照合まで済んでいます（[CWS配布準備 §8.1.9](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#819-2026年9月20日の011配信bytes取得記録)）。やり直しは**新しいcampaign IDで`V-12A`から**行います。**実行にはAtCoderへの接続を伴うため、人の明示承認が要ります。**
 
 **2026年9月19日の実施記録（1回目、campaign `v12-2026-09-19-01`）:** 手順1〜5を実行し、**検証物の不具合により`V-12D`の手前で停止しました。** `TD-11`は不合格ではなく、方式Aの成立性はまだ判定できていません。
