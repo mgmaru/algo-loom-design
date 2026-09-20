@@ -169,13 +169,38 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 
 **外部の返答待ちで止まっている作業はありません。** 2026年9月20日に[`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える)が完了し、[`TD-11`](#td-11-方式a製品形態を実サービスで検証する)の保留が解けました。
 
-修正版`0.1.1`はCWSの審査に合格し、明示承認を得て限定公開し、配信bytesをリポジトリのsourceと照合するところまで済んでいます（[CWS配布準備 §8.1.9](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#819-2026年9月20日の011配信bytes取得記録)）。**[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)の修正が、CWSが実際に配信するbytesの中にあることも確認しました。** ただし確認したのは配信物の中身であり、**実browserで同意画面から先へ進めることはまだ観測していません。** `V-12D`の成立は`TD-11`のやり直しで判定します。
+**次にやるのは`V-12`の3回目のcampaignです。** 1回目（`v12-2026-09-19-01`）と2回目（`v12-2026-09-20-01`）はどちらも無効です。無効にした理由が違うので区別してください。
 
-**`TD-11`の実行には人の明示承認が要ります。** AtCoderへの接続を伴うためで（[作業ガイド §4](CLAUDE.md#4-外部操作には明示承認が必要)）、「`TD-11`を進めてよい」という一般的な依頼を接続の承認へ読み替えません。やり直しは[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)のとおり**新しいcampaign IDで`V-12A`から**行います。1回目のcampaign `v12-2026-09-19-01`は無効で、`V-12A`の合格も取り消しています。
+| campaign | 到達点 | 無効にした理由 |
+|---|---|---|
+| `v12-2026-09-19-01` | `V-12D`の手前で停止 | 同意画面のcontent scriptの不具合（[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)） |
+| `v12-2026-09-20-01` | `V-12A`・`V-12B`・`V-12D`が合格 | **検証物を直したためhelperのbuild hashが変わった**（[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md)）。不具合が見つかったのではない |
+
+**2回目で、修正版`0.1.1`の初回導線が実機で最後まで通ることを観測しました**（[実行記録](docs/verification/judge-adapter/results/2026-09-20-v12-01.md)）。合否には使えませんが、3回目で同じところを通れないと考える理由はありません。
+
+**3回目を止める要因は、2026年9月20日時点で残っていません。** 検証物へ触る作業をまとめて片付けたためです。
+
+| 片付けたもの | 決定 |
+|---|---|
+| 確定遷移が自分を無効化する不整合（`TD-45`） | [ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md) |
+| build hashが履歴で動く問題（`TD-45`手順3） | [ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
+| 原因を一意に指せないエラー名（`TD-44`） | ― |
+| 実行して評価する範囲（`TD-43`） | [ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md) |
+| `V-12C`の必須caseの範囲 | [ADR-0009](docs/decisions/0009-required-cases-for-v12c.md) |
+
+**`TD-11`の実行には人の明示承認が要ります。** AtCoderへの接続を伴うためで（[作業ガイド §4](CLAUDE.md#4-外部操作には明示承認が必要)）、「`TD-11`を進めてよい」という一般的な依頼を接続の承認へ読み替えません。**ただしCWSの審査・提出・公開は発生しません。** 配信中の`0.1.1`をそのまま使い、公開済みのlistingから標準追加するだけです。
+
+再開するときの順序です。外部接続を伴わない1〜3はAIが進められます。
+
+1. リポジトリ外のowner専用領域に残る2回目のcampaignの資源（基準template、検証用secret store項目、campaign manifest、実行scriptと`build/`）を**破棄する。** 古い基準templateを3回目へ流用しない
+2. `prepare.mjs`で成果物を作り直す。**helperのハッシュが`-buildvcs=false`で変わっている**
+3. 新しいcampaign IDとmanifestを作り、`V-12A`を外部通信0件で実行する
+4. ownerが`V-12B → V-12D`を分断せず通す（15分程度）。listingから標準追加 → Chrome完全終了 → AtCoderログイン
+5. `V-12C`の必須case5件、続けて`V-12E`（対象問題`abc300_a`。**最後の提出操作は行わない**）
 
 次の外部操作も、それぞれ別の明示承認が要ります。
 
-- `TD-11`の`V-12C`で使う更新test用`0.1.2`のupload・審査提出（現在は未upload）
+- `TD-11`の`V-12C`で使う更新test用`0.1.2`のupload・審査提出（現在は未upload。[ADR-0009](docs/decisions/0009-required-cases-for-v12c.md)により必須caseからは外れている）
 - campaign終了後にCWS itemを非公開化する操作
 
 **`TD-39`は2026年9月18日に完了しました。** ただし完了条件のうち「`0.1.1`が未uploadのまま保持され」という項目は、[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)で前提が変わりました。`0.1.1`を修正版へ充て、更新testに使う版は`0.1.2`へ繰り下げています。`TD-39`の本文と完了条件は書き換えません。
@@ -830,7 +855,7 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 | 依存 | `TD-39`、`TD-42` |
 | 決定 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0009](docs/decisions/0009-required-cases-for-v12c.md) |
 
-**2026年9月20日の実施記録（2回目、campaign `v12-2026-09-20-01`）:** 手順1〜5を実行し、**`V-12A`・`V-12B`・`V-12D`が合格しました。** 9月19日に停止した同意画面を通過し、[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)の修正が実browserで機能することを初めて実行結果として観測しています。`V-12A`は外部通信0件、`V-12B`はdeveloper modeなしの標準追加から基準templateの一度だけの確定まで、`V-12D`は本人照合・secret store保存・新processからの再照合までが分断なく成立しました。`GET /settings`は**上限と同数の2回**、提出は0件、Bot対策の回避も0件です。後始末はsetup profileとruntime profileの削除まで完了し、基準template（完全性ID `738757a2…`）と検証用secret store項目を`V-12E`まで保持しています。**`V-12C`と`V-12E`は未実施で、`V-12`全体は判定不能のままです。** `V-12E`の対象問題は`abc300_a`で確定しました。2026年9月20日にABC300が2023年4月29日に**終了済み**であることを公式ページで確認し、開始条件を満たしています。**最後の提出操作は行いません。**記録は[`v12-01`](docs/verification/judge-adapter/results/2026-09-20-v12-01.md)にあります。
+**2026年9月20日の実施記録（2回目、campaign `v12-2026-09-20-01`。このcampaignは無効）:** **検証物の修正でhelperのbuild hashが変わったため、このcampaign全体を無効とし、`V-12A`・`V-12B`・`V-12D`の合格も取り消しました**（[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md)）。**不具合が見つかったのではありません。** 以下は取り消した合格の内容で、3回目のcampaignで取り直します。 手順1〜5を実行し、**`V-12A`・`V-12B`・`V-12D`が合格しました。** 9月19日に停止した同意画面を通過し、[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)の修正が実browserで機能することを初めて実行結果として観測しています。`V-12A`は外部通信0件、`V-12B`はdeveloper modeなしの標準追加から基準templateの一度だけの確定まで、`V-12D`は本人照合・secret store保存・新processからの再照合までが分断なく成立しました。`GET /settings`は**上限と同数の2回**、提出は0件、Bot対策の回避も0件です。後始末はsetup profileとruntime profileの削除まで完了し、基準template（完全性ID `738757a2…`）と検証用secret store項目を`V-12E`まで保持しています。**`V-12C`と`V-12E`は未実施で、`V-12`全体は判定不能のままです。** `V-12E`の対象問題は`abc300_a`で確定しました。2026年9月20日にABC300が2023年4月29日に**終了済み**であることを公式ページで確認し、開始条件を満たしています。**最後の提出操作は行いません。**記録は[`v12-01`](docs/verification/judge-adapter/results/2026-09-20-v12-01.md)にあります。
 
 **2026年9月20日:** [`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える)が完了し、**この作業の保留が解けました。** 修正版`0.1.1`が配信され、配信bytesとsourceの照合まで済んでいます（[CWS配布準備 §8.1.9](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md#819-2026年9月20日の011配信bytes取得記録)）。やり直しは**新しいcampaign IDで`V-12A`から**行います。**実行にはAtCoderへの接続を伴うため、人の明示承認が要ります。**
 
