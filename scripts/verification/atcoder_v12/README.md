@@ -55,9 +55,15 @@ node scripts/verification/atcoder_v12/prepare.mjs \
 
 `.tar.gz`はuid・gid・modeとmtimeを固定したustar形式で組み立てます。`prepare.mjs`は生成のたびに再生成して一致を確認し、一致しなければ`review_bundle_not_reproducible`で停止します。
 
-**再現の単位はsource treeではなくcommitです。** Goは`vcs.revision`、`vcs.time`、`vcs.modified`をbinaryへ埋め込むため、helper sourceが1 byteも変わらなくても、**commitが変われば実行ファイルのbytesが変わります。** 2026年9月19日に実測したところ、同じhelper source treeでも`b03ab6b`と`32e05d4`のbuildで288 byteが異なり、差は`buildinfo`のVCS欄でした。作業treeがdirtyなら`vcs.modified=true`となり、これも別のbytesになります。
+**再現の単位はsource treeです。** すべての配布物が、同じsourceから同じbytesになります。
 
-影響を受けるのはGoで作るhelperと、それを含む`.tar.gz`です。拡張機能ZIP、Keychain adapter、review fixtureはcommitが変わっても同じbytesになります。**[サポートページ](../../../docs/verification/judge-adapter/v12-extension-support.md)が固定しているのはreview fixtureのSHA-256だけ**であるため、commitを進めてもその記載は有効なままです。経路1の`.tar.gz`のSHA-256を外部へ示す場合は、**どのcommitのbuildかを添えます。**
+これは2026年9月20日に変えました。それまではGoが`vcs.revision`、`vcs.time`、`vcs.modified`をbinaryへ埋め込むため、**helper sourceが1 byteも変わらなくてもcommitが変われば実行ファイルのbytesが変わっていました。** 2026年9月19日の実測では、同じhelper source treeでも`b03ab6b`と`32e05d4`のbuildで288 byteが異なり、差は`buildinfo`のVCS欄でした。
+
+campaign manifestはhelperのhashを「挙動が変わったか」の判定に使うため、この埋め込みがあると**無関係なコミットでcampaignが無効になります。** 判定の代理が本体からずれている状態でした。そこで[`helper-build.mjs`](helper-build.mjs)へ`-buildvcs=false`を置き、build条件を`prepare.mjs`と固定入力testで共有しています。判断の経緯は[ADR-0007](../../../docs/decisions/0007-make-helper-build-hash-track-behaviour.md)を参照します。
+
+**source treeが同じなら、commitが進んでも作業treeがdirtyでも同じbytesになります。** 2026年9月20日に、別々のcommitからのbuildが同じ`9cf93575…`になることを実測しました。固定入力testは、buildした実行ファイルにcommit idが現れないことを毎回確認します。
+
+経路1の`.tar.gz`のSHA-256を外部へ示す場合も、source treeで再現できます。
 
 拡張ZIPとindexは`0600`、実行ファイルは`0700`です。GoとSwiftはこの準備時にだけcompileし、`V-12B`〜`V-12E`の実行時にはcompileしません。作業treeがdirtyならindexの`campaign_ready`は`false`になり、そのbuildをCWS uploadまたはcampaign manifestへ使いません。
 

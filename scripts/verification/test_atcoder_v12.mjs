@@ -7,6 +7,7 @@ import test from "node:test";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
+import { HELPER_BUILD_ENV, HELPER_BUILD_FLAGS } from "./atcoder_v12/helper-build.mjs";
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), "atcoder_v12");
 const EXTENSION = path.join(ROOT, "extension");
@@ -241,5 +242,39 @@ test("V-12 consent page stays inert outside the loopback bootstrap page", async 
     assert.equal(button.onClick, null, `handlerが付いてしまう: ${url}`);
     assert.deepEqual(navigated, []);
     assert.deepEqual(sent, []);
+  }
+});
+
+test("helper build embeds no commit id, so its hash tracks behaviour not history", () => {
+  // campaign manifestはhelperのhashを「挙動が変わったか」の判定に使う。
+  // commit idが埋まると、helperのsourceが同じでもhashが変わり、判定が代理として
+  // 成り立たなくなる。ここではソースの文字列ではなく、実際にbuildしたバイト列を見る。
+  let revision;
+  try {
+    revision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
+  } catch {
+    return; // gitのないtarball展開では判定できない
+  }
+  assert.match(revision, /^[0-9a-f]{40}$/);
+
+  const workspace = fs.mkdtempSync(path.join(os.tmpdir(), "algoloom-helper-build-"));
+  try {
+    const output = path.join(workspace, "helper");
+    execFileSync("go", [
+      "build", ...HELPER_BUILD_FLAGS,
+      "-ldflags", "-s -w -X main.helperVersion=0.0.0-test",
+      "-o", output, ".",
+    ], {
+      cwd: path.join(ROOT, "helper"),
+      env: { ...process.env, ...HELPER_BUILD_ENV },
+      stdio: "pipe",
+    });
+    const binary = fs.readFileSync(output);
+    for (const form of [revision, revision.slice(0, 12)]) {
+      assert.equal(binary.includes(Buffer.from(form, "utf8")), false,
+        `built helper must not contain the commit id ${form}`);
+    }
+  } finally {
+    fs.rmSync(workspace, { recursive: true, force: true });
   }
 });
