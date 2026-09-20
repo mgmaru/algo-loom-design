@@ -106,26 +106,50 @@ func runFirstLogin(arguments []string) error {
 		return err
 	}
 	manifestSHA, err := manifestHash(manifest)
-	if err != nil || !hashPattern.MatchString(*expectedManifestHash) || manifestSHA != *expectedManifestHash {
+	if err != nil {
+		return errors.New("manifest_hash_unavailable")
+	}
+	if !hashPattern.MatchString(*expectedManifestHash) {
+		return errors.New("expected_manifest_hash_invalid")
+	}
+	if manifestSHA != *expectedManifestHash {
 		return errors.New("manifest_hash_mismatch")
 	}
-	if err := validateManifestForSubtest(manifest, "V-12A"); err != nil || manifest.Profile.Status != "pending_v12b" ||
-		manifest.Extension.ID != *extensionID || manifest.Extension.TargetVersion != *extensionVersion ||
-		manifest.Extension.ListingURL != *listingURL || manifest.Consent.Version != *consentVersion ||
-		manifest.Profile.SchemaVersion != *templateSchema || manifest.Helper.Version != helperVersion ||
-		manifest.Helper.ProtocolVersion != protocolVersion {
-		return errors.New("first_login_manifest_mismatch")
+	if err := validateManifestForSubtest(manifest, "V-12A"); err != nil {
+		return err
+	}
+	if manifest.Profile.Status != "pending_v12b" {
+		return errors.New("first_login_profile_not_pending")
+	}
+	if manifest.Extension.ID != *extensionID || manifest.Extension.TargetVersion != *extensionVersion ||
+		manifest.Extension.ListingURL != *listingURL {
+		return errors.New("first_login_extension_mismatch")
+	}
+	if manifest.Consent.Version != *consentVersion || manifest.Profile.SchemaVersion != *templateSchema {
+		return errors.New("first_login_consent_or_template_mismatch")
+	}
+	if manifest.Helper.Version != helperVersion || manifest.Helper.ProtocolVersion != protocolVersion {
+		return errors.New("first_login_helper_contract_mismatch")
 	}
 	self, err := os.Executable()
 	if err != nil {
 		return errors.New("self_executable_unavailable")
 	}
-	if !artifactFileMatches(manifest.Helper.Artifacts, "helper-darwin-arm64", self) ||
-		!artifactFileMatches(manifest.Helper.Artifacts, "keychain-darwin-arm64", *keychainHelper) {
-		return errors.New("first_login_helper_hash_mismatch")
+	if !artifactFileMatches(manifest.Helper.Artifacts, "helper-darwin-arm64", self) {
+		return errors.New("first_login_self_hash_mismatch")
+	}
+	if !artifactFileMatches(manifest.Helper.Artifacts, "keychain-darwin-arm64", *keychainHelper) {
+		return errors.New("first_login_keychain_helper_hash_mismatch")
 	}
 	cleanupVerifier, err := newLiveVerifier("fixture_account", *keychainHelper, *keychainService, self)
-	if err != nil || !cleanupVerifier.keychainItemAbsent() {
+	if err != nil {
+		return errors.New("first_login_verifier_configuration_invalid")
+	}
+	namespaceEmpty, err := cleanupVerifier.keychainItemAbsent()
+	if err != nil {
+		return errors.New("first_login_secret_store_unavailable")
+	}
+	if !namespaceEmpty {
 		return errors.New("first_login_secret_namespace_not_empty")
 	}
 	if err := validateChromeExecutable(*chrome); err != nil {
@@ -233,14 +257,21 @@ installedAndClosed:
 	serveCommand.Stderr = os.Stderr
 	var serveStdout bytes.Buffer
 	serveCommand.Stdout = &serveStdout
-	if err := serveCommand.Run(); err != nil || serveStdout.Len() > maxChildOutBytes {
+	serveError := serveCommand.Run()
+	if serveStdout.Len() > maxChildOutBytes {
+		return errors.New("first_login_child_output_too_large")
+	}
+	if serveError != nil {
 		return errors.New("first_login_authentication_failed")
 	}
 	decoder := json.NewDecoder(bytes.NewReader(serveStdout.Bytes()))
 	decoder.DisallowUnknownFields()
 	var authentication serveOutput
-	if err := decoder.Decode(&authentication); err != nil || !authentication.OK {
-		return errors.New("first_login_output_invalid")
+	if err := decoder.Decode(&authentication); err != nil {
+		return errors.New("first_login_output_undecodable")
+	}
+	if !authentication.OK {
+		return errors.New("first_login_authentication_not_ok")
 	}
 	if err := destroyRuntime(*runtimeRoot, *repositoryRoot); err != nil {
 		return err
@@ -313,8 +344,13 @@ func runManifest(arguments []string) error {
 		if err != nil {
 			return errors.New("manifest_hash_failed")
 		}
-		if *expectedHash != "" && (!hashPattern.MatchString(*expectedHash) || hash != *expectedHash) {
-			return errors.New("manifest_hash_mismatch")
+		if *expectedHash != "" {
+			if !hashPattern.MatchString(*expectedHash) {
+				return errors.New("expected_manifest_hash_invalid")
+			}
+			if hash != *expectedHash {
+				return errors.New("manifest_hash_mismatch")
+			}
 		}
 		projection := ""
 		if *subtest != "" {

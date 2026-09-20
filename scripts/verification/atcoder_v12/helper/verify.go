@@ -159,12 +159,22 @@ func (v *liveVerifier) keychainRead() ([]byte, error) {
 	return value, nil
 }
 
-func (v *liveVerifier) keychainItemAbsent() bool {
+// keychainItemAbsent reports whether the scoped namespace holds no item.
+// Exit 44 means absent and exit 0 means present. Anything else means the check
+// did not run, which is neither answer: reporting it as "present" would send the
+// caller to delete an item that may not exist.
+func (v *liveVerifier) keychainItemAbsent() (bool, error) {
 	command := exec.Command(v.keychainHelper, "exists", v.keychainService, keychainAccount)
 	command.Env = []string{}
 	err := command.Run()
+	if err == nil {
+		return false, nil
+	}
 	var exitError *exec.ExitError
-	return errors.As(err, &exitError) && exitError.ExitCode() == 44
+	if errors.As(err, &exitError) && exitError.ExitCode() == 44 {
+		return true, nil
+	}
+	return false, errors.New("secret_store_unavailable")
 }
 
 func (v *liveVerifier) runFreshCheck() error {

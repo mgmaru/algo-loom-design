@@ -204,7 +204,7 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-42`](#td-42-修正版011を公開しv-12の再実行条件を整える) | 技術検証 | 修正版`0.1.1`を公開し、`V-12`の再実行条件を整える | `TD-39` | 完了 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
 | [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42` | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
 | [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) | 設計判断 | 検証支援物の実行経路をbrowser相当で確認する範囲を決める | ― | 未着手 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md) |
-| [`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す) | 技術検証 | helperのエラーが原因を一意に指せない箇所を洗い出して直す | ― | 未着手 | ― |
+| [`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す) | 技術検証 | helperのエラーが原因を一意に指せない箇所を洗い出して直す | ― | 進行中 | ― |
 | [`TD-45`](#td-45-campaign-manifestの確定遷移が自分を無効化する不整合を直す) | 技術検証 | campaign manifestの確定遷移が自分を無効化する不整合を直す | ― | 進行中 | [ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
 | [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 未着手 | ― |
 | [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 | ― |
@@ -776,13 +776,15 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 4. 固定入力testを足し、**分離前のコードでは区別できないことを各caseで確認する。** 落ちないtestは、その取り違えを検出できていない。
 5. 得られた方針を[`TD-32`](#td-32-テスト方針の骨格を決める)へ引き渡す。製品実装のエラー分類でも同じ取り違えが起こりうるため。
 
+**2026年9月20日の実施記録:** 手順１〜４を実施しました。152箇所を走査し、12の停止原因を別の名前へ分けました。**`keychainItemAbsent`が「判定できなかった」を「項目がある」と報告していた点も同じ型だったため、終了コード44「なし」、0「あり」、それ以外「判定不能」の3つへ分けました。** 分けなかったもの（`*_arguments_invalid`等）は、原因が違っても次に取る行動が同じためです。一覧と理由は[検証物README §エラー名の方針](scripts/verification/atcoder_v12/README.md#エラー名の方針)にあります。testは`runFirstLogin`を実際に呼んで停止名を確かめます。**一つの名前へ戻すと落ちることを確認済みです。** 残るのは手順5の`TD-32`への引き渡しです。
+
 **完了条件:**
 
-- [ ] helperのエラー返却箇所が列挙され、一つの名前で複数の原因を返すものが特定されている
-- [ ] 分けたものと、分けずに残したものの理由が記録されている
-- [ ] `first_login_secret_namespace_not_empty`が、secret storeの残存と設定不正を区別して返す
-- [ ] 追加した各testが、分離前のコードで落ちることを確認できている
-- [ ] エラー名と出力に秘密値、実path、実account名が入っていない
+- [x] helperのエラー返却箇所が列挙され、一つの名前で複数の原因を返すものが特定されている（2026年9月20日。152箇所を走査）
+- [x] 分けたものと、分けずに残したものの理由が記録されている（[検証物README §エラー名の方針](scripts/verification/atcoder_v12/README.md#エラー名の方針)）
+- [x] `first_login_secret_namespace_not_empty`が、secret storeの残存と設定不正を区別して返す。**「判定できなかった」も別の名前にした**
+- [x] 追加した各testが、分離前のコードで落ちることを確認できている（2026年9月20日。1つの名前へ戻すと`bad service name: first_login_secret_namespace_not_empty`で落ちる）
+- [x] エラー名と出力に秘密値、実path、実account名が入っていない（名前は`^[a-z0-9_]{1,96}$`のまま）
 - [ ] `TD-32`への引き渡し内容が記載されている
 
 ---
