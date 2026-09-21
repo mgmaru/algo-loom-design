@@ -4,7 +4,7 @@
 |---|---|
 | 状態 | 採用 |
 | 日付 | 2026年9月21日 |
-| 関連TODO | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-12`](../../TODO.md#td-12-3つのosの認証検証マトリクスを作る)、[`TD-40`](../../TODO.md#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) |
+| 関連TODO | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-12`](../../TODO.md#td-12-3つのosの認証検証マトリクスを作る)、[`TD-40`](../../TODO.md#td-40-提出ページのcontent-scriptとturnstileの共存を検証する)、[`TD-57`](../../TODO.md#td-57-方式aを製品として採用するかを決める) |
 | 正本 | [AtCoder認証設計 §0](../architecture/atcoder-authentication.md#0-結論) |
 
 ## 背景と前提
