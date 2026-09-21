@@ -54,6 +54,20 @@ AlgoLoomはAtCoderの`REVEL_SESSION`をOSの秘密情報保管庫へ保存しま
 
 **WSLはnative Linuxの代替になりません**（[認証設計 §6.2.7](../../architecture/atcoder-authentication.md#627-確認手段を用意できない組み合わせ)）。WSL上で実行した結果を、Linuxの観測結果として記録しません。
 
+### 3.1. シェルはどれでもよい
+
+**Windowsでは、コマンドプロンプトとPowerShellのどちらでも動きます。** 観測物はshell文字列を組み立てず、子プロセスをargvで起動するためです。これは製品側の原則と同じ考え方です（[Core契約](../../architecture/core-contracts.md#24-設定と実行commandの信頼境界)の「`LanguageProfile`はshell文字列ではなくargv、working directory、source、artifact、timeout区分等からなるBuildPlan / RunPlanを返す」）。
+
+**`other-executable`の観測結果も、親のシェルによって変わりません。** この観測は観測物自身が`powershell.exe`を子プロセスとして起動して行うため、書き込むのが`python.exe`、読み出すのが新しい`powershell.exe`という関係は、どのシェルから起動しても同じです。
+
+Pythonの呼び出し方だけ、環境によって違います。**先に版を確認します。**
+
+```console
+py -3 --version
+```
+
+これが動かない環境では`python --version`を使い、以降の`py -3`を`python`へ読み替えます。**PowerShellで`python`と打ってMicrosoft Storeが開く場合は、Pythonが入っていません。**
+
 ## 4. 手順
 
 ### 4.1. 取得
@@ -141,6 +155,8 @@ cmdkey /list | findstr algoloom
 ```console
 cmdkey /delete:algoloom-secret-store-probe-XXXXXXXX
 ```
+
+PowerShellでは`cmdkey /delete:"algoloom-secret-store-probe-XXXXXXXX"`と引用符を付けても構いません。
 
 **`algoloom`を含まない項目へ触れません。** 観測物と同じく、probe専用の名前だけを対象にします。
 
