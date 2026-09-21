@@ -485,13 +485,27 @@ python3 scripts/verification/secret_store_guarantees.py
 
 ### 4.1.2. Windowsで観測した実際の保証範囲
 
-> 観測日: 2026年9月21日。Windows 11、AMD64、Credential Manager（`CRED_TYPE_GENERIC`）、Python 3.12.1。`TD-47`として実施
+> 観測日: 2026年9月21日。Windows 11、AMD64、Credential Manager（`CRED_TYPE_GENERIC`）、Python 3.12.1。環境IDは`ENV-WIN-X64`（§6.2.1）。`TD-47`として実施
+>
+> **観測したのは`ENV-WIN-X64`だけです。** `ENV-WIN-ARM64`では観測していません（§6.2.4）。
 
 §4.1.1と同じ5つの観測を、同じ観測IDで行いました。製品が使うものと同じAPI（`CredWriteW`と`CredReadW`）を使い、検証用の項目は観測後に削除しています。手順は[秘密情報保管庫の観測手順](../verification/secret-store/README.md)にあります。次で再現できます。
 
 ```console
 py -3 scripts\verification\secret_store_guarantees.py
 ```
+
+観測物が出した5つの結果は次のとおりです。**観測IDは§4.1.1および[観測手順 §1](../verification/secret-store/README.md#1-何を確かめるか)と同じもので、OSをまたいで並べて比較できます。**
+
+| 観測ID | 見ていること | 結果 | 詳細 |
+|---|---|---|---|
+| `same-process` | 作成したプロセス自身から読めるか | 読めた | `CredReadW ok=True` |
+| `same-interpreter` | 同じインタプリタの別スクリプトから読めるか | 読めた | 別のスクリプトファイルから確認画面なしで取得 |
+| `other-executable` | 別の実行ファイルから読めるか | **読めた** | `powershell.exe`が対話を禁止した状態で取得。確認画面は出ない |
+| `delete` | 読み出しの認可なしで削除できるか | 削除できた | `CredDeleteW ok=True` |
+| `residue` | probe項目が残っていないか | 残っていない | 削除後の再取得が`ERROR_NOT_FOUND`。probe接頭辞へ絞った`CredEnumerateW`でも0件 |
+
+この5つが何を意味するかを、§4.1.1と同じ並びで整理すると次のようになります。
 
 | 観測したこと | 結果 |
 |---|---|
@@ -668,7 +682,7 @@ VMを一律に不適合とは扱いません。検証対象がprocess、filesyst
 | `M-14` | 契約＋統合 | 契約＋統合 | 契約＋統合 | 実行ファイルの起動前確認（Gatekeeper / なし / SmartScreen）（§3.6.4） |
 | `M-15` | 統合 | 統合 | 統合 | Keychain / Secret Service / OS保護領域のAPIと名前空間 |
 | `M-16` | 統合 | 統合 | 統合 | **Linuxはデスクトップセッションによって利用不能が常態になりうる**（§3.4） |
-| `M-17` | 統合（§4.1.1で観測済み） | 統合（未観測） | 統合（§4.1.2で観測済み） | 保証範囲そのものがOS差。観測して表示文言を決める |
+| `M-17` | 統合（`ENV-MAC-ARM64`で観測済み。§4.1.1） | 統合（未観測） | 統合（`ENV-WIN-X64`で観測済み。§4.1.2） | 保証範囲そのものがOS差。観測して表示文言を決める |
 | `M-18` | 契約＋統合 | 契約＋統合 | 契約＋統合 | なし。機械検査で共通に扱う |
 | `M-19` | 契約 | 契約 | 契約 | なし。固定入力で分類する（`p1-02`） |
 | `M-20` | smoke＋手動 | smoke＋手動 | smoke＋手動 | なし。一往復UXは3つのOSで同じ契約 |
@@ -681,6 +695,7 @@ VMを一律に不適合とは扱いません。検証対象がprocess、filesyst
 | `ENV-MAC-X64` | 全項目 | `ENV-MAC-ARM64`と同じ層。確保手段は`TD-18`が決める。実サービスsmokeの最終確認はarm64の物理端末で行う |
 | `ENV-LIN-X64-NOSS` | `M-15` | 保存経路を持たない。`M-16`の安全側停止だけを確認する |
 | `ENV-WIN-ARM64`、`ENV-LIN-ARM64` | `M-01`、`M-05`〜`M-09` | 未確定。通常Google Chromeの公式提供の有無を`TD-31`で確認する（§6.2.7） |
+| `ENV-WIN-ARM64` | `M-17` | **未観測。** §4.1.2の観測は`ENV-WIN-X64`だけで行った。Credential ManagerはOSのAPIでありCPU architectureで挙動が変わるとは考えにくいが、**考えにくいことは観測ではない。** `TD-31`がarm64を保証範囲に残すと決めた場合に観測する |
 
 #### 6.2.5. 人が行う受け入れ操作
 
@@ -724,7 +739,7 @@ headless CI、Chrome for Testing、WebDriverは回帰テストへ使えますが
 本節は`V-12`の合格前に作りました。次の3つが揃うまで確定としません。
 
 - **`V-12`の合格。** 製品形態が変われば`M-05`〜`M-08`、`M-13`、`M-14`の確認項目そのものが変わります
-- **Linuxの`M-17`の実観測。** macOSとWindowsの2つだけの観測から3つのOSの表示文言を決めません
+- **Linuxの`M-17`の実観測。** macOSとWindowsの2つだけの観測から3つのOSの表示文言を決めません。**Windowsも`ENV-WIN-X64`だけの観測です**（§6.2.4）
 - **CPU architectureと通常Google Chromeの対応版の固定**（`TD-31`）
 
 判断の経緯は[ADR-0010](../decisions/0010-build-the-three-os-auth-matrix-before-v12-passes.md)にあります。Windowsの観測は`TD-47`で2026年9月21日に終えました（§4.1.2）。Linuxの観測は`TD-48`、確定は`TD-46`で扱います。

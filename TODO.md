@@ -1257,7 +1257,9 @@ macOSの観測では、§4.1が理由から導いていた「信頼される実�
 4. 結果を認証設計 §4.1.2 として記録する。§4.1.1と同じ並びにして、macOSと比較できる形にする。端末名、利用者名、絶対パスを書かない（観測物が伏せる）。
 5. 未決事項 7.3 の観測結果へWindows分を足す。**表示文言はここで確定しない。** 3つのOSが揃ってから[`TD-46`](#td-46-検証マトリクスを確定しwindowsとlinuxの秘密情報保管庫を観測する)で決める。
 
-**結果（2026年9月21日）:** Windows 11、AMD64、Python 3.12.1で5つすべてを観測しました。記録は[認証設計 §4.1.2](docs/architecture/atcoder-authentication.md#412-windowsで観測した実際の保証範囲)にあります。**`other-executable`は確認画面なしで読めました。** 手順2が書いていたとおり、Credential Managerにアプリ単位の紐付けがないことを意味します。
+**結果（2026年9月21日）:** Windows 11、AMD64、Python 3.12.1で5つすべてを観測しました。環境IDは`ENV-WIN-X64`です。記録は[認証設計 §4.1.2](docs/architecture/atcoder-authentication.md#412-windowsで観測した実際の保証範囲)にあり、**観測IDごとの結果をそのまま載せています。** **`other-executable`は確認画面なしで読めました。** 手順2が書いていたとおり、Credential Managerにアプリ単位の紐付けがないことを意味します。
+
+**この作業に合否はありません。** [観測手順 §1](docs/verification/secret-store/README.md#1-何を確かめるか)のとおり「どの結果も『正解』ではない」ためで、Windowsが実際に何を守るかを見た結果そのものが成果です。**観測したのは`ENV-WIN-X64`だけで、`ENV-WIN-ARM64`は未観測です**（[認証設計 §6.2.4](docs/architecture/atcoder-authentication.md#624-環境ごとの上書き)へ記録しました）。
 
 **観測物を直してから採りました。** 1回目の実行は`other-executable`を「読めなかった」と報告しましたが、原因は64 bitでの`CREDENTIAL`構造体の読み出し位置の誤りで、Windowsの保護ではありませんでした。手順3のとおり記録から消さず、[§4.1.2.1](docs/architecture/atcoder-authentication.md#4121-最初の実行が反対の結果を報告したこと)へ残しています。**読めるものを「読めなかった」と記録すると、その上に過大な表示文言を置いてしまう**ため、読み出しに成功して値が空だった場合を別の結果として出すようにもしました。
 
