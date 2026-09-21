@@ -43,6 +43,9 @@ OBSERVATIONS = (
 
 READABLE = "読めた"
 NOT_READABLE = "読めなかった"
+# 「読めなかった」と「判定できなかった」を分ける。観測物の不具合で値を取り出せなかった場合を
+# 保管庫の保護として記録すると、その上に過大な表示文言を置くことになる（認証設計 §4.1.2.1）。
+UNDETERMINED = "判定できなかった"
 DELETED = "削除できた"
 PROMPTED = "確認画面が出た（対話が要る）"
 SKIPPED = "実施できず"
@@ -74,8 +77,12 @@ def is_probe_name(name: str) -> bool:
     return bool(re.fullmatch(re.escape(PROBE_PREFIX) + r"[0-9a-f]{8}", name))
 
 
-def run_child(argv: list[str]) -> tuple[str, str]:
-    """子プロセスを有限時間で実行する。timeoutは対話の確認画面が出たものとして扱う。"""
+def run_child(argv: list[str], undetermined_exit_codes: tuple[int, ...] = ()) -> tuple[str, str]:
+    """子プロセスを有限時間で実行する。timeoutは対話の確認画面が出たものとして扱う。
+
+    `undetermined_exit_codes`は、子プロセスが「読めなかった」ではなく「判定できなかった」を
+    伝える終了コードである。呼び出し側が自分で決めた規約だけを渡す。
+    """
     try:
         done = subprocess.run(argv, capture_output=True, text=True,
                               timeout=SUBPROCESS_TIMEOUT_SECONDS)
@@ -84,6 +91,8 @@ def run_child(argv: list[str]) -> tuple[str, str]:
     except OSError as error:
         return SKIPPED, f"起動できない: {error.__class__.__name__}"
     output = (done.stdout + done.stderr).strip()
+    if done.returncode in undetermined_exit_codes:
+        return UNDETERMINED, output
     return (READABLE if done.returncode == 0 and PROBE_VALUE in output else NOT_READABLE), output
 
 
@@ -266,7 +275,11 @@ class WindowsCredentialLockerBackend(Backend):
             "Write-Output $s;exit 0}"
             "else{Write-Output 'CredReadW failed';exit 1}")
         for shell in ("powershell.exe", "pwsh.exe"):
-            status, detail = run_child([shell, "-NoProfile", "-NonInteractive", "-Command", script])
+            # 終了コード2は、読み出しに成功したのに値が空だった場合である。保管庫の保護ではなく
+            # 観測物の不具合であるため、「読めなかった」へ畳まず「判定できなかった」を返す。
+            status, detail = run_child(
+                [shell, "-NoProfile", "-NonInteractive", "-Command", script],
+                undetermined_exit_codes=(2,))
             if status != SKIPPED:
                 return status, f"{shell}: {detail}"
         return SKIPPED, "PowerShellを起動できなかった"
@@ -384,6 +397,14 @@ def self_test() -> int:
         "表のセルへ改行を入れない": "\n" not in one_line("a\nb") and one_line("a\nb") == "a b"
         and len(one_line("x" * 500)) == 120,
         "保存する値が秘密情報でない": "SECRET" not in PROBE_VALUE.replace("NOT-A-SECRET", ""),
+        # 「読めなかった」と「判定できなかった」を取り違えると、実際には読めるものを
+        # 読めないと記録し、その上に過大な表示文言を置いてしまう。
+        "判定できなかったを読めなかったへ畳まない": run_child(
+            [sys.executable, "-c", "import sys; sys.exit(2)"],
+            undetermined_exit_codes=(2,))[0] == UNDETERMINED
+        and run_child([sys.executable, "-c", "import sys; sys.exit(2)"])[0] == NOT_READABLE
+        and run_child([sys.executable, "-c", "import sys; sys.exit(1)"],
+                      undetermined_exit_codes=(2,))[0] == NOT_READABLE,
         "出力に全観測の行が出る": all(
             f"`{key}`" in render({"os": "x", "cpu": "y", "保管庫": "z",
                                   "実行ファイル": "w", "observations": {}})
