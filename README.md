@@ -100,6 +100,7 @@ node scripts/check-docs.mjs    # 相対リンクとアンカーの検査
 | [DB候補比較メモ](docs/research/db-comparison.md) | Cloud DB候補、料金、無料枠の比較 | 2026年7月時点の調査メモ |
 | [拡張機能とヘルパーの配布：ステークホルダーと注意点](docs/research/extension-and-helper-distribution.md) | 登場人物、2つの配布物、誰がいつどうヘルパーを入手するか、実行ファイル署名が必要になる条件、実測結果、よくある誤解 | 2026年8月時点の調査・整理メモ |
 | [Chrome拡張機能のcontent script入門](docs/research/chrome-extension-content-script-basics.md) | content scriptの注入、isolated world、URLの`origin`と`hostname`と`port`の違い、2026年9月19日の不具合、よくある誤解 | 2026年9月時点の学習用整理メモ |
+| [OSの秘密情報保管庫と信頼境界](docs/research/os-secret-store-and-trust-boundary.md) | 保管庫が守る範囲、信頼境界、macOSとWindowsの実測、自前の暗号化で解決しない理由、脅威の一覧 | 2026年9月時点の学習用整理メモ |
 
 ### 配布・プロジェクト管理
 
