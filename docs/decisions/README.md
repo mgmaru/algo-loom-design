@@ -37,6 +37,7 @@
 | [ADR-0013](0013-find-the-cause-before-fixing-the-v12e-handoff.md) | `V-12E`の受け渡しは原因を特定してから直し、helperの成功報告を到達と切り離す | 採用 | 2026年9月21日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-53`](../../TODO.md#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する)、[`TD-54`](../../TODO.md#td-54-helperの成功報告が到達していないことを覆い隠さないようにする) |
 | [ADR-0014](0014-allow-the-submit-origin-in-the-submission-page-form-action.md) | 提出確認画面のCSPの`form-action`へ提出先originを含める | 採用 | 2026年9月21日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-53`](../../TODO.md#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する)、[`TD-54`](../../TODO.md#td-54-helperの成功報告が到達していないことを覆い隠さないようにする) |
 | [ADR-0015](0015-do-not-confirm-method-a-product-adoption-on-v12-pass.md) | `V-12`の合格では方式Aの製品採用を確定しない | 採用 | 2026年9月21日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-12`](../../TODO.md#td-12-3つのosの認証検証マトリクスを作る)、[`TD-40`](../../TODO.md#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) |
+| [ADR-0016](0016-hand-over-the-loopback-secret-on-a-short-visible-page.md) | 初期化の受け渡しを、説明のある短い画面で通す | 採用 | 2026年9月21日 | [`TD-38`](../../TODO.md#td-38-認証配布物とテンプレートのライフサイクル契約を確定する)、[`TD-55`](../../TODO.md#td-55-初期化画面の表示と文言を確定する)、[`TD-56`](../../TODO.md#td-56-再認証を伴わない提出でローカル側の処理を誰が起動するかを確定する) |
 
 ## 何をADRにするか
 

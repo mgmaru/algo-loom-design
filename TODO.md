@@ -269,7 +269,9 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-48`](#td-48-linuxの検証環境を確保し秘密情報保管庫が保証する範囲を観測する) | 技術検証 | Linuxの検証環境を確保し、秘密情報保管庫が保証する範囲を観測する | `TD-18` | 未着手 | ― |
 | [`TD-46`](#td-46-検証マトリクスを確定しwindowsとlinuxの秘密情報保管庫を観測する) | 機能設計 | 検証マトリクスを確定し、WindowsとLinuxの秘密情報保管庫を観測する | `TD-12`, `TD-31`, `TD-47`, `TD-48` | 未着手 | [ADR-0010](docs/decisions/0010-build-the-three-os-auth-matrix-before-v12-passes.md) |
 | [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 | [ADR-0015](docs/decisions/0015-do-not-confirm-method-a-product-adoption-on-v12-pass.md) |
-| [`TD-38`](#td-38-認証配布物とテンプレートのライフサイクル契約を確定する) | 機能設計 | 認証配布物とテンプレートのライフサイクル契約を確定する | `TD-11`, `TD-12` | 未着手 | ― |
+| [`TD-38`](#td-38-認証配布物とテンプレートのライフサイクル契約を確定する) | 機能設計 | 認証配布物とテンプレートのライフサイクル契約を確定する | `TD-11`, `TD-12` | 未着手 | [ADR-0016](docs/decisions/0016-hand-over-the-loopback-secret-on-a-short-visible-page.md) |
+| [`TD-55`](#td-55-初期化画面の表示と文言を確定する) | 機能設計 | 初期化画面の表示と文言を確定する | ― | 未着手 | [ADR-0016](docs/decisions/0016-hand-over-the-loopback-secret-on-a-short-visible-page.md) |
+| [`TD-56`](#td-56-再認証を伴わない提出でローカル側の処理を誰が起動するかを確定する) | 設計判断 | 再認証を伴わない提出で、ローカル側の処理を誰が起動するかを確定する | ― | 未着手 | [ADR-0016](docs/decisions/0016-hand-over-the-loopback-secret-on-a-short-visible-page.md) |
 | [`TD-41`](#td-41-製品形態の拡張機能の審査条件と確認gateを確定する) | 設計判断 | 製品形態の拡張機能の審査条件と確認gateを確定する | `TD-38`, `TD-40` | 未着手 | ― |
 | [`TD-13`](#td-13-ツールチェーン観測を履歴へ保存するか決定する) | 設計判断 | ツールチェーン観測を履歴へ保存するか決定する | ― | 完了 | ― |
 | [`TD-14`](#td-14-学習履歴の論理モデルを設計する) | 機能設計 | 学習履歴の論理モデルを設計する | `TD-13` | 未着手 | ― |
@@ -1417,6 +1419,76 @@ macOSの観測では、§4.1が理由から導いていた「信頼される実�
 - [ ] 利用者が残っている状態での配布停止手順が決まっている
 - [ ] 拡張機能とAlgoLoom本体のrelease順序が決まり、審査通過前に新しい版を要求する本体を公開しない条件が明記されている
 - [ ] `TD-15`と`TD-35`へ渡す要件が対応付いている
+
+---
+
+#### `TD-55` 初期化画面の表示と文言を確定する
+
+| 項目 | 内容 |
+|---|---|
+| カテゴリ | 機能設計 |
+| 対象ファイル | [`docs/project/atcoder-authentication-manual-operation-automation.md`](docs/project/atcoder-authentication-manual-operation-automation.md)、[`spec/features.md`](spec/features.md) §8.1 |
+| 依存 | ― |
+| 決定 | [ADR-0016](docs/decisions/0016-hand-over-the-loopback-secret-on-a-short-visible-page.md) |
+
+**なぜこの作業が要るか:** 認証ヘルパーは実行のたびに待受番号と一回限りの秘密値を作り、ローカルのページ経由で拡張機能へ渡します。**この受け渡しは認証のときだけでなく、提出のたびに要ります**（[ADR-0016](docs/decisions/0016-hand-over-the-loopback-secret-on-a-short-visible-page.md)前提6）。ADR-0016は「見える・説明がある・押させない」の3点を決めましたが、**文言、表示時間、失敗時の見せ方は決めていません。** 決めないまま実装へ進むと、検証物の形（同意を兼ねた画面でクリックを求める）がそのまま持ち込まれ、**提出のたびに押す操作が1つ増えます。**
+
+**手順:**
+
+1. 初期化画面の文言を決める。**何をしているかを1行で示す。** 秘密値、待受番号、内部用語を表示しない
+2. 表示時間の下限を決めるか、決めないことを決める。**読めないほど短い表示なら、案Aとの差が無くなる**（[ADR-0016](docs/decisions/0016-hand-over-the-loopback-secret-on-a-short-visible-page.md)の再評価条件）
+3. 遷移に失敗したときの見せ方を決める。`browserが開いたのに何も起きない`状態を作らない（[縮退運転設計 §3.2](docs/features/extension-boundary-and-degraded-submission.md#32-事前に検知する)）
+4. 中止方法の示し方を決める。CLI側の既存の取消表示と重複させない
+5. [UX設計](docs/project/atcoder-authentication-manual-operation-automation.md)と[`F-SUBMIT-01`](spec/features.md#81-atcoder認証状態確認f-submit-01)へ反映する。**同じ変更で`docs/`と`spec/`を整合させる**
+6. 検証物は変えない。製品と検証物で形が違うことを、UX設計側に注記として残す
+
+**完了条件:**
+
+- [ ] 初期化画面の文言が決まり、秘密値・待受番号・内部用語を含まない
+- [ ] 表示時間の扱い（下限を置くか置かないか）が理由付きで決まっている
+- [ ] 受け渡しに失敗したときに利用者が気づける形になっている
+- [ ] 利用者へ求める操作が増えていない（クリック0回）
+- [ ] `docs/`と`spec/`の両方へ同じ変更で反映されている
+- [ ] 検証物と製品で形が違う理由が記録されている
+
+---
+
+#### `TD-56` 再認証を伴わない提出で、ローカル側の処理を誰が起動するかを確定する
+
+| 項目 | 内容 |
+|---|---|
+| カテゴリ | 設計判断 |
+| 対象ファイル | [`docs/architecture/atcoder-authentication.md`](docs/architecture/atcoder-authentication.md) §1.2、[`docs/features/extension-boundary-and-degraded-submission.md`](docs/features/extension-boundary-and-degraded-submission.md) §2 |
+| 依存 | ― |
+| 決定 | [ADR-0016](docs/decisions/0016-hand-over-the-loopback-secret-on-a-short-visible-page.md) |
+
+**なぜこの作業が要るか:** **2つの正本が噛み合っていません。**
+
+| 文書 | 記述 |
+|---|---|
+| [AtCoder認証設計 §1.2](docs/architecture/atcoder-authentication.md#12-認証ヘルパーとは何か) | 認証ヘルパーは`aloom auth login`のとき、または`submit`で**再認証が必要になったときにだけ**起動する |
+| [拡張機能の責任境界 §2](docs/features/extension-boundary-and-degraded-submission.md#2-拡張機能の責任境界) | 提出フォームへの指示、提出IDの取得、判定確認は**認証ヘルパーの担当**である |
+
+再認証が要らない提出でも、専用Chromeの起動、拡張機能への指示、提出IDの取得、判定確認は**ローカル側でしかできません。** それを誰がいつ起動し、いつ終えるのかが、どちらにも書かれていません。**「認証ヘルパー」という名前が、提出時の役割を隠しています。**
+
+放置すると、実装時に「認証のときだけ起動する」と読んで提出経路が成立しないか、逆に常駐させる形へ流れます。**常駐は窓口と秘密値の寿命を延ばすため、[ADR-0016](docs/decisions/0016-hand-over-the-loopback-secret-on-a-short-visible-page.md)が採らないと決めた案です。**
+
+**手順:**
+
+1. 再認証を伴わない提出で要るローカル処理を列挙する。browser起動、初期化の受け渡し、提出フォームへの指示、提出IDの取得、判定確認、後始末
+2. それぞれの**起動主体と寿命**を決める。認証ヘルパーを提出時にも起動するのか、別の名前の処理として分けるのかを含める
+3. 名前を見直す。「認証ヘルパー」が認証以外の役割を持つなら、**名前か説明のどちらかを直す**
+4. 判定確認の寿命を決める。**polling中もprocessが生きている必要があるか**を明記する（[性能と待ち時間設計](docs/quality/performance-and-waiting-design.md)の常駐しない方針と整合させる）
+5. 2つの正本を**同じ変更で**直す。片方だけ直すと食い違いが残る
+6. `spec/`側（[`F-SUBMIT-03`](spec/features.md#83-提出状態f-submit-03)、[`F-SUBMIT-04`](spec/features.md#84-判定観測f-submit-04)）への影響を確認する
+
+**完了条件:**
+
+- [ ] 再認証を伴わない提出で、ローカル処理の起動主体と寿命が一意に決まっている
+- [ ] 認証設計 §1.2 と拡張機能の責任境界 §2 が同じことを述べている
+- [ ] 名前と役割が一致している（名前が役割を隠していない）
+- [ ] 判定確認中のprocessの扱いが決まり、常駐を導入していない
+- [ ] `docs/`と`spec/`が整合している
 
 ---
 
