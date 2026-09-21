@@ -36,6 +36,7 @@
 | [ADR-0012](0012-serve-submission-page-with-same-origin-referrer-policy.md) | 提出確認画面の`Referrer-Policy`を`same-origin`へ変え、5回目のcampaignでやり直す | 採用 | 2026年9月20日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-51`](../../TODO.md#td-51-提出確認画面のform-postがbrowserで拒否される問題を直す)、[`TD-52`](../../TODO.md#td-52-browser由来のrequestを手で組み立てている契約testを洗い出す) |
 | [ADR-0013](0013-find-the-cause-before-fixing-the-v12e-handoff.md) | `V-12E`の受け渡しは原因を特定してから直し、helperの成功報告を到達と切り離す | 採用 | 2026年9月21日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-53`](../../TODO.md#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する)、[`TD-54`](../../TODO.md#td-54-helperの成功報告が到達していないことを覆い隠さないようにする) |
 | [ADR-0014](0014-allow-the-submit-origin-in-the-submission-page-form-action.md) | 提出確認画面のCSPの`form-action`へ提出先originを含める | 採用 | 2026年9月21日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-53`](../../TODO.md#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する)、[`TD-54`](../../TODO.md#td-54-helperの成功報告が到達していないことを覆い隠さないようにする) |
+| [ADR-0015](0015-do-not-confirm-method-a-product-adoption-on-v12-pass.md) | `V-12`の合格では方式Aの製品採用を確定しない | 採用 | 2026年9月21日 | [`TD-11`](../../TODO.md#td-11-方式a製品形態を実サービスで検証する)、[`TD-12`](../../TODO.md#td-12-3つのosの認証検証マトリクスを作る)、[`TD-40`](../../TODO.md#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) |
 
 ## 何をADRにするか
 

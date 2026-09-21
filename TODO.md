@@ -167,13 +167,17 @@ flowchart TD
 
 AlgoLoomの側では進められず、外部の応答または人の承認を待っている作業をここに集約します。**再開時に最初に確認してください。**
 
-**外部の返答待ちで止まっている作業はありません。** 2026年9月21日に5回目のcampaign `v12-2026-09-21-01`を実行し、**`V-12A`・`V-12B`・`V-12C`の必須case・`V-12D`が合格しました**（[実行記録](docs/verification/judge-adapter/results/2026-09-21-v12-04.md)）。**`V-12E`は最後の受け渡しに到達せず、`V-12`全体は未合格です。**
+**外部の返答待ちで止まっている作業はありません。** 2026年9月21日に6回目のcampaign `v12-2026-09-21-02`を実行し、**`V-12A`〜`V-12E`がすべて合格して`V-12`全体が合格しました**（[実行記録](docs/verification/judge-adapter/results/2026-09-21-v12-05.md)）。標準追加から基準templateの確定、AtCoderログイン、本人照合・保存、新processからの再照合、`submit`中の再認証、**提出pageへの受け渡し**までが分断なく成立しています。**提出は0件です。**
 
-**4回目の`authentication_rejected`は再発していません。** POSTはhelperが受理し、303も書いています。それでもbrowserは提出pageへ着かず、`ERR_CONNECTION_REFUSED`を表示しました。**原因は特定できていません**（[ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)）。
+**`V-12E`の到達は人の観測です。** helperの結果JSONは`submit_page_arrival: unobserved_by_helper`のままで、303を書いたところまでしか観測できません（[`TD-54`](#td-54-helperの成功報告が到達していないことを覆い隠さないようにする)）。ownerが画面でAtCoderの提出pageを確認したことを実行記録へ残しています。
 
-**[`TD-53`](#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する)と[`TD-54`](#td-54-helperの成功報告が到達していないことを覆い隠さないようにする)は2026年9月21日に完了しました。** 原因は提出確認画面のCSPの`form-action`で、helperが自分のloopback originだけを許していたため、**Chromeがform POSTの後の303遷移を止めていました**（[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md)）。遷移先originも許す形へ直し、[受け渡しのprobe](scripts/verification/atcoder_v12/submission-handoff-probe.mjs)で提出page相当へ着くことを実測しています。2件を同じ変更にまとめたため、helperのbuild hashが変わるのは1回だけです。
+**方式Aの製品採用は、まだ確定していません。** 2026年9月21日に、`V-12`の合格をもっては確定しないと判断しました（[ADR-0015](docs/decisions/0015-do-not-confirm-method-a-product-adoption-on-v12-pass.md)）。確定の材料は[`TD-12`](#td-12-3つのosの認証検証マトリクスを作る)（3つのOS）と[`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する)（提出ページでの共存）です。**`V-12`の合格は「成立を観測した」ことであり、採用の確定とは別の語として使います。**
 
-**次にやるのは6回目のcampaignです。再び人の明示承認と15分程度の操作が要ります。**
+**CWS itemは限定公開のまま残します。** campaign終了後の非公開化は行いません（[ADR-0015](docs/decisions/0015-do-not-confirm-method-a-product-adoption-on-v12-pass.md)決定4）。`TD-40`や再検証で同じlistingからの標準追加が再び要りうるためです。**非公開化する場合は、そのときに別の明示承認を得ます。**
+
+**次の外部操作には、別の明示承認が要ります。**
+
+- `V-12C`の更新test用`0.1.2`のupload・審査提出（現在は未upload。[ADR-0009](docs/decisions/0009-required-cases-for-v12c.md)により必須caseからは外れている）
 
 | campaign | 到達点 | 状態 |
 |---|---|---|
@@ -181,7 +185,8 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | `v12-2026-09-20-01` | `V-12A`・`V-12B`・`V-12D`が合格 | **無効。** 検証物を直したためhelperのbuild hashが変わった（[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md)）。不具合が見つかったのではない |
 | `v12-2026-09-20-02` | `V-12A`・`V-12B`・`V-12C`必須case・`V-12D`が合格 | **無効。** `TD-49`・`TD-50`の修正でhelperのbuild hashが変わった（[ADR-0011](docs/decisions/0011-add-submit-entry-before-rerunning-v12.md)）。初回導線は実機で成立した |
 | `v12-2026-09-20-03` | `V-12A`・`V-12B`・`V-12C`必須case・`V-12D`が合格 | **無効。** `V-12E`が提出確認画面のPOSTで停止し、`TD-51`・`TD-52`の修正でhelperのbuild hashが変わった（[ADR-0012](docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md)） |
-| `v12-2026-09-21-01` | `V-12A`・`V-12B`・`V-12C`必須case・`V-12D`が合格 | **修正をもって無効になる。** `V-12E`が303の受け渡しで到達せず、`TD-53`・`TD-54`の修正でhelperのbuild hashが変わる（[ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)）。初回導線は実機で成立した |
+| `v12-2026-09-21-01` | `V-12A`・`V-12B`・`V-12C`必須case・`V-12D`が合格 | **無効。** `V-12E`が303の受け渡しで到達せず、`TD-53`・`TD-54`の修正でhelperのbuild hashが`087038c7…`から`8d5c478e…`へ変わった（[ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md)）。初回導線は実機で成立した |
+| `v12-2026-09-21-02` | **`V-12A`〜`V-12E`が合格** | **有効。** `V-12`全体の合格をこのcampaignで判定した |
 
 **5回目で分かったこと:** `V-12E`は9段階のうち8までが成立し、最後の「303で同じtabがAtCoderの提出pageへ着く」だけが確かめられていません。**helperは`ok: true`を返します。** 観測できるのが303を書いたところまでのためで、到達は人の観測です。**結果JSONだけを見ると合格に読めます**（`TD-54`）。
 
@@ -203,31 +208,26 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | 303の受け渡しが成立しない原因（`TD-53`） | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md) |
 | 到達を覆い隠す成功報告（`TD-54`） | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md) |
 
-6回目のcampaignの順序です。**手順1は2026年9月21日に完了しました。次は手順2からです。**
+6回目のcampaignの順序です。**手順1〜8を2026年9月21日にすべて完了しました。** 手順6以降は人の明示承認を得て実行しています。
 
 1. ~~[`TD-53`](#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する)と[`TD-54`](#td-54-helperの成功報告が到達していないことを覆い隠さないようにする)を**同じ変更で**直す~~ **完了**
-2. 5回目のcampaignの資源（基準template 完全性ID `56cb7608…`、manifest revision 1・2、実行script2件、`build/`、store用一時情報）を**破棄する。** 古い基準templateを6回目へ流用しない。**secret store項目は5回目のcampaign終了時に削除済みだが、不在は`secret delete`の戻り値ではなく独立した手段で確かめ直す**（`TD-50`の1件目）
-3. `prepare.mjs`で成果物を作り直し、新しいhelperのhashを記録する。**`TD-53`・`TD-54`の修正で`087038c7…`から変わる**（CSPと結果JSONの両方がbinaryへ入るため）。cleanな作業treeで`campaign_ready`が`true`になることも確かめる
-4. **[browser probe](scripts/verification/atcoder_v12/browser-request-probe.mjs)と[受け渡しのprobe](scripts/verification/atcoder_v12/submission-handoff-probe.mjs)を実行する。** どちらも外部接続0件。**negative controlが壊れた条件を検出していること**を先に見る（受け渡しのprobeでは、`form-action`をloopback originだけにしたcaseが「着かない」と出ること）
-5. 新しいcampaign IDとmanifestを作り、`V-12A`を外部通信0件で実行する
-6. **当日の外部条件を取り直す**（[実施手順 §3](docs/verification/judge-adapter/README.md#3-当日の外部条件)）。**この確認自体が外部サービスへの接続であり、承認の対象に含まれる**
-7. **ownerが`V-12B → V-12D`を分断せず通す（15分程度）。** listingから標準追加 → Chrome完全終了 → AtCoderログイン。実行scriptはowner専用領域の`run-first-login.sh`にあり、固定IDとservice IDをfileから読むためshell履歴へ実値が残らない
-8. `V-12C`の必須case5件（外部通信0件）、続けて`V-12E`（対象問題`abc300_a`。**最後の提出操作は行わない**）。`V-12E`の実行scriptは`run-submit-entry.sh`
+2. ~~5回目のcampaignの資源を**破棄する。** secret store項目の不在は`secret delete`の戻り値ではなく独立した手段で確かめ直す~~ **完了。** 破棄前に、基準templateのmarkerが`56cb7608…`、manifestの`campaign_id`が`v12-2026-09-21-01`、buildの`source_revision`が`95b60bc…`であることを照合した。不在はKeychain adapterの`exists`が終了コード44で示し、**使い捨てのprobe項目で「常に不在を返しているのではない」ことも先に実測した**（`TD-50`の1件目）
+3. ~~`prepare.mjs`で成果物を作り直し、新しいhelperのhashを記録する~~ **完了。** cleanな`1bf47c8`から別pathへ2回buildし、**helperのbuild hashは`087038c7…`から`8d5c478e…`へ変わった。** 2回のbuildは`build-index.json`を含めてbyte単位で一致し、`campaign_ready`は`true`。Keychain adapterと拡張ZIPは変わっていない
+4. ~~[browser probe](scripts/verification/atcoder_v12/browser-request-probe.mjs)と[受け渡しのprobe](scripts/verification/atcoder_v12/submission-handoff-probe.mjs)を実行する~~ **完了。** どちらも外部接続0件。**negative controlが壊れた条件を検出している**（`form-action`をloopback originだけにしたcaseと、応答を書かずに切るcaseの2件が「着かない」と出た）。現行の経路は提出page相当へ着いた
+5. ~~新しいcampaign IDとmanifestを作り、`V-12A`を外部通信0件で実行する~~ **完了。** campaign `v12-2026-09-21-02`、manifest revision 1のcanonical hashは`f7f4c1c8…`、`V-12A` projection hashは`c3792d02…`。**`V-12A`は外部通信0件で合格した**
+6. ~~当日の外部条件を取り直す~~ **完了。** 5件を確認し、[開始しない条件](docs/verification/judge-adapter/README.md#3-当日の外部条件)への該当は0件。利用規約・AI学習拒否案内・Cloudflareの記載は5回目から変更なし
+7. ~~ownerが`V-12B → V-12D`を分断せず通す~~ **完了。`V-12B`・`V-12D`が合格した。** 基準templateの完全性IDは`25bfb2a1…`、`REVEL_SESSION`候補1件、本人照合一致、新process再照合成功、`GET /settings`は上限と同数の2回
+8. ~~`V-12C`の必須case5件、続けて`V-12E`~~ **完了。`V-12C`の必須case5件と`V-12E`が合格した。** `V-12E`は303の受け渡しで**同じtabがAtCoderの提出pageへ着いたことをownerが確認**し、提出操作は行っていない（提出0件）
 
-**手順7のあと**、基準templateの完全性IDをmanifestへ書いてrevisionを上げます。`manifest compare`が`profile_contract_established`を返し、`invalidated`が空であることを確認してから`V-12C`へ進みます。3回目から5回目まで、3回ともそのとおりに動きました。
+**手順7のあと**、基準templateの完全性IDをmanifestへ書いてrevisionを上げました。`manifest compare`は`profile_contract_established`を返し、`invalidated`は空でした。3回目から6回目まで、4回ともそのとおりに動いています。
 
-**campaignを始める前に、helperのbuild hashが意図した値かを確かめます。** 上の手順3で行います。2回目のcampaignを無効にした原因がhelperのbuild hashの変化だったためです。5回目の開始時は、cleanな`95b60bc`から別pathへ2回buildして`087038c7…`で一致し、artifact全件と`build-index.json`がbyte単位で同じであることを確認しました。**意図した修正以外で値が変わっていたら、それ自体が先に調べるべき事実です。** そのまま続けてはいけません。
+**campaignを始める前に、helperのbuild hashが意図した値かを確かめます。** 上の手順3で行います。2回目のcampaignを無効にした原因がhelperのbuild hashの変化だったためです。6回目の開始時は、cleanな`1bf47c8`から別pathへ2回buildして`8d5c478e…`で一致し、artifact全件と`build-index.json`がbyte単位で同じであることを確認しました。**意図した修正以外で値が変わっていたら、それ自体が先に調べるべき事実です。** そのまま続けてはいけません。
 
-**`TD-11`の実行には、campaignごとに人の明示承認が要ります。** AtCoderへの接続を伴うためで（[作業ガイド §4](CLAUDE.md#4-外部操作には明示承認が必要)）、「`TD-11`を進めてよい」という一般的な依頼を接続の承認へ読み替えません。3回目から5回目は、それぞれ別の承認を得て実行しました。**6回目にはまた別の承認が要ります。ただしCWSの審査・提出・公開は発生しません。** 配信中の`0.1.1`をそのまま使い、公開済みのlistingから標準追加するだけです。
+**`TD-11`の実行には、campaignごとに人の明示承認が要りました。** AtCoderへの接続を伴うためで（[作業ガイド §4](CLAUDE.md#4-外部操作には明示承認が必要)）、「`TD-11`を進めてよい」という一般的な依頼を接続の承認へ読み替えません。3回目から6回目は、それぞれ別の承認を得て実行しました。6回目の手順2〜5は外部接続を伴わないため、承認なしで実行しています。
 
-**修正版`0.1.1`の初回導線は、2回目から5回目まで4回とも実機で最後まで通りました。** `V-12A`と`V-12C`は外部通信0件で再現できるため、人の手が要るのは`V-12B → V-12D`と`V-12E`だけです。**CWSの審査・提出・公開は、拡張機能のsourceを変えない限り発生しません**（[ADR-0011](docs/decisions/0011-add-submit-entry-before-rerunning-v12.md)決定2）。
+**修正版`0.1.1`の初回導線は、2回目から6回目まで5回とも実機で最後まで通りました。** `V-12A`と`V-12C`は外部通信0件で再現できるため、人の手が要るのは`V-12B → V-12D`と`V-12E`だけです。**CWSの審査・提出・公開は、拡張機能のsourceを変えない限り発生しません**（[ADR-0011](docs/decisions/0011-add-submit-entry-before-rerunning-v12.md)決定2）。
 
-**同じ型の見落としを3度起こしています。** 同意画面のcontent script（[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)）、`Origin`ヘッダー（[ADR-0012](docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md)）、そして今回の受け渡しです。**いずれもbrowser側で起きることを、手元の想定で代用していました。** 規則は[検証物README](scripts/verification/atcoder_v12/README.md)に置きました。**検証物へ触る前にそこを読んでください。**
-
-次の外部操作も、それぞれ別の明示承認が要ります。
-
-- `TD-11`の`V-12C`で使う更新test用`0.1.2`のupload・審査提出（現在は未upload。[ADR-0009](docs/decisions/0009-required-cases-for-v12c.md)により必須caseからは外れている）
-- campaign終了後にCWS itemを非公開化する操作
+**同じ型の見落としを3度起こしました。** 同意画面のcontent script（[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)）、`Origin`ヘッダー（[ADR-0012](docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md)）、そして受け渡し（[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md)）です。**いずれもbrowser側で起きることを、手元の想定で代用していました。** 6回目は、人の15分を使う前にbrowserで実測してから始め、実機でも同じ結果になっています。規則は[検証物README](scripts/verification/atcoder_v12/README.md)に置きました。**検証物へ触る前にそこを読んでください。**
 
 **`TD-39`は2026年9月18日に完了しました。** ただし完了条件のうち「`0.1.1`が未uploadのまま保持され」という項目は、[ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)で前提が変わりました。`0.1.1`を修正版へ充て、更新testに使う版は`0.1.2`へ繰り下げています。`TD-39`の本文と完了条件は書き換えません。
 
@@ -260,15 +260,15 @@ AlgoLoomの側では進められず、外部の応答または人の承認を待
 | [`TD-52`](#td-52-browser由来のrequestを手で組み立てている契約testを洗い出す) | 技術検証 | browser由来のrequestを手で組み立てている契約testを洗い出す | ― | 完了 | [ADR-0012](docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md) |
 | [`TD-53`](#td-53-提出確認画面から提出pageへの受け渡しが成立しない原因を特定する) | 技術検証 | 提出確認画面から提出pageへの受け渡しが成立しない原因を特定する | ― | 完了 | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md) |
 | [`TD-54`](#td-54-helperの成功報告が到達していないことを覆い隠さないようにする) | 技術検証 | helperの成功報告が「到達していない」ことを覆い隠さないようにする | ― | 完了 | [ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md) |
-| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42`, `TD-49`, `TD-50`, `TD-51`, `TD-52`, `TD-53`, `TD-54` | 進行中 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md)、[ADR-0009](docs/decisions/0009-required-cases-for-v12c.md)、[ADR-0011](docs/decisions/0011-add-submit-entry-before-rerunning-v12.md)、[ADR-0012](docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md)、[ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md) |
+| [`TD-11`](#td-11-方式a製品形態を実サービスで検証する) | 技術検証 | 方式A製品形態を実サービスで検証する | `TD-39`, `TD-42`, `TD-49`, `TD-50`, `TD-51`, `TD-52`, `TD-53`, `TD-54` | 完了 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md)、[ADR-0009](docs/decisions/0009-required-cases-for-v12c.md)、[ADR-0011](docs/decisions/0011-add-submit-entry-before-rerunning-v12.md)、[ADR-0012](docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md)、[ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md)、[ADR-0015](docs/decisions/0015-do-not-confirm-method-a-product-adoption-on-v12-pass.md) |
 | [`TD-43`](#td-43-検証支援物の実行経路をbrowser相当で確認する範囲を決める) | 設計判断 | 検証支援物の実行経路をbrowser相当で確認する範囲を決める | ― | 完了 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0008](docs/decisions/0008-scope-of-execution-based-checks-for-verification-artifacts.md) |
 | [`TD-44`](#td-44-helperのエラーが原因を一意に指せない箇所を洗い出して直す) | 技術検証 | helperのエラーが原因を一意に指せない箇所を洗い出して直す | ― | 完了 | ― |
 | [`TD-45`](#td-45-campaign-manifestの確定遷移が自分を無効化する不整合を直す) | 技術検証 | campaign manifestの確定遷移が自分を無効化する不整合を直す | ― | 完了 | [ADR-0006](docs/decisions/0006-profile-contract-establishment-is-not-invalidation.md)、[ADR-0007](docs/decisions/0007-make-helper-build-hash-track-behaviour.md) |
-| [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 進行中 | [ADR-0009](docs/decisions/0009-required-cases-for-v12c.md)、[ADR-0010](docs/decisions/0010-build-the-three-os-auth-matrix-before-v12-passes.md) |
+| [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る) | 機能設計 | 3つのOSの認証検証マトリクスを作る | `TD-11` | 進行中 | [ADR-0009](docs/decisions/0009-required-cases-for-v12c.md)、[ADR-0010](docs/decisions/0010-build-the-three-os-auth-matrix-before-v12-passes.md)、[ADR-0015](docs/decisions/0015-do-not-confirm-method-a-product-adoption-on-v12-pass.md) |
 | [`TD-47`](#td-47-windowsの秘密情報保管庫が保証する範囲を観測する) | 技術検証 | Windowsの秘密情報保管庫が保証する範囲を観測する | ― | 未着手 | ― |
 | [`TD-48`](#td-48-linuxの検証環境を確保し秘密情報保管庫が保証する範囲を観測する) | 技術検証 | Linuxの検証環境を確保し、秘密情報保管庫が保証する範囲を観測する | `TD-18` | 未着手 | ― |
 | [`TD-46`](#td-46-検証マトリクスを確定しwindowsとlinuxの秘密情報保管庫を観測する) | 機能設計 | 検証マトリクスを確定し、WindowsとLinuxの秘密情報保管庫を観測する | `TD-12`, `TD-31`, `TD-47`, `TD-48` | 未着手 | [ADR-0010](docs/decisions/0010-build-the-three-os-auth-matrix-before-v12-passes.md) |
-| [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 | ― |
+| [`TD-40`](#td-40-提出ページのcontent-scriptとturnstileの共存を検証する) | 技術検証 | 提出ページのcontent scriptとTurnstileの共存を検証する | `TD-11` | 未着手 | [ADR-0015](docs/decisions/0015-do-not-confirm-method-a-product-adoption-on-v12-pass.md) |
 | [`TD-38`](#td-38-認証配布物とテンプレートのライフサイクル契約を確定する) | 機能設計 | 認証配布物とテンプレートのライフサイクル契約を確定する | `TD-11`, `TD-12` | 未着手 | ― |
 | [`TD-41`](#td-41-製品形態の拡張機能の審査条件と確認gateを確定する) | 設計判断 | 製品形態の拡張機能の審査条件と確認gateを確定する | `TD-38`, `TD-40` | 未着手 | ― |
 | [`TD-13`](#td-13-ツールチェーン観測を履歴へ保存するか決定する) | 設計判断 | ツールチェーン観測を履歴へ保存するか決定する | ― | 完了 | ― |
@@ -1069,7 +1069,7 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 - [x] 外部サービスへ接続していない（probeはloopback 2つだけを使い、使い捨てChrome profileはリポジトリ外に作って破棄する）
 - [x] `TD-54`と同じ変更にまとまっている
 
-**残り:** 6回目のcampaignの開始前に、cleanな作業treeでhelperのbuild hashを記録します。**`087038c7…`から変わります。**
+**2026年9月21日に記録しました。** cleanな`1bf47c8`から別pathへ2回buildし、helperのbuild hashは**`087038c7…`から`8d5c478e…`へ変わりました。** 2回のbuildは`build-index.json`を含めてbyte単位で一致しています。Keychain adapterと拡張ZIPは変わっていません。
 
 ---
 
@@ -1114,6 +1114,12 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 | 依存 | `TD-39`、`TD-42` |
 | 決定 | [ADR-0005](docs/decisions/0005-verify-consent-flow-in-browser-semantics.md)、[ADR-0009](docs/decisions/0009-required-cases-for-v12c.md) |
 
+**2026年9月21日の実施記録（6回目、campaign `v12-2026-09-21-02`。この作業はこれで完了）:** **`V-12A`〜`V-12E`が同じcampaign manifestで合格し、`V-12`全体が合格しました**（[実行記録](docs/verification/judge-adapter/results/2026-09-21-v12-05.md)）。標準追加から基準templateの一度だけの確定（完全性ID `25bfb2a1…`）、同意画面、AtCoderログイン、本人照合、secret store保存、新processからの再照合、`submit`中の再認証、提出確認画面、**303による提出pageへの受け渡し**までが分断なく成立しています。`GET /settings`は**上限と同数の2回**、提出0件、Bot対策の回避0件です。**`V-12E`の到達は人の観測です。** helperの結果JSONは`submit_page_arrival: unobserved_by_helper`のままで、ownerが画面でAtCoderの提出pageを確認しました（[`TD-54`](#td-54-helperの成功報告が到達していないことを覆い隠さないようにする)）。`V-12C`の必須case5件も外部通信0件で合格し、基準templateと`V-12D`の保存sessionを変更していません。campaign終了時に基準template、store用一時情報、secret store項目を破棄し、**不在は`secret delete`の戻り値ではなく独立した`exists`（終了コード44）で確認しました。** 残存は0件です。**方式Aを製品として採用すると確定するかどうかは人の判断で、まだ得ていません。** 手順11の反映は[AtCoder認証設計](docs/architecture/atcoder-authentication.md)へ行いました。
+
+**準備の記録（同campaign、手順2〜5）:** 手順2〜5を実行し、**`V-12A`が外部通信0件で合格しました**（[実行記録](docs/verification/judge-adapter/results/2026-09-21-v12-05.md)）。5回目の資源（基準template 完全性ID `56cb7608…`、manifest revision 1・2、実行script2件、`build/`、store用一時情報）を先に破棄しています。**破棄の前に、消す対象が5回目のものであることを照合しました**（markerの完全性ID、manifestの`campaign_id`、buildの`source_revision`）。検証用secret store項目の不在は、`secret delete`の戻り値ではなくKeychain adapterの`exists`（終了コード44）で確かめ、使い捨てのprobe項目の`add` → `exists`が0 → `delete` → `exists`が44で**確認手段そのものの検出能力も先に実測しています**（[`TD-50`](#td-50-helperの誤った成功報告と原因を指せないエラー名を直す)の1件目）。helperのbuild hashは`8d5c478e…`で[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md)の予告どおり変わり、Keychain adapter・拡張ZIP・review fixtureは変わっていません。**拡張機能のsourceが変わっていないため、CWSの審査・提出・公開は発生しません。** 固定入力のtestはGo 26件、Node 24件、review fixture 16 caseがすべて合格しました（5回目はGo 19件で、増分は`TD-52`〜`TD-54`が足した分です）。配信中の`0.1.1`は取得済みのbytesがmanifestの`signed_builds`と一致し、`atcoder.js`・`bootstrap.js`・`service_worker.js`・`icon128.png`が生成物とbyte単位で一致、権限は`cookies`・`storage`とhost 2件のみでした。**人の15分を使う前に、5回目が止まった箇所をprobeで実測しています。** [受け渡しのprobe](scripts/verification/atcoder_v12/submission-handoff-probe.mjs)で、negative control 2件が「着かない」と出ること（検出能力があること）と、現行の経路が提出page相当へ着くことを確かめました。**手順6以降は人の明示承認を待っています。**
+
+**2026年9月21日の実施記録（5回目、campaign `v12-2026-09-21-01`。このcampaignは無効）:** **`TD-53`・`TD-54`の修正でhelperのbuild hashが変わったため、このcampaign全体を無効としました。** `V-12A`・`V-12B`・`V-12C`の必須case・`V-12D`は合格し、初回導線は実機で成立しています。**`V-12E`は最後の受け渡しに到達しませんでした。** 4回目の`authentication_rejected`は再発せず、POSTはhelperが受理して303も書いていますが、browserは提出pageへ着かず`ERR_CONNECTION_REFUSED`を表示しました。原因は提出確認画面のCSPの`form-action`で、2026年9月21日にローカルのprobeで特定しました（[ADR-0013](docs/decisions/0013-find-the-cause-before-fixing-the-v12e-handoff.md)、[ADR-0014](docs/decisions/0014-allow-the-submit-origin-in-the-submission-page-form-action.md)）。**最初の仮説は実測で否定しました。** 記録は[`v12-04`](docs/verification/judge-adapter/results/2026-09-21-v12-04.md)にあります。
+
 **2026年9月20日の実施記録（4回目、campaign `v12-2026-09-20-03`。実施中）:** 手順2〜4を実行し、**`V-12A`が外部通信0件で合格しました**（[実行記録](docs/verification/judge-adapter/results/2026-09-20-v12-03.md)）。3回目の資源（基準template 完全性ID `b7612eab…`、manifest revision 1・2、実行script、`build/`、store用一時情報）を先に破棄しています。**検証用secret store項目の不在は、`secret delete`の戻り値ではなくKeychain adapterの`exists`で確かめました。** さらに使い捨てのprobe項目を`add` → `exists`が「あり」 → `delete` → `exists`が「なし」と動くことを実測し、**確認手段が「常に不在を返しているのではない」ことを先に確かめています**（[`TD-50`](#td-50-helperの誤った成功報告と原因を指せないエラー名を直す)の1件目）。helperのbuild hashは`189f02a3…`で[ADR-0011](docs/decisions/0011-add-submit-entry-before-rerunning-v12.md)の予告値と一致し、Keychain adapter・拡張ZIP・review fixtureは変わっていません。**拡張機能のsourceが変わっていないため、CWSの審査・提出・公開は発生しません。** 固定入力のtestはGo 19件、Node 24件、review fixture 16 caseがすべて合格しました（3回目はGo 14件、Node 20件で、増分は`TD-49`・`TD-50`が足した分です）。配信中の`0.1.1`は取得済みのbytesがmanifestの`signed_builds`と一致し、`atcoder.js`・`bootstrap.js`・`service_worker.js`・`icon128.png`が生成物とbyte単位で一致、権限は`cookies`・`storage`とhost 2件のみでした。明示承認を得て手順5〜7も進めました。当日の外部条件5件に開始しない条件への該当はなく、**`V-12B`・`V-12D`が合格しました**（基準templateの完全性ID `261040eb…`、`REVEL_SESSION`候補1件、本人照合一致、新process再照合成功、`GET /settings`2回で上限内、提出0件）。基準templateの確定でmanifestをrevision 2へ上げても`manifest compare`の`invalidated`は空で、`profile_contract_established`と判定されました。**`V-12C`の必須case5件も合格し、`TD-50`が直した2件が実campaignで効いていることを実行で確認しました。** `profile inspect`は`extension_version_not_installed`を返して重複と区別でき、`secret delete`はKeychain adapterでない実行ファイルに対して`secret_store_delete_failed`を返し、**残っている項目を消したと報告しなくなっています。**
 
 **`V-12E`は最後の受け渡しで停止しました。** 再認証も提出確認画面の表示も成立しましたが、画面の「AtCoderの提出画面へ進む」を押したPOSTを、**helper自身が`authentication_rejected`で拒否しました。** 提出確認画面が`Referrer-Policy: no-referrer`付きで配信されるため、そのページからのform POSTでChromeが`Origin: null`を送り、helperのorigin検査と一致しないためです。2026年9月20日にローカルだけで実測して確定しました。**`V-12E`は不合格ではありません。** 方式Aが成立しないという観測ではなく、検証物が最後の受け渡しで自分の画面を拒否したという不具合です。対応は[ADR-0012](docs/decisions/0012-serve-submission-page-with-same-origin-referrer-policy.md)で決め、[`TD-51`](#td-51-提出確認画面のform-postがbrowserで拒否される問題を直す)と[`TD-52`](#td-52-browser由来のrequestを手で組み立てている契約testを洗い出す)を起票しました。**この修正でhelperのbuild hashが変わるため、4回目のcampaignも無効になります。**
@@ -1156,17 +1162,17 @@ if err != nil || !cleanupVerifier.keychainItemAbsent() {
 
 **完了条件:**
 
-- [ ] `V-12A`〜`V-12E`の各合否、観測元、証拠が実行記録に記載されている
-- [ ] `V-12B → V-12D`が分断されず、初回の一往復UXと手動操作が記録されている
-- [ ] `V-12E`が同じ配布物・基準templateを使う別のCLI実行から始まり、別の認証commandなしで同じbrowserの提出確認画面まで進んでいる
-- [ ] 署名済み拡張機能、helper、protocol、template schema、同意版とすべてのsub結果が、同じcampaign manifestで一意に対応付いている
-- [ ] `V-12C`の各caseが隔離され、基準templateと`V-12D`の保存sessionを変更していない
-- [ ] 秘密情報が成果物、ログ、Gitへ残っていない
-- [ ] 追加提出が0件である
-- [ ] 基準templateは`V-12B`で一度だけ確定され、再作成せず`V-12E`まで使われた後に削除されている
-- [ ] caseごとの一時資源とcampaign終了時の後始末対象の残存が0件であるか、残す限定公開物のownerと停止方法が記録されている
-- [ ] 5つすべてが合格した場合だけ`V-12`全体を合格としている
-- [ ] 不合格の場合、回避実装ではなく再設計または範囲再検討の記録がある
+- [x] `V-12A`〜`V-12E`の各合否、観測元、証拠が実行記録に記載されている（[`v12-05`](docs/verification/judge-adapter/results/2026-09-21-v12-05.md)）
+- [x] `V-12B → V-12D`が分断されず、初回の一往復UXと手動操作が記録されている（一つのhelper invocationで標準追加から新process再照合まで通した）
+- [x] `V-12E`が同じ配布物・基準templateを使う別のCLI実行から始まり、別の認証commandなしで同じbrowserの提出確認画面まで進んでいる（`extra_authentication_commands`と`extra_confirmations`がいずれも0）
+- [x] 署名済み拡張機能、helper、protocol、template schema、同意版とすべてのsub結果が、同じcampaign manifestで一意に対応付いている（revision 1 `f7f4c1c8…`・revision 2 `578427ea…`。`invalidated`は空で、`V-12A`のprojectionは両revisionで`c3792d02…`）
+- [x] `V-12C`の各caseが隔離され、基準templateと`V-12D`の保存sessionを変更していない（caseの前後で完全性IDは`25bfb2a1…`のまま、保存sessionは`exists`が0のまま）
+- [x] 秘密情報が成果物、ログ、Gitへ残っていない（`check-forbidden.mjs`の検出0件、build indexの`secrets_present`は`false`、helper出力の`secret_values_in_output`は`false`）
+- [x] 追加提出が0件である（`submission_form_operated: false`、`submitted: false`）
+- [x] 基準templateは`V-12B`で一度だけ確定され、再作成せず`V-12E`まで使われた後に削除されている
+- [x] caseごとの一時資源とcampaign終了時の後始末対象の残存が0件であるか、残す限定公開物のownerと停止方法が記録されている（**CWS itemは限定公開のまま残している。** 非公開化は別の明示承認が要る外部操作で、公開範囲・目的・停止方法とownerは[CWS配布準備](docs/verification/judge-adapter/v12-chrome-web-store-preparation.md)にある）
+- [x] 5つすべてが合格した場合だけ`V-12`全体を合格としている
+- [x] 不合格の場合、回避実装ではなく再設計または範囲再検討の記録がある（1回目から5回目まで、いずれも回避を足さず原因を直してやり直した）
 
 ---
 
