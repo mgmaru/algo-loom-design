@@ -1239,12 +1239,13 @@ macOSの観測では、§4.1が理由から導いていた「信頼される実�
 | カテゴリ | 技術検証 |
 | 対象ファイル | [`docs/architecture/atcoder-authentication.md`](docs/architecture/atcoder-authentication.md) §4.1.2（新規）、[`docs/project/unresolved-decisions.md`](docs/project/unresolved-decisions.md) 7.3 |
 | 依存 | ― |
+| 実行手順 | [秘密情報保管庫の観測手順](docs/verification/secret-store/README.md) |
 
 **なぜこの作業が要るか:** [未決事項 7.3](docs/project/unresolved-decisions.md#73-秘密情報保管庫が保証する範囲と表示文言)は3つのOSでの観測を求めています。macOSは2026年9月20日に観測しました（[認証設計 §4.1.1](docs/architecture/atcoder-authentication.md#411-macosで観測した実際の保証範囲)）。**Windowsは実機があり、AtCoderにもChrome Web Storeにも接続しないため、他の作業を待たずに実施できます。** [`TD-12`](#td-12-3つのosの認証検証マトリクスを作る)の手順2へ入れたままにすると、`TD-11`待ちの作業に巻き込まれて着手可能な作業として見えなくなるため、独立させます。
 
 **手順:**
 
-1. Windows実機で観測物を実行する。AtCoderへ接続せず、実アカウントとCookieを使わない。
+1. Windows実機で観測物を実行する。AtCoderへ接続せず、実アカウントとCookieを使わない。**別の端末で再現するための手順は[秘密情報保管庫の観測手順](docs/verification/secret-store/README.md)にある。**
 
    ```console
    py -3 scripts\verification\secret_store_guarantees.py
