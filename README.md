@@ -116,6 +116,7 @@ node scripts/check-docs.mjs    # 相対リンクとアンカーの検査
 | [ライブラリ選定記録](docs/project/library-selection.md) | MVP実装で使うライブラリと外部ツールの採否、根拠、再評価条件 | 工程4の選定判断。`online-judge-tools`は決定済み、その他は進行中 |
 | [未決事項一覧](docs/project/unresolved-decisions.md) | 未決、一部決定済み、条件付き決定の集約 | 判断状況の一覧。各設計の正本は置き換えない |
 | [JudgeAdapter技術検証の実施手順](docs/verification/judge-adapter/README.md) | 実行前確認、停止条件、成果物と一時データの分離 | 技術検証の運用手順。合格条件の正本は検証計画 |
+| [秘密情報保管庫の観測手順](docs/verification/secret-store/README.md) | 別の端末で観測を再現する手順、安全境界、後始末 | 実行手順。結果の解釈と表示文言は`TD-46`が決める |
 
 ## 正本の扱い
 
