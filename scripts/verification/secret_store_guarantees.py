@@ -250,11 +250,20 @@ class WindowsCredentialLockerBackend(Backend):
             " public static extern bool CredReadW(string t, uint y, uint f, out IntPtr c);"
             "[DllImport(\"advapi32.dll\")] public static extern void CredFree(IntPtr c);';"
             "$p=[IntPtr]::Zero;"
+            # CREDENTIAL構造体の位置はポインタ幅で変わる。64 bitでCredentialBlobSizeが32、
+            # CredentialBlobが40、32 bitでは24と28。固定値にすると別の幅で空文字を読み、
+            # 「読めなかった」と取り違える。
+            "if([IntPtr]::Size -eq 8){$so=32;$bo=40}else{$so=24;$bo=28};"
             f"if([P.C]::CredReadW('{target}',1,0,[ref]$p))"
-            "{$size=[Runtime.InteropServices.Marshal]::ReadInt32($p,16);"
-            "$ptr=[Runtime.InteropServices.Marshal]::ReadIntPtr($p,24);"
+            "{$size=[Runtime.InteropServices.Marshal]::ReadInt32($p,$so);"
+            "$ptr=[Runtime.InteropServices.Marshal]::ReadIntPtr($p,$bo);"
             "$s=[Runtime.InteropServices.Marshal]::PtrToStringUni($ptr,$size/2);"
-            "[P.C]::CredFree($p);Write-Output $s;exit 0}"
+            "[P.C]::CredFree($p);"
+            # 読み出し自体は成功したのに値が空なら、保管庫の結果ではなく観測物の不具合。
+            # 黙って「読めなかった」にせず、区別できる文字列を出す。
+            "if([string]::IsNullOrEmpty($s))"
+            "{Write-Output \"CredReadW succeeded but blob was empty (size=$size)\";exit 2};"
+            "Write-Output $s;exit 0}"
             "else{Write-Output 'CredReadW failed';exit 1}")
         for shell in ("powershell.exe", "pwsh.exe"):
             status, detail = run_child([shell, "-NoProfile", "-NonInteractive", "-Command", script])
